@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const achievements = fs.readdirSync('../Achievements').filter(f => f.endsWith('.bin')).length;
 let dots = 0;
+color = '#555555'
 
 // Variáveis Globais de Configuração
 function startLogoAnimation() {
@@ -37,27 +38,6 @@ const player = require('play-sound')({
   player: './SOUNDTRACK/VLC/cmdmp3.exe' 
 });
 
-function playSfx() {
-  if (audiostate === 'ON') {
-    // O comando agora será totalmente invisível para o usuário
-    player.play('./SOUNDTRACK/click.mp3', (err) => {
-      if (err) {
-        // Se der erro (arquivo faltando), o terminal não trava
-      }
-    });
-  }
-}
-
-function backsfx() {
-   if (audiostate === 'ON') {
-    // O comando agora será totalmente invisível para o usuário
-    player.play('./SOUNDTRACK/click2.mp3', (err) => {
-      if (err) {
-        // Se der erro (arquivo faltando), o terminal não trava
-      }
-    });
-  }
-}
 
 
 function fullscreen_pre_save() {
@@ -93,13 +73,13 @@ const vbsPath = path.join(__dirname, 'toggle_fs.vbs');
 }
 }
 
-
-if (fs.existsSync('../CONFIG/AUDIOCLICK.txt')) {
-  var audioclick = fs.readFileSync(path.join('../CONFIG/AUDIOCLICK.txt'), 'utf8').trim();
+if (fs.existsSync('../CONFIG/SIDEBAR.txt')) {
+    var SIDEBAR = fs.readFileSync(path.join('../CONFIG/SIDEBAR.txt'), 'utf8').trim();
 } else {
-  var audioclick = 'ON';
-  fs.writeFileSync('../CONFIG/AUDIOCLICK.txt', audioclick, 'utf8');
+    var SIDEBAR = 'OFF';
+    fs.writeFileSync('../CONFIG/SIDEBAR.txt', SIDEBAR, 'utf8');
 }
+
 if (fs.existsSync('../CONFIG/GLITCH.txt')) {
   var GLITCH = fs.readFileSync(path.join('../CONFIG/GLITCH.txt'), 'utf8').trim();
 } else {
@@ -149,7 +129,7 @@ let CANwin = 'OFF';
 let vlcProcess = null;
 const audioFile = './SOUNDTRACK/1.mp3';
 
-let winVersion = '6.3'
+let winVersion = os.release()
 let userName = os.userInfo().username;
 
 
@@ -201,7 +181,7 @@ const logoBox = blessed.box({
   width: 'shrink',
   height: 8,
   content: logoText,
-  style: { fg: COLORDEFAULT, bold: true }
+  style: { fg: COLORDEFAULT}
 });
 
 // Container Principal do Menu
@@ -240,7 +220,7 @@ mainList.on('select item', (item) => {
   
   const desc = menuDescriptions[rawText] || 'SELECT AN OPTION USING ARROW KEYS AND PRESS ENTER';
   
-  descriptionBox.setContent(`{center}${desc.toUpperCase()}{/center}`);
+  descriptionBox.setContent(`{bold}${desc.toUpperCase()}{/}`);
   
   screen.render();
 });
@@ -250,15 +230,13 @@ mainList.on('select item', (item) => {
 const descriptionBox = blessed.box({
   parent: screen,
   bottom: 0, // Posiciona no rodapé
-  left: 'center',
+  left: '0',
   width: '100%',
   tags: true,
-  height: 3, // Tamanho pequeno para a mini descrição
-  content: '{center}SELECT AN OPTION USING ARROW KEYS AND PRESS ENTER{/center}',
-  border: { type: 'line' },
+  height: 1, // Tamanho pequeno para a mini descrição
+  content: '{bold}SELECT AN OPTION USING ARROW KEYS AND PRESS ENTER{/}',
   style: {
-    fg: COLORDEFAULT,
-    border: { fg: COLORDEFAULT }
+    fg: color,
   }
 });
 
@@ -272,53 +250,20 @@ const menuDescriptions = {
   'EXIT': 'EXIT THE APPLICATION SAFELY. (DO NOT FORCE CLOSE)'
 };
 
-const copyrightBOX2 = blessed.box({
-  parent: screen,
-  bottom: 3,
-  left: '0',
-  width: 'shrink',
-  height: 3,
-  content: ' © 2025 PALE LUNA DEVELOPER ',
-  border: { type: 'line' },
-  tags: true,
-  style: {
-    fg: COLORDEFAULT,
-    bold: true,
-    border: { fg: COLORDEFAULT }
-  },
-});
-
-const copyrightBOX3 = blessed.box({
-  parent: screen,
-  bottom: 3,
-  left: 30, // 25 colunas a partir da esquerda (ajuste conforme necessário)
-  width: 'shrink', 
-  height: 3,
-  content: ` ACHIEVEMENTS COMPLETED: ${achievements} `, // Texto mais curto para evitar overlap
-  border: { type: 'line' },
-  tags: true,
-  style: {
-    fg: COLORDEFAULT,
-    bold: true,
-    border: { fg: COLORDEFAULT }
-  },
-});
 
 
 
 const copyrightBOX1 = blessed.box({
   parent: screen,
-  bottom: 3,
+  bottom: 0,
   right: '0',
   width: 'shrink',
-  height: 3,
+  height: 1,
   content: ' V1_BETA ',
-  border: { type: 'line' },
   tags: true,
   style: {
-    fg: COLORDEFAULT,
+    fg: color,
     bold: true,
-    border: { fg: COLORDEFAULT }
   },
 });
 
@@ -536,12 +481,11 @@ function showSettings() {
     tags:true,
     items: [
       ' AUDIO: [' + audiostate + ']',
-      ' CLICK AUDIO [' + audioclick + ']',
       ' COLOR: [' + COLORNAME + ']',
       ' GLITCH LOGO: [' + GLITCH + ']',
       ' USERNAME: [' + USERNAMEP + ']',
       ' FULL SCREEN: [' + FULLSCREEN + ']',
-      ' DIFFICULTY: [' + DIFFICULTY + '] ',
+      ' SIDEBAR: [' + SIDEBAR + ']',
       '{white-fg}─────────────────────────────────────────{/white-fg}',
       ' RESET TO DEFAULTS ',
       ' BACK TO MENU '
@@ -572,11 +516,10 @@ function showSettings() {
 
   settingsWin.on('select', (item) => {
     const txt = item.getText();
-    
+
     if (txt.includes('───')) return;
 
     if (txt.includes('BACK')) {
-      backsfx()
       bgOverlay.destroy(); // Destrói o fundo e tudo que estiver dentro dele
       mainList.focus();
       screen.render();
@@ -584,7 +527,6 @@ function showSettings() {
     }
 
     if (txt.includes('AUDIO')) {
-      playSfx()
       if (audiostate === 'ON') {
         audiostate = 'OFF';
         if (fs.existsSync('../CONFIG/AUDIOSTATE.txt')) {
@@ -666,7 +608,6 @@ screen.render();
     }
 
     if (txt.includes('COLOR')) {
-      playSfx()
       if (COLORDEFAULT === '#ff0000') {
          COLORDEFAULT = '#00ff00';
          COLORNAME = 'GREEN';
@@ -715,20 +656,17 @@ screen.render();
       mainList.style.selected.bg = COLORDEFAULT;
       settingsWin.style.border.fg = COLORDEFAULT;
       settingsWin.style.selected.bg = COLORDEFAULT;
-      descriptionBox.style.fg = COLORDEFAULT;
-      descriptionBox.style.border.fg = COLORDEFAULT;
-      copyrightBOX1.style.fg = COLORDEFAULT
-      copyrightBOX1.style.border.fg = COLORDEFAULT
-      copyrightBOX2.style.fg = COLORDEFAULT
-      copyrightBOX2.style.border.fg = COLORDEFAULT
-      copyrightBOX3.style.fg = COLORDEFAULT
-      copyrightBOX3.style.border.fg = COLORDEFAULT
+      hotkeysBar.style.border.fg = COLORDEFAULT
+      statusBox.style.border.fg = COLORDEFAULT
+      hotkeysBar.style.fg = COLORDEFAULT
+      statusBox.style.fg = COLORDEFAULT
+      hotkeysBar.style.label.fg = COLORDEFAULT
+      statusBox.style.label.fg = COLORDEFAULT
 
       settingsWin.focus();
     }
 
     if (txt.includes('USERNAME')) {
-      playSfx()
   // 1. Cria o campo de texto dentro do seu quadrado/janela
     const bgOverlay1 = blessed.box({
     parent: screen,
@@ -776,7 +714,7 @@ screen.render();
       }
       fs.writeFileSync('../CONFIG/USER.txt', USERNAMEP, 'utf8');
 
-      settingsWin.setItem(2, ' USERNAME: [' + USERNAMEP + ']');
+      settingsWin.setItem(3, ' USERNAME: [' + USERNAMEP + ']');
     }
     
     input.destroy();
@@ -792,7 +730,6 @@ screen.render();
 }
 
 if (txt.includes('FULL SCREEN')) {
-  playSfx()
     
     const iswin11 = winVersion.startsWith('10.0.2');
     const iswin10 = winVersion.startsWith('10.0') && !iswin11;
@@ -839,12 +776,12 @@ if (txt.includes('FULL SCREEN')) {
     }
     fs.writeFileSync('../CONFIG/FULLSCREEN.txt', FULLSCREEN, 'utf8');
     settingsWin.setItem(4, ' FULL SCREEN: [' + FULLSCREEN + ']');
+
     }
 
 }
 
 if (txt.includes('GLITCH')) {
-  playSfx()
     // Alterna o estado
     GLITCH = (GLITCH === 'ON') ? 'OFF' : 'ON';
 
@@ -861,28 +798,25 @@ if (txt.includes('GLITCH')) {
     screen.render();
 }
 
-if (txt.includes('DIFFICULTY')) {
-  playSfx()
-      if (DIFFICULTY === 'EASY') {
-         DIFFICULTY = 'NORMAL';
-          } else if (DIFFICULTY === 'NORMAL') {
-          DIFFICULTY = 'HARD';
-        } else { 
-          DIFFICULTY = 'EASY'; 
-        }
-      if (fs.existsSync('../CONFIG/DIFFICULTY.txt')) {
-          fs.unlinkSync('../CONFIG/DIFFICULTY.txt');
-        }
-          fs.writeFileSync('../CONFIG/DIFFICULTY.txt', DIFFICULTY, 'utf8');
-      settingsWin.setItem(5, ' DIFFICULTY: [' + DIFFICULTY + '] ');
+if (txt.includes('SIDEBAR')) {
+    SIDEBAR = (SIDEBAR === 'ON') ? 'OFF' : 'ON';
+    fs.writeFileSync('../CONFIG/SIDEBAR.txt', SIDEBAR, 'utf8');
+
+    // Atualiza o item no menu (verifique se o índice mudou, aqui assumo Index 2)
+    settingsWin.setItem(5, ' SIDEBAR: [' + SIDEBAR + ']');
+
+    // Aplica a visibilidade em tempo real
+    if (SIDEBAR === 'ON') {
+        leftSidebar.show();
+    } else {
+        leftSidebar.hide();
     }
 
-if (txt.includes('RESET')) {
-  backsfx()
+    screen.render();
+}
 
-  if (fs.existsSync('../CONFIG/AUDIOCLICK.txt')) {
-    fs.unlinkSync('../CONFIG/AUDIOCLICK.txt')
-  }
+if (txt.includes('RESET')) {
+
   if (fs.existsSync('../CONFIG/AUDIOSTATE.txt')) {
     fs.unlinkSync('../CONFIG/AUDIOSTATE.txt');
   }
@@ -909,44 +843,34 @@ if (txt.includes('RESET')) {
 
 
   audiostate = 'ON';
-  audioclick = 'ON'
   COLORNAME = 'RED';
   COLORDEFAULT = '#ff0000';
   USERNAMEP = 'OPERATOR 07';
   FULLSCREEN = 'OFF';
   DIFFICULTY = 'NORMAL';
   GLITCH = 'ON';
+  SIDEBAR = 'OFF';
   
-  fs.writeFileSync('../CONFIG/AUDIOCLICK.txt', audioclick, 'utf8')
-  fs.writeFileSync('../CONFIG/FULLSCREEN.txt', FULLSCREEN, 'utf8');
-  fs.writeFileSync('../CONFIG/AUDIOSTATE.txt', audiostate, 'utf8');
-  fs.writeFileSync('../CONFIG/COLORNAME.txt', COLORNAME, 'utf8');
-  fs.writeFileSync('../CONFIG/COLORDEFAULT.txt', COLORDEFAULT, 'utf8');
-  fs.writeFileSync('../CONFIG/USER.txt', USERNAMEP, 'utf8');
-  fs.writeFileSync('../CONFIG/DIFFICULTY.txt', DIFFICULTY, 'utf8');
-  fs.writeFileSync('../CONFIG/GLITCH.txt', GLITCH, 'utf8');
+    fs.writeFileSync('../CONFIG/FULLSCREEN.txt', FULLSCREEN, 'utf8');
+    fs.writeFileSync('../CONFIG/AUDIOSTATE.txt', audiostate, 'utf8');
+    fs.writeFileSync('../CONFIG/COLORNAME.txt', COLORNAME, 'utf8');
+    fs.writeFileSync('../CONFIG/COLORDEFAULT.txt', COLORDEFAULT, 'utf8');
+    fs.writeFileSync('../CONFIG/USER.txt', USERNAMEP, 'utf8');
+    fs.writeFileSync('../CONFIG/GLITCH.txt', GLITCH, 'utf8');
+    fs.writeFileSync('../CONFIG/SIDEBAR.txt', SIDEBAR, 'utf8');
 
   settingsWin.setItem(0, ' AUDIO: [' + audiostate + ']');
-  settingsWin.setItem(1, ' CLICK AUDIO [' + audioclick + ']');
   settingsWin.setItem(1, ' COLOR: [' + COLORNAME + ']');
   settingsWin.setItem(2, ' GLITCH LOGO: [' + GLITCH + ']');
   settingsWin.setItem(3, ' USERNAME: [' + USERNAMEP + ']');
   settingsWin.setItem(4, ' FULL SCREEN: [' + FULLSCREEN + ']');
-  settingsWin.setItem(5, ' DIFFICULTY: [' + DIFFICULTY + '] ');
+  settingsWin.setItem(5, ' SIDEBAR: [' + SIDEBAR + ']');
 
   
   logoBox.style.fg = COLORDEFAULT;
   mainList.style.selected.bg = COLORDEFAULT;
   settingsWin.style.border.fg = COLORDEFAULT;
   settingsWin.style.selected.bg = COLORDEFAULT;
-  descriptionBox.style.fg = COLORDEFAULT;
-  descriptionBox.style.border.fg = COLORDEFAULT;
-  copyrightBOX1.style.fg = COLORDEFAULT
-  copyrightBOX1.style.border.fg = COLORDEFAULT
-  copyrightBOX2.style.fg = COLORDEFAULT
-  copyrightBOX2.style.border.fg = COLORDEFAULT
-  copyrightBOX3.style.fg = COLORDEFAULT
-  copyrightBOX3.style.border.fg = COLORDEFAULT
 
   settingsWin.focus();
 
@@ -955,6 +879,9 @@ if (txt.includes('RESET')) {
   } else {
     stopAudio();
 }
+
+leftSidebar.hide();
+updateStatus();
 }
     screen.render();
   });
@@ -1072,9 +999,119 @@ function supportGame() {
     screen.render();
 }
 
+// --- SISTEMA DE ATALHOS RÁPIDOS ---
+// --- SISTEMA DE ATALHOS ---
+screen.on('keypress', (ch, key) => {
+    // Normaliza a tecla para evitar erro com Shift/Caps Lock
+    const k = key.full.toLowerCase();
+    
+    // [M] - Mudo Rápido
+    if (k === 'm') {
+        if (audiostate === 'ON') {
+            audiostate = 'OFF';
+            stopAudio();
+        } else {
+            audiostate = 'ON';
+            playAudio();
+        }
+        fs.writeFileSync('../CONFIG/AUDIOSTATE.txt', audiostate, 'utf8');
+        updateStatus();
+    }
+
+    // [F1] ou [i] - System Info
+    if (k === 'f1' || k === 'i') {
+        showSystemInfo();
+        updateStatus();
+    }
+
+    // [C] - Ciclo de Cores
+    if (k === 'c') {
+        if (COLORDEFAULT === '#ff0000') { 
+            COLORDEFAULT = '#00ff00'; COLORNAME = 'GREEN'; 
+        } else if (COLORDEFAULT === '#00ff00') { 
+            COLORDEFAULT = '#0000ff'; COLORNAME = 'BLUE'; 
+        } else { 
+            COLORDEFAULT = '#ff0000'; COLORNAME = 'RED'; 
+        }
+        
+        fs.writeFileSync('../CONFIG/COLORNAME.txt', COLORNAME, 'utf8');
+        fs.writeFileSync('../CONFIG/COLORDEFAULT.txt', COLORDEFAULT, 'utf8');
+        
+        // Atualiza a cor de todos os elementos, incluindo as boxes de status e atalhos
+        [logoBox, hotkeysBar, statusBox].forEach(el => {
+    if (el) {
+        el.style.fg = COLORDEFAULT;
+        if(el.style.border) el.style.border.fg = COLORDEFAULT;
+        if(el.style.label) el.style.label.fg = COLORDEFAULT;
+    }
+});
+        
+        mainList.style.selected.bg = COLORDEFAULT;
+        updateStatus(); // Atualiza cores e texto interno da box
+    }
+
+    // [G] - Toggle Glitch
+    if (k === 'g') {
+        GLITCH = (GLITCH === 'ON') ? 'OFF' : 'ON';
+        fs.writeFileSync('../CONFIG/GLITCH.txt', GLITCH, 'utf8');
+        updateStatus();
+    }
+});
+
+// --- BARRA VISUAL DE ATALHOS ---
+// Container invisível para agrupar as duas caixas no centro vertical
+const leftSidebar = blessed.box({
+    parent: screen,
+    top: 'center',
+    left: 0,
+    width: 25,
+    height: 18, 
+    hidden: SIDEBAR === 'OFF',// Altura somada das duas caixas + espaçamento
+    style: { bg: 'transparent' }
+});
+
+// Barra de Atalhos (agora dentro do container)
+const hotkeysBar = blessed.box({
+    parent: leftSidebar,
+    top: 0,
+    left: 0,
+    width: '65%',
+    height: 9,
+    border: 'line',
+    label: ' [ KEYS ] ',
+    tags: true,
+    content: ' {bold}[M] MUTE\n\n [F1] SYS\n\n [C] COLOR\n\n [G] GLITCH{/} ',
+    style: { fg: COLORDEFAULT, border: { fg: COLORDEFAULT }, label: { fg: COLORDEFAULT } }
+});
+
+// Status Box (agora embaixo da hotkeysBar dentro do container)
+const statusBox = blessed.box({
+    parent: leftSidebar,
+    top: 9, // Começa exatamente onde a hotkeysBar termina
+    left: 0,
+    width: '65%',
+    height: 7,
+    border: 'line',
+    label: ' [ STATUS ] ',
+    tags: true,
+    style: { fg: COLORDEFAULT, border: { fg: COLORDEFAULT }, label: { fg: COLORDEFAULT } }
+});
+
+// Função para atualizar o texto da Status Box
+function updateStatus() {
+    const statusText = [
+      ` {bold}AUDIO:{/bold} ${audiostate === 'ON' ? '{green-fg}ACTIVE{/}' : '{red-fg}MUTED{/}'}\n\n {bold}COLOR:{/bold} ${COLORNAME}\n\n {bold}GLITCH:{/bold} ${GLITCH} `
+    ].join('\n\n ');
+
+    statusBox.setContent(`${statusText}`);
+    screen.render();
+}
+
+// Inicializa o conteúdo
+updateStatus();
+
 mainList.on('select', (item) => {
   const text = item.getText();
-playSfx()
 
   if (text.includes('EXIT')) return confirmExit();
   if (text.includes('SETTINGS')) return showSettings();

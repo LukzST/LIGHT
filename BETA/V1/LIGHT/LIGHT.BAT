@@ -51,3 +51,4 @@ if "%VERSION%" GEQ "10.0.10240" (
 
 cd /d "%~dp0ASSETS"
 node MENU.JS
+pause
