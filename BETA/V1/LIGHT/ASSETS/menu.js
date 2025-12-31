@@ -152,6 +152,8 @@ const screen = blessed.screen({
   fullUnicode: true
 });
 
+
+
 const logoOriginal = 
     "███        ███  ████████  ███  ███  █████████\n" +
     "███        ███  ███  ███  ███  ███     ███\n" +
@@ -208,7 +210,7 @@ const mainList = blessed.list({
   height: '80%',
   keys: true,
   mouse: true,
-  items: ['{center}START MISSION{/center}', '{center}SETTINGS{/center}', '{center}ERASE DATA{/center}', '{center}SYSTEM INFO{/center}', '{center}CREDITS{/center}', '{center}SUPPORT THE GAME{/center}','{center}EXIT{/center}'],
+  items: ['{center}START MISSION{/center}', '{center}SETTINGS{/center}', '{center}ERASE DATA{/center}', '{center}SYSTEM INFO{/center}', '{center}CREDITS{/center}', '{center}SUPPORT{/center}', '{center}EXIT{/center}'],
   style: {
     selected: { bg: COLORDEFAULT, fg: 'white', bold: true },
     item: { fg: '#bbbbbb' }
@@ -729,58 +731,116 @@ screen.render();
   });
 }
 
-if (txt.includes('FULL SCREEN')) {
-    
-    const iswin11 = winVersion.startsWith('10.0.2');
-    const iswin10 = winVersion.startsWith('10.0') && !iswin11;
 
-    if (!iswin10 && !iswin11) {
-      const cleanAllKeys = () => { screen.unkey('enter'); screen.unkey('escape'); };
-        const overlay = blessed.box({ parent: screen, top: 0, left: 0, width: '100%', height: '100%', style: { bg: 'black' } });
-        blessed.box({
-            parent: overlay, top: 'center', left: 'center', width: 60, height: 10, border: 'line', tags: true,
-            content: `{center}{red-fg}FUNCTION NOT SUPPORTED{/red-fg}\n\nFullscreen requires Windows 10 or 11.\n\n{bold}[ESC] RETURN{/center}`,
-            style: { border: { fg: 'red' } }
+
+if (txt.includes('FULL SCREEN')) {
+    const iswin11 = winVersion.startsWith('10.0.2');
+    const isModernWin = winVersion.startsWith('10.'); // Windows 10 ou 11
+    
+    if (!iswin11) {
+        const overlay = blessed.box({ 
+            parent: screen, 
+            top: 0, left: 0, 
+            width: '100%', height: '100%', 
+            style: { bg: 'black' },
+            transparent: false
         });
-        screen.onceKey(['escape'], () => { cleanAllKeys(); overlay.destroy(); settingsWin.focus(); screen.render(); });
+        overlay.setIndex(999);
+
+        // Define os itens do menu baseado na versão do SO
+        let menuItems = [];
+        let warningText = '';
+
+        if (isModernWin) {
+            // Windows 10 (Suporta WT, mas não ativou o toggle automático)
+            warningText = '{center}{red-fg}{bold} FUNCTION NOT SUPPORTED {/bold}{/red-fg}\n Fullscreen requires Windows Terminal (Modern). {/center}';
+            menuItems = [
+                ' DOWNLOAD VIA GITHUB ',
+                ' DOWNLOAD VIA MS STORE (RECOMMENDED) ',
+                ' CANCEL '
+            ];
+        } else {
+            // Windows 7, 8, etc. (Não suporta Windows Terminal)
+            warningText = '{center}{red-fg}{bold} OS NOT SUPPORTED {/bold}{/red-fg}\n Fullscreen is only available on Windows 10/11\n via Windows Terminal. {/center}';
+            menuItems = [ ' CANCEL / RETURN ' ];
+        }
+
+        blessed.box({
+            parent: overlay,
+            top: '25%',
+            left: 'center',
+            width: 60,
+            height: 'shrink',
+            tags: true,
+            content: warningText,
+            border: 'line',
+            style: {
+                border: { fg: COLORDEFAULT },
+            }
+        });
+
+        const errorMenu = blessed.list({
+            parent: overlay,
+            top: '45%',
+            left: 'center',
+            width: 60,
+            height: isModernWin ? 8 : 5, // Altura menor se tiver só uma opção
+            border: 'line',
+            label: ' [ SELECT ACTION ] ',
+            keys: true,
+            mouse: true,
+            items: menuItems,
+            style: {
+                border: { fg: COLORDEFAULT },
+                selected: { bg: COLORDEFAULT, fg: 'white', bold: true },
+                item: { fg: 'white' }
+            }
+        });
+
+        errorMenu.focus();
+        screen.render();
+
+        const closeAll = () => {
+            overlay.destroy();
+            settingsWin.focus();
+            screen.render();
+        };
+
+        errorMenu.on('select', (item) => {
+            const choice = item.getText();
+            if (choice.includes('GITHUB')) {
+                require('child_process').exec('start https://github.com/microsoft/terminal/releases');
+            } else if (choice.includes('MS STORE')) {
+                require('child_process').exec('start ms-windows-store://pdp/?ProductId=9n0dx20hk701');
+            }
+            closeAll();
+        });
+
+        screen.onceKey(['escape'], closeAll);
         return screen.render();
 
-
     } else {
-      FULLSCREEN = (FULLSCREEN === 'OFF') ? 'ON' : 'OFF';
+        // Lógica para Windows 11 (VBScript Toggle)
+        FULLSCREEN = (FULLSCREEN === 'OFF') ? 'ON' : 'OFF';
+        const vbsPath = path.join(__dirname, 'toggle_fs.vbs');
+        const BCT = `Set objShell = WScript.CreateObject("WScript.Shell")\nWScript.Sleep 100\nobjShell.SendKeys "{F11}"`;
 
-    const vbsPath = path.join(__dirname, 'toggle_fs.vbs');
+        try {
+            fs.writeFileSync(vbsPath, BCT);
+            const child = spawn('wscript.exe', [vbsPath]);
+            child.on('exit', () => {
+                setTimeout(() => { if (fs.existsSync(vbsPath)) fs.unlinkSync(vbsPath); }, 1000);
+            });
+        } catch (err) {
+            console.error("Erro FS:", err);
+        }
 
-    const BCT = `
-        Set objShell = WScript.CreateObject("WScript.Shell")
-        WScript.Sleep 100
-        objShell.SendKeys "{F11}"
-    `;
-
-    try {
-        fs.writeFileSync(vbsPath, BCT);
-
-        const child = spawn('wscript.exe', [vbsPath]);
-
-        child.on('exit', () => {
-            setTimeout(() => {
-                if (fs.existsSync(vbsPath)) fs.unlinkSync(vbsPath);
-            }, 1000);
-        });
-    } catch (err) {
-        console.error("Erro ao criar/executar script externo:", err);
+        if (fs.existsSync('../CONFIG/FULLSCREEN.txt')) fs.unlinkSync('../CONFIG/FULLSCREEN.txt');
+        fs.writeFileSync('../CONFIG/FULLSCREEN.txt', FULLSCREEN, 'utf8');
+        settingsWin.setItem(4, ' FULL SCREEN: [' + FULLSCREEN + ']');
+        screen.render();
     }
-
-    if (fs.existsSync('../CONFIG/FULLSCREEN.txt')) {
-        fs.unlinkSync('../CONFIG/FULLSCREEN.txt');
-    }
-    fs.writeFileSync('../CONFIG/FULLSCREEN.txt', FULLSCREEN, 'utf8');
-    settingsWin.setItem(4, ' FULL SCREEN: [' + FULLSCREEN + ']');
-
-    }
-
 }
-
 if (txt.includes('GLITCH')) {
     // Alterna o estado
     GLITCH = (GLITCH === 'ON') ? 'OFF' : 'ON';
@@ -1107,6 +1167,8 @@ function updateStatus() {
     screen.render();
 }
 
+
+
 // Inicializa o conteúdo
 updateStatus();
 
@@ -1118,7 +1180,7 @@ mainList.on('select', (item) => {
   if (text.includes('SYSTEM INFO')) return showSystemInfo();
   if (text.includes('ERASE DATA')) return eraseData();
   if (text.includes('CREDITS')) { return credits() ; } // Implementar depois
-  if (text.includes('SUPPORT THE GAME')) { return supportGame() ; } // Implementar depois
+  if (text.includes('SUPPORT')) { return supportGame() ; } // Implementar depois
   if (text.includes('START MISSION')) {
     mainList.detach();
     

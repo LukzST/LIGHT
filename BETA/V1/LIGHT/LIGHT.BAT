@@ -35,20 +35,21 @@
 setlocal
 
 where node >nul 2>&1 || exit
-
 for /f "tokens=4-5 delims=. " %%i in ('ver') do set VERSION=%%i.%%j
 
+
+:: CASO 1: Windows 11
 if "%VERSION%" GEQ "10.0.22000" (
     cd /d "%~dp0ASSETS"
-    node MENU.JS
-    exit
+    wt.exe --title "LIGHT" node MENU.JS & exit
 )
 
+:: CASO 2: Windows 10 Portátil
 if "%VERSION%" GEQ "10.0.10240" (
-    start "" "%~dp0ASSETS\TERMINALPORTATIL\WT\wt.exe" --title "LIGHT" -d "%~dp0ASSETS" node MENU.JS
-    exit
+    cd /d "%~dp0ASSETS"
+    "%~dp0ASSETS\TERMINALPORTATIL\WT\wt.exe" --title "LIGHT" -d "%~dp0ASSETS" node MENU.JS & exit
 )
 
+:: CASO 3: Direto no Node (Vai abrir no CMD comum)
 cd /d "%~dp0ASSETS"
 node MENU.JS
-pause
