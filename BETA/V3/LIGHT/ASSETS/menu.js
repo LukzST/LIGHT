@@ -7,6 +7,17 @@ const path = require('path');
 const achievements = fs.readdirSync('../Achievements').filter(f => f.endsWith('.bin')).length;
 let dots = 0;
 const key = 'lux1999files'
+let hintDisplay = null; // Adicione isso perto das suas outras globais
+let hintListWin = null
+
+const LUX4_LOGO = 
+    "      :::        :::    ::: :::    :::\n" +
+    "     :+:        :+:    :+: :+:    :+: \n" +
+    "    +:+        +:+    +:+  +:+  +:+   \n" +
+    "   +#+        +#+    +:+   +#++:+     \n" +
+    "  +#+        +#+    +#+  +#+  +#+     \n" +
+    " #+#        #+#    #+# #+#    #+#     \n" +
+    "##########  ########  ###    ###      \n"
 
 const ALL_ACHIEVEMENTS = [
     { id: 'PACPRO', name: 'ELITE OPERATOR', desc: 'Completed the PACPRO simulation.', hint: 'Survive the PACPRO sub-process in the elevator.' },
@@ -21,15 +32,47 @@ const ALL_ACHIEVEMENTS = [
     { id: 'SLOWTYPIST', name: 'SLOW TYPIST', desc: 'Failed to cancel the SELF-DESTRUCT', hint: 'Let the timer reach zero during the Sublevel 7 security override.' },
     { id: 'SHADOW_FALL', name: 'CORE MELTDOWN', desc: 'The core was destroyed due to stabilization failure.', hint: 'Fail to maintain the balance during the final core sequence.' },
     { id: 'LEAK_SAVED', name: 'WHISTLEBLOWER', desc: 'Exported confidential files.', hint: 'Press [S] during the data leak phase.' },
+    { id: 'TRUELIGHT', name: 'THE TRUE LIGHT', desc: 'Unlock all achievements.', hint: 'Unlock everything and return to the Achievements section.' },
 ];
 
-//
-//
-//
-//
-//
-//
-//
+// PACPRO: ELITE OPERATOR
+//fs.writeFileSync('../Achievements/PACPRO.ach', 'COMPLETED');
+
+// THE_END: LIGHT BRINGER
+//fs.writeFileSync('../Achievements/THE_END.ach', 'COMPLETED');
+
+// NEVERMISS: NEVER BE LATE
+//fs.writeFileSync('../Achievements/NEVERMISS.ach', 'COMPLETED');
+
+// OVERRIDE: SYSTEM HACKER
+//fs.writeFileSync('../Achievements/OVERRIDE.ach', 'COMPLETED');
+
+// REBEL_PATH: HELLO, REBEL
+//fs.writeFileSync('../Achievements/REBEL_PATH.ach', 'COMPLETED');
+
+// CEO_CONFRONT: DIRECTOR’S CUT
+//fs.writeFileSync('../Achievements/CEO_CONFRONT.ach', 'COMPLETED');
+
+// TRUTH_SEEKER: DECRYPTOR
+//fs.writeFileSync('../Achievements/TRUTH_SEEKER.ach', 'COMPLETED');
+
+// RADIO_LISTENER: STATIC VOICES
+//fs.writeFileSync('../Achievements/RADIO_LISTENER.ach', 'COMPLETED');
+
+// GHOST_GUARDIAN: DIGITAL SHEPHERD
+//fs.writeFileSync('../Achievements/GHOST_GUARDIAN.ach', 'COMPLETED');
+
+// SLOWTYPIST: SLOW TYPIST
+//fs.writeFileSync('../Achievements/SLOWTYPIST.ach', 'COMPLETED');
+
+// SHADOW_FALL: CORE MELTDOWN
+//fs.writeFileSync('../Achievements/SHADOW_FALL.ach', 'COMPLETED');
+
+// LEAK_SAVED: WHISTLEBLOWER
+//fs.writeFileSync('../Achievements/LEAK_SAVED.ach', 'COMPLETED');
+
+// TRUELIGHT: THE TRUE LIGHT (Platina)
+//fs.writeFileSync('../Achievements/TRUELIGHT.ach', 'COMPLETED');
 
 color = '#555555'
 // Verifica se o argumento --wt foi passado pelo .bat
@@ -58,11 +101,56 @@ function startLogoAnimation() {
     }, 150);
 }
 
+// Função para carregar o menu normalmente
+function initNormalMenu() {
+    screen.append(logoBox);
+    screen.append(menuBox);
+    startLogoAnimation();
+    mainList.focus();
+    screen.render();
+}
 
+// Lógica do Easter Egg (10% de chance)
+function startupSequence() {
+    const roll = Math.random();
+    
+    if (roll <= 0.20) { // 10% de chance
+        const easterEggBox = blessed.box({
+            parent: screen,
+            top: 'center',
+            left: 'center',
+            width: 'shrink',
+            height: 'shrink',
+            content: LUX4_LOGO,
+            style: { fg: '#ffffff' },
+            tags: true
+        });
 
-// Função para tocar um som curto (SFX)
-// Aqui dizemos ao play-sound para usar o executável de linha de comando
-// Isso impede que o Windows abra o player padrão de interface gráfica
+        screen.render();
+
+        // Fase 1: Estabilidade curta (1.5s)
+        setTimeout(() => {
+            // Fase 2: Glitch agressivo (1s)
+            const glitchInterval = setInterval(() => {
+                easterEggBox.setContent(LUX4_LOGO.replace(/[:+]/g, () => (Math.random() > 0.5 ? '?' : '#')));
+                easterEggBox.style.fg = Math.random() > 0.5 ? 'red' : 'white';
+                screen.render();
+            }, 80);
+
+            setTimeout(() => {
+                clearInterval(glitchInterval);
+                easterEggBox.destroy();
+                // Fase 3: Carrega o menu original
+                initNormalMenu();
+            }, 1000);
+
+        }, 1500);
+    } else {
+        // Carregamento normal instantâneo
+        initNormalMenu();
+    }
+}
+
 const player = require('play-sound')({ 
   player: './SOUNDTRACK/VLC/cmdmp3.exe' 
 });
@@ -166,7 +254,32 @@ const screen = blessed.screen({
   fullUnicode: true
 });
 
+// --- LÓGICA DE CONTROLE DO PACPRO NO MENU ---
+const achPath = path.join(__dirname, '..', 'Achievements', 'PACPRO.ach');
+const hasPacAch = fs.existsSync(achPath);
+const pacSeenPath = '../CONFIG/PACPRO_SEEN.txt';
+const isNewPac = hasPacAch && !fs.existsSync(pacSeenPath);
 
+// Define a lista de itens dinamicamente
+let menuItems = ['{center}START MISSION{/center}'];
+
+if (hasPacAch) {
+    if (isNewPac) {
+        menuItems.push('{center}{yellow-fg}PACPRO (NEW){/yellow-fg}{/center}');
+    } else {
+        menuItems.push('{center}PACPRO{/center}');
+    }
+}
+
+menuItems = menuItems.concat([
+    '{center}ACHIEVEMENTS{/center}', 
+    '{center}SETTINGS{/center}', 
+    '{center}ERASE DATA{/center}', 
+    '{center}SYSTEM INFO{/center}', 
+    '{center}CREDITS{/center}', 
+    '{center}SUPPORT{/center}', 
+    '{center}EXIT{/center}'
+]);
 
 const logoOriginal = 
     "███        ███  ████████  ███  ███  █████████\n" +
@@ -205,7 +318,7 @@ const menuBox = blessed.form({
   top: 11,
   left: 'center',
   width: 45,
-  height: 10,
+  height: 13,
   tags: true,
   border: { type: 'line' },
   style: {
@@ -224,12 +337,16 @@ const mainList = blessed.list({
   height: '80%',
   keys: true,
   mouse: true,
-  items: ['{center}START MISSION{/center}','{center}ACHIEVEMENTS{/center}', '{center}SETTINGS{/center}', '{center}ERASE DATA{/center}', '{center}SYSTEM INFO{/center}', '{center}CREDITS{/center}', '{center}SUPPORT{/center}', '{center}EXIT{/center}'],
+  items: menuItems,
   style: {
     selected: { bg: COLORDEFAULT, fg: 'white', bold: true },
     item: { fg: '#bbbbbb' }
   }
 });
+
+if (isNewPac) {
+    fs.writeFileSync(pacSeenPath, 'SEEN', 'utf8');
+}
 
 mainList.on('select item', (item) => {
   const rawText = item.getText().replace(/{.*?}/g, '').trim();
@@ -258,15 +375,16 @@ const descriptionBox = blessed.box({
 
 const menuDescriptions = {
   'START MISSION': 'START THE PRIMARY OPERATIONAL PROTOCOL.',
+  'PACPRO': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
+  'PACPRO (NEW)': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.', // Descrição solicitada
   'ACHIEVEMENTS': 'SEE YOUR ACHIEVEMENTS',
   'SETTINGS': 'AUDIO, COLOR, USER AND FULL SCREEN CONFIGURATION.',
   'ERASE DATA': 'ERASE ALL LOCAL USER DATA AND SETTINGS.',
   'SYSTEM INFO': 'VIEW SYSTEM AND TERMINAL INFORMATION.',
   'CREDITS': 'INFORMATION ABOUT THE DEVELOPMENT TEAM.',
-  'SUPPORT THE GAME': 'HELP THE DEVELOPMENT OF LIGHT GAME.',
+  'SUPPORT': 'HELP THE DEVELOPMENT OF LIGHT GAME.',
   'EXIT': 'EXIT THE APPLICATION SAFELY. (DO NOT FORCE CLOSE)'
 };
-
 
 
 
@@ -276,7 +394,7 @@ const copyrightBOX1 = blessed.box({
   right: '0',
   width: 'shrink',
   height: 1,
-  content: ' V3_BETA ',
+  content: ' V1.0 ',
   tags: true,
   style: {
     fg: color,
@@ -284,6 +402,35 @@ const copyrightBOX1 = blessed.box({
   },
 });
 
+function showAchievementPopup(achId) {
+    const ach = ALL_ACHIEVEMENTS.find(a => a.id === achId);
+    if (!ach) return;
+
+    const popup = blessed.box({
+        parent: screen,
+        top: 'center',
+        left: 'center',
+        width: 45,
+        height: 8,
+        border: 'line',
+        label: ' [ ACHIEVEMENT UNLOCKED ] ',
+        tags: true,
+        index: 1000, // Garante que fique no topo de tudo
+        content: `{center}\n{yellow-fg}{bold}${ach.name}{/}\n\n${ach.desc}\n\nPRESS ENTER TO DISMISS{/}`,
+        style: {
+            border: { fg: 'yellow' },
+            label: { fg: 'yellow', bold: true }
+        }
+    });
+
+    popup.focus();
+    screen.render();
+
+    popup.key(['enter', 'escape', 'space'], () => {
+        popup.destroy();
+        screen.render();
+    });
+}
 
 function confirmExit() {
   const bgOverlay = blessed.box({
@@ -292,6 +439,7 @@ function confirmExit() {
     left: 0,
     width: '100%',
     height: '100%',
+    tags: true,
     style: {
       bg: 'black',
       transparent: false
@@ -443,10 +591,34 @@ function eraseData() {
         });
 
         eraser.on('close', (code) => {
-            // Após terminar de deletar, volta o foco para o menu
-            mainList.focus();
-            screen.render();
-        });
+    // 1. Recalcula se o PACPRO deve existir ou não no disco agora
+    const hasPacAchNow = fs.existsSync(path.join(__dirname, '..', 'Achievements', 'PACPRO.ach'));
+    
+    // 2. Reconstrói a lista de itens do zero (sem o PACPRO, já que foi deletado)
+    let newMenuItems = ['{center}START MISSION{/center}'];
+    
+    // Se por algum motivo ele ainda existir, ele entra, se não, pula direto para os outros
+    if (hasPacAchNow) {
+        newMenuItems.push('{center}PACPRO{/center}');
+    }
+
+    newMenuItems = newMenuItems.concat([
+        '{center}ACHIEVEMENTS{/center}', 
+        '{center}SETTINGS{/center}', 
+        '{center}ERASE DATA{/center}', 
+        '{center}SYSTEM INFO{/center}', 
+        '{center}CREDITS{/center}', 
+        '{center}SUPPORT{/center}', 
+        '{center}EXIT{/center}'
+    ]);
+
+    // 3. ATUALIZA A UI NA HORA
+    mainList.setItems(newMenuItems); // Substitui os itens antigos pelos novos
+    
+    bg1Overlay.destroy(); 
+    mainList.focus();
+    screen.render(); // Renderiza a mudança visual
+});
 
         eraser.on('error', (err) => {
             // Caso o arquivo EraseData.js não seja encontrado
@@ -1016,16 +1188,17 @@ function showSystemInfo() {
 
     input.on('submit', (value) => {
       if (value === "PLDEV") {
-        // Salva a permissão permanente
         fs.writeFileSync(keyFilePath, 'UNLOCKED', 'utf8');
-        if (fs.existsSync('../ACHIEVEMENTS/OVERRIDE.ach', 'COMPLETED')) {
-           fs.unlinkSync('../ACHIEVEMENTS/OVERRIDE.ach', 'COMPLETED')
-           }
-        fs.writeFileSync('../ACHIEVEMENTS/OVERRIDE.ach', 'COMPLETED')  
+        
+        const achPath = path.join(__dirname, '..', 'Achievements', 'OVERRIDE.ach');
+        if (!fs.existsSync(achPath)) {
+            fs.writeFileSync(achPath, 'COMPLETED');
+            showAchievementPopup('OVERRIDE'); // DISPARA AQUI
+        }
               
         input.destroy();
         renderData();
-      } else {
+    } else {
         input.destroy();
         backdrop.destroy();
         mainList.focus();
@@ -1111,15 +1284,37 @@ function Achievements() {
         style: { bg: 'black' }
     });
 
+    // 1. Contagem inicial das outras conquistas (ignorando a TRUELIGHT)
     let unlockedCount = 0;
     ALL_ACHIEVEMENTS.forEach(ach => {
+        if (ach.id === 'TRUELIGHT') return;
         const achPath = path.join(__dirname, '..', 'Achievements', `${ach.id}.ach`);
         if (fs.existsSync(achPath)) unlockedCount++;
     });
 
+    // 2. Lógica da Conquista Mestre (TRUELIGHT)
+    const trueLightPath = path.join(__dirname, '..', 'Achievements', 'TRUELIGHT.ach');
+    
+    // Se pegou as 12, desbloqueia a 13ª automaticamente
+    if (unlockedCount === 12 && !fs.existsSync(trueLightPath)) {
+    fs.writeFileSync(trueLightPath, 'COMPLETED');
+    showAchievementPopup('TRUELIGHT'); // DISPARA AQUI
+    
+    // Recarrega a tela após fechar o popup se necessário
+    setTimeout(() => {
+        backdrop.destroy();
+        Achievements();
+    }, 100);
+    return;
+}
+
+    // Recalcula o total real após verificar a TRUELIGHT
+    if (fs.existsSync(trueLightPath)) unlockedCount++;
+
+    // Define se o progresso está em 100% para o cabeçalho
     const isFullSync = unlockedCount === ALL_ACHIEVEMENTS.length;
 
-    // Cabeçalho corrigido (Removido o erro de cor anterior)
+    // 3. Cabeçalho com o status de progresso
     const header = blessed.box({
         parent: backdrop,
         top: 1, left: 'center',
@@ -1129,7 +1324,7 @@ function Achievements() {
         style: { border: { fg: isFullSync ? 'yellow' : 'white' } }
     });
 
-    // Container de Grid Ajustado para não estourar
+    // 4. Grid de Conquistas
     const listContainer = blessed.box({
         parent: backdrop,
         top: 4, bottom: 8, left: 'center',
@@ -1140,9 +1335,8 @@ function Achievements() {
         scrollbar: { ch: ' ', inverse: true, style: { fg: 'white' } }
     });
 
-    // Medidas precisas para evitar o bug da imagem
-    const cardWidth = 30;  // Reduzido para caber 3 colunas
-    const cardHeight = 8;  // Aumentado para o texto não vazar
+    const cardWidth = 30;
+    const cardHeight = 8;
     const cardsPerRow = 3; 
 
     ALL_ACHIEVEMENTS.forEach((ach, i) => {
@@ -1164,7 +1358,11 @@ function Achievements() {
         });
     });
 
-    const hintDisplay = blessed.box({
+    // ... (Restante do código de dicas e fechamento permanece igual)
+    
+
+    
+     hintDisplay = blessed.box({
         parent: backdrop,
         bottom: 4, left: 'center',
         width: '94%', height: 3,
@@ -1187,18 +1385,29 @@ function Achievements() {
         mouse: true, keys: true
     });
 
-    // Função Unificada de Dicas
     const openHintMenu = () => {
-        const hintListWin = blessed.list({
-            parent: backdrop,
+        const bg1Overlay = blessed.box({
+    parent: screen,
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    style: {
+      bg: 'black',
+      transparent: false
+    }
+  });
+
+        hintListWin = blessed.list({
+            parent: bg1Overlay,
             top: 'center', left: 'center',
             width: 40, height: 12,
             border: 'line', label: ' [ SELECT NODE ] ',
             tags: true, keys: true, mouse: true,
             items: ALL_ACHIEVEMENTS.map(a => ` ${a.id} `),
             style: {
-                border: { fg: 'yellow' },
-                selected: { bg: 'yellow', fg: 'black', bold: true }
+                border: { fg: COLORDEFAULT },
+                selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
             }
         });
 
@@ -1209,29 +1418,27 @@ function Achievements() {
             const selectedAch = ALL_ACHIEVEMENTS[index];
             hintDisplay.setContent(`{center}{yellow-fg}HINT [${selectedAch.id}]: ${selectedAch.hint}{/center}`);
             hintDisplay.style.border.fg = 'yellow';
+            bg1Overlay.destroy()
             hintListWin.destroy();
             listContainer.focus();
             screen.render();
         });
 
-        // Fechar sub-menu de dicas
         const closeSub = () => {
+            bg1Overlay.destroy()
             hintListWin.destroy();
-            listContainer.focus();
+            mainList.focus();
             screen.render();
         };
         hintListWin.key(['escape', 'h'], closeSub);
     };
 
-    // Ativação por Clique e Teclado
     hintBtn.on('press', openHintMenu);
     screen.key(['h', 'H'], openHintMenu);
-
     listContainer.focus();
 
-    // Sair da tela de conquistas
     const closeAchievements = () => {
-        screen.unkey('h', openHintMenu); // Limpa a tecla ao sair
+        screen.unkey('h', openHintMenu);
         screen.unkey('H', openHintMenu);
         backdrop.destroy();
         mainList.focus();
@@ -1247,6 +1454,7 @@ function Achievements() {
 screen.on('keypress', (ch, key) => {
     // Normaliza a tecla para evitar erro com Shift/Caps Lock
     const k = key.full.toLowerCase();
+    
     
     // [M] - Mudo Rápido
     if (k === 'm') {
@@ -1281,11 +1489,12 @@ screen.on('keypress', (ch, key) => {
         fs.writeFileSync('../CONFIG/COLORDEFAULT.txt', COLORDEFAULT, 'utf8');
         
         // Atualiza a cor de todos os elementos, incluindo as boxes de status e atalhos
-        [logoBox, hotkeysBar, statusBox].forEach(el => {
+        [logoBox, hotkeysBar, statusBox, hintDisplay, hintListWin].forEach(el => {
     if (el) {
         el.style.fg = COLORDEFAULT;
         if(el.style.border) el.style.border.fg = COLORDEFAULT;
         if(el.style.label) el.style.label.fg = COLORDEFAULT;
+        if(el.style.selected) el.style.selected.bg = COLORDEFAULT;
     }
 });
         
@@ -1357,6 +1566,26 @@ updateStatus();
 
 mainList.on('select', (item) => {
   const text = item.getText();
+  if (text.includes('PACPRO')) {
+    mainList.detach();
+    menuBox.setContent(`\n\n{center}LOADING SUB-PROTOCOL...{/center}`);
+    screen.render();
+
+    setTimeout(() => {
+      menuBox.destroy();
+      mainList.destroy();
+      screen.destroy();
+      
+      // Abre o processo do PACPRO
+      const child = spawn('node', ['PACPRO.js'], { stdio: 'inherit' });
+      child.on('exit', () => {
+        // Ao sair do PACPRO, volta para este menu (reiniciando o script do menu)
+        spawn('node', [process.argv[1]], { stdio: 'inherit', detached: true });
+        process.exit();
+      });
+    }, 1500);
+    return;
+  }
 
   if (text.includes('EXIT')) return confirmExit();
   if (text.includes('SETTINGS')) return showSettings();
@@ -1392,9 +1621,7 @@ mainList.on('select', (item) => {
 });
 
 screen.key(['q', 'C-c'], () => confirmExit());
-screen.append(logoBox);
-screen.append(menuBox);
-
+startupSequence();
 startLogoAnimation();
 
 mainList.focus();
