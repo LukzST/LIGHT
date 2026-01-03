@@ -9,7 +9,12 @@ let dots = 0;
 const key = 'lux1999files'
 let hintDisplay = null; // Adicione isso perto das suas outras globais
 let hintListWin = null
-
+let colorCycles = 0; // Global
+      let muteCount = 0; // Global
+      let glitchCount = 0;
+let infoAccessCount = 0;
+let achScreenCount = 0;
+let activeToasts = 0;
 const LUX4_LOGO = 
     "      :::        :::    ::: :::    :::\n" +
     "     :+:        :+:    :+: :+:    :+: \n" +
@@ -33,7 +38,89 @@ const ALL_ACHIEVEMENTS = [
     { id: 'SHADOW_FALL', name: 'CORE MELTDOWN', desc: 'The core was destroyed due to stabilization failure.', hint: 'Fail to maintain the balance during the final core sequence.' },
     { id: 'LEAK_SAVED', name: 'WHISTLEBLOWER', desc: 'Exported confidential files.', hint: 'Press [S] during the data leak phase.' },
     { id: 'TRUELIGHT', name: 'THE TRUE LIGHT', desc: 'Unlock all achievements.', hint: 'Unlock everything and return to the Achievements section.' },
-];
+    { id: 'AUDIOPHOBIC', name: 'AUDIOPHOBIC', desc: 'Disable the audio system 5 times during your session.', hint: 'Acoustic input can be overwhelming for some operators.' },
+    { id: 'COLOR_MASTER', name: 'SPECTRUM ANALYST', desc: 'Cycle through all system colors 5 times in a single session.', hint: 'The [C] key holds the power of the visible spectrum.' }, 
+    { id: 'DATA_MINER', name: 'DATA MINER', desc: 'Access the System Info panel 10 times in a single session.', hint: 'Obsession with data is a requirement for this position.' },
+    { id: 'GLITCH_ADDICT', name: 'GLITCH ADDICT', desc: 'Toggle the Glitch effect 10 times.', hint: 'Do you prefer the broken reality or the fake stability?' },
+    { id: 'TERMINAL_JUNKIE', name: 'TERMINAL JUNKIE', desc: 'Enter and exit the Achievements screen 5 times.', hint: 'Checking your progress won’t make it go faster.' },
+    { id: 'HARD_RESET', name: 'FRESH START', desc: 'Use the Reset to Defaults option in Settings.', hint: 'Wipe the slate clean. Forget the errors of the past.' },
+  ];
+
+const ACHIEVEMENT_NAMES = {
+    'PACPRO': 'ELITE OPERATOR',
+    'THE_END': 'LIGHT BRINGER',
+    'NEVERMISS': 'NEVER BE LATE',
+    'OVERRIDE': 'SYSTEM HACKER',
+    'REBEL_PATH': 'HELLO, REBEL',
+    'CEO_CONFRONT': 'DIRECTOR’S CUT',
+    'TRUTH_SEEKER': 'DECRYPTOR',
+    'RADIO_LISTENER': 'STATIC VOICES',
+    'GHOST_GUARDIAN': 'DIGITAL SHEPHERD',
+    'SHADOW_FALL': 'CORE MELTDOWN',
+    'SLOWTYPIST': 'SLOW TYPIST',
+    'LEAK_SAVED': 'WHISTLEBLOWER',
+    'TRUELIGHT': 'THE TRUE LIGHT',
+    'AUDIOPHOBIC': 'AUDIOPHOBIC',
+    'COLOR_MASTER': 'SPECTRUM ANALYST',
+    'DATA_MINER': 'DATA MINER',
+    'GLITCH_ADDICT': 'GLITCH ADDICT',
+    'TERMINAL_JUNKIE': 'TERMINAL JUNKIE',
+    'HARD_RESET': 'FRESH START'
+};
+
+function showAchievementToast(id) {
+    const name = ACHIEVEMENT_NAMES[id] || id;
+    
+    // Calcula a posição: o primeiro fica no top 2, o segundo no 8, etc.
+    const offset = 2 + (activeToasts * 6); 
+
+    const toast = blessed.box({
+        parent: screen,
+        top: offset,
+        right: 2,
+        width: 35,
+        height: 5,
+        border: 'line',
+        tags: true,
+        content: `{center}{yellow-fg}{bold}ACHIEVEMENT UNLOCKED{/}\n{white-fg}${name}{/center}`,
+        style: {
+            border: { fg: 'yellow' },
+            bg: 'black'
+        }
+    });
+
+    toast.setIndex(2000); 
+    activeToasts++; // Incrementa o contador para o próximo Toast saber onde ficar
+    screen.render();
+
+    setTimeout(() => {
+        activeToasts--; // Liberta o espaço quando o Toast é destruído
+        toast.destroy();
+        screen.render();
+    }, 5000);
+}
+
+// Monitora a pasta por novos arquivos .ach
+function watchAchievements() {
+    const achDir = path.join(__dirname, '..', 'ACHIEVEMENTS');
+    
+    // Garante que a pasta existe para não dar erro no watch
+    if (!fs.existsSync(achDir)) {
+        fs.mkdirSync(achDir, { recursive: true });
+    }
+
+    fs.watch(achDir, (eventType, filename) => {
+        if (eventType === 'rename' && filename && filename.endsWith('.ach')) {
+            const filePath = path.join(achDir, filename);
+            
+            // Se o arquivo foi criado (e não deletado)
+            if (fs.existsSync(filePath)) {
+                const achId = filename.replace('.ach', '');
+                showAchievementToast(achId);
+            }
+        }
+    });
+}
 
 // PACPRO: ELITE OPERATOR
 //fs.writeFileSync('../Achievements/PACPRO.ach', 'COMPLETED');
@@ -126,6 +213,8 @@ function startupSequence() {
             tags: true
         });
 
+        descriptionBox.setContent('{bold}LUX-4 PRESENTS{/}')
+
         screen.render();
 
         // Fase 1: Estabilidade curta (1.5s)
@@ -143,8 +232,11 @@ function startupSequence() {
                 // Fase 3: Carrega o menu original
                 initNormalMenu();
             }, 1000);
-
         }, 1500);
+        setTimeout(() => {
+          descriptionBox.setContent('{bold}SELECT AN OPTION USING ARROW KEYS AND PRESS ENTER{/}')
+        }, 2500)
+        
     } else {
         // Carregamento normal instantâneo
         initNormalMenu();
@@ -265,9 +357,9 @@ let menuItems = ['{center}START MISSION{/center}'];
 
 if (hasPacAch) {
     if (isNewPac) {
-        menuItems.push('{center}{yellow-fg}PACPRO (NEW){/yellow-fg}{/center}');
+        menuItems.push('{center}{yellow-fg}PACPRO SUBSYSTEM (NEW){/yellow-fg}{/center}');
     } else {
-        menuItems.push('{center}PACPRO{/center}');
+        menuItems.push('{center}{yellow-fg}PACPRO SUBSYSTEM{/yellow-fg}{/center}');
     }
 }
 
@@ -375,8 +467,8 @@ const descriptionBox = blessed.box({
 
 const menuDescriptions = {
   'START MISSION': 'START THE PRIMARY OPERATIONAL PROTOCOL.',
-  'PACPRO': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
-  'PACPRO (NEW)': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.', // Descrição solicitada
+  'PACPRO SUBSYSTEM': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
+  'PACPRO SUBSYSTEM (NEW)': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.', // Descrição solicitada
   'ACHIEVEMENTS': 'SEE YOUR ACHIEVEMENTS',
   'SETTINGS': 'AUDIO, COLOR, USER AND FULL SCREEN CONFIGURATION.',
   'ERASE DATA': 'ERASE ALL LOCAL USER DATA AND SETTINGS.',
@@ -496,139 +588,209 @@ function confirmExit() {
 }
 
 function credits() {
-const currentYear = new Date().getFullYear();
+    const currentYear = new Date().getFullYear();
 
-const bg1Overlay = blessed.box({
-    parent: screen,
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    style: {
-      bg: 'black',
-      transparent: false
-    }
-  });
+    const bg1Overlay = blessed.box({
+        parent: screen,
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        index: 100, // Sobrepõe o menu principal
+        style: { bg: 'black', transparent: false }
+    });
 
-  const creditsBox = blessed.box({
-    parent: bg1Overlay,
-    top: 'center',
-    left: 'center',
-    width: 50,
-    height: 12,
-    border: 'line',
-    label: ' [ CREDITS ] ',
-    tags: true,
-    content: '{center}LIGHT GAME\n\nDeveloped by Pale Luna Developer\n\n'+currentYear+' © All Rights Reserved\n\nPress ESC to return{/center}',
-    style: {
-      border: { fg: COLORDEFAULT },
-      label: { fg: COLORDEFAULT, bold: true }
-    }
-  });
+    const creditsBox = blessed.box({
+        parent: bg1Overlay,
+        top: 'center',
+        left: 'center',
+        width: 45,
+        height: 16,
+        border: 'line',
+        label: ' [ CREDITS ] ',
+        tags: true,
+        style: {
+            border: { fg: COLORDEFAULT },
+            label: { fg: COLORDEFAULT, bold: true }
+        }
+    });
+
+    const creditsContent = [
+        `\n{bold}LIGHT GAME{/bold}`,
+        `Version 1.0`,
+        `\nDeveloped by {bold}Pale Luna Developer{/bold}`,
+        `${currentYear} © All Rights Reserved`,
+        `\nSelect an option to interact:`
+    ].join('\n');
+
+    const textContainer = blessed.box({
+        parent: creditsBox,
+        top: 1,
+        left: 'center',
+        width: '90%',
+        height: 10,
+        tags: true,
+        content: `{center}${creditsContent}{/center}`
+    });
+
+    const creditOptions = blessed.list({
+        parent: creditsBox,
+        bottom: 1,
+        left: 'center',
+        width: '80%',
+        height: 6,
+        keys: true,
+        mouse: true,
+        tags:true,
+        border: 'line',
+        items: [
+            '{center}FOLLOW ON TWITTER (X){/center}',
+            '{center}VISIT ITCH.IO PAGE{/center}',
+            '{center}RETURN TO MENU{/center}'
+        ],
+        style: {
+            border: { fg: '#333333' },
+            selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
+        }
+    });
+
+    creditOptions.focus();
+
+    creditOptions.on('select', (item) => {
+        const text = item.getText();
+
+        if (text.includes('TWITTER')) {
+            exec('start https://twitter.com/PALELUNAGAME'); // Link das redes
+        } 
+        else if (text.includes('ITCH.IO')) {
+            exec('start https://palelunagame.itch.io/'); // Link do portfólio
+        } 
+        else if (text.includes('RETURN')) {
+            closeCredits();
+        }
+        screen.render();
+    });
+
     function closeCredits() {
-    creditsBox.destroy();
-    bg1Overlay.destroy();
-    mainList.focus();
-    screen.unkey('escape', closeCredits);
-    screen.render();
-  }
+        creditOptions.destroy();
+        creditsBox.destroy();
+        bg1Overlay.destroy();
+        mainList.focus();
+        screen.render();
+    }
+
     screen.key(['escape'], closeCredits);
     screen.render();
 }
 
 function eraseData() {
- const bg1Overlay = blessed.box({
-    parent: screen,
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    style: {
-      bg: 'black',
-      transparent: false // Define como false para esconder o que está atrás
-    }
-  });
+    const bg1Overlay = blessed.box({
+        parent: screen,
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        style: { bg: 'black' }
+    });
 
-   const eraseWin = blessed.list({
-    parent: bg1Overlay,
-    top: 'center',
-    left: 'center',
-    width: 40,
-    height: 10,
-    border: 'line',
-    label: ' [ ERASE DATA ] ',
-    keys: true,
-    items: [
-      ' YES ',
-      ' NO '
-    ],
-    selected: 0,
-    style: {
-      border: { fg: COLORDEFAULT },
-      selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
-    }
-  });
+    const eraseWin = blessed.list({
+        parent: bg1Overlay,
+        top: 'center',
+        left: 'center',
+        width: 40,
+        height: 10,
+        border: 'line',
+        label: ' [ ERASE DATA ] ',
+        keys: true,
+        items: [' YES ', ' NO '],
+        selected: 0,
+        style: {
+            border: { fg: COLORDEFAULT },
+            selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
+        }
+    });
 
-  eraseWin.focus();
-  eraseWin.select(0);
-  screen.render();
+    eraseWin.focus();
+    screen.render();
 
     eraseWin.on('select', (item) => {
-    const txt = item.getText();
-    if (txt.includes('NO')) {
-        bg1Overlay.destroy(); // Destrói o fundo e tudo que estiver dentro dele
-        mainList.focus();
-        screen.render();
-        return;
-    }
-    if (txt.includes('YES')) {
-        bg1Overlay.destroy();
-        
-        // O spawn não abre uma janela extra por padrão, ele roda no mesmo contexto
-        const eraser = spawn('node', ['./EraseData.js'], {
-            stdio: 'inherit', // Faz os logs de deleção aparecerem no seu terminal atual
-            detached: false
-        });
-
-        eraser.on('close', (code) => {
-    // 1. Recalcula se o PACPRO deve existir ou não no disco agora
-    const hasPacAchNow = fs.existsSync(path.join(__dirname, '..', 'Achievements', 'PACPRO.ach'));
-    
-    // 2. Reconstrói a lista de itens do zero (sem o PACPRO, já que foi deletado)
-    let newMenuItems = ['{center}START MISSION{/center}'];
-    
-    // Se por algum motivo ele ainda existir, ele entra, se não, pula direto para os outros
-    if (hasPacAchNow) {
-        newMenuItems.push('{center}PACPRO{/center}');
-    }
-
-    newMenuItems = newMenuItems.concat([
-        '{center}ACHIEVEMENTS{/center}', 
-        '{center}SETTINGS{/center}', 
-        '{center}ERASE DATA{/center}', 
-        '{center}SYSTEM INFO{/center}', 
-        '{center}CREDITS{/center}', 
-        '{center}SUPPORT{/center}', 
-        '{center}EXIT{/center}'
-    ]);
-
-    // 3. ATUALIZA A UI NA HORA
-    mainList.setItems(newMenuItems); // Substitui os itens antigos pelos novos
-    
-    bg1Overlay.destroy(); 
-    mainList.focus();
-    screen.render(); // Renderiza a mudança visual
-});
-
-        eraser.on('error', (err) => {
-            // Caso o arquivo EraseData.js não seja encontrado
-            mainList.setItem(0, '{red-fg}ERRO AO APAGAR DADOS{/red-fg}');
+        const txt = item.getText();
+        if (txt.includes('NO')) {
+            bg1Overlay.destroy();
             mainList.focus();
             screen.render();
-        });
+            return;
+        }
 
-        return;
-    }
+        if (txt.includes('YES')) {
+            eraseWin.destroy(); // Remove o menu de escolha
+
+            // --- INÍCIO DA ANIMAÇÃO DE LOG ---
+            const logBox = blessed.log({
+                parent: bg1Overlay,
+                top: 'center',
+                left: 'center',
+                width: '80%',
+                height: '80%',
+                border: 'line',
+                label: ' [ WIPING SECTORS ] ',
+                style: { border: { fg: 'red' }, fg: 'red' },
+                tags: true
+            });
+
+            const dummyLogs = [
+                "ACCESSING ROOT FILES...", "MOUNTING PARTITION /DEV/SDA1...",
+                "DELETING USER_DATA/ACHIEVEMENTS...", "OVERWRITING SECTOR 0x882A...",
+                "WIPING CONFIG/USER.TXT...", "DELETING CACHE...",
+                "LOG: Accessing restricted directory...", "RM -RF /SYSTEM/CORE",
+                "ERASING LIGHT_DATA.BIN...", "CLEARING REGISTRY KEYS...",
+                "DISABLING SUBSYSTEMS...", "FLUSHING MEMORY BUFFER...",
+                "ERASING LOGS...", "TERMINATING SESSIONS...",
+                "STATUS: 404 NOT FOUND", "STATUS: ACCESS REVOKED"
+            ];
+
+            let logIndex = 0;
+            const logInterval = setInterval(() => {
+                // Gera strings aleatórias para parecer código real sendo deletado
+                const randomHex = Math.random().toString(16).substring(2, 10).toUpperCase();
+                logBox.log(`{red-fg}[DELETING]{/} SECTOR_${randomHex} ... {bold}WIPED{/}`);
+                
+                if (logIndex < dummyLogs.length) {
+                    logBox.log(`{white-fg}> ${dummyLogs[logIndex]}{/}`);
+                    logIndex++;
+                }
+
+                screen.render();
+            }, 50); // Velocidade rápida para efeito de terminal
+
+            setTimeout(() => {
+                clearInterval(logInterval);
+                logBox.setContent(`{center}\n\n\n{bold}DATA PURGE COMPLETE{/}{/center}`);
+                screen.render();
+
+                setTimeout(() => {
+                    // Executa o apagador real em segundo plano
+                    const eraser = spawn('node', ['./EraseData.js'], { stdio: 'inherit' });
+
+                    eraser.on('close', () => {
+                        bg1Overlay.destroy();
+                        // Recalcula o menu principal (sem o PACPRO se foi apagado)
+                        const hasPac = fs.existsSync(path.join(__dirname, '..', 'Achievements', 'PACPRO.ach'));
+                        let items = ['{center}START MISSION{/center}'];
+                        if (hasPac) items.push('{center}PACPRO{/center}');
+                        
+                        mainList.setItems(items.concat([
+                            '{center}ACHIEVEMENTS{/center}', '{center}SETTINGS{/center}', 
+                            '{center}ERASE DATA{/center}', '{center}SYSTEM INFO{/center}', 
+                            '{center}CREDITS{/center}', '{center}SUPPORT{/center}', '{center}EXIT{/center}'
+                        ]));
+
+                        mainList.focus();
+                        screen.render();
+                    });
+                }, 1500);
+            }, 2500); // Duração total da animação de log
+        }
     });
 }
 
@@ -1017,6 +1179,12 @@ if (txt.includes('SIDEBAR')) {
 }
 
 if (txt.includes('RESET')) {
+  const pathAch = path.join(__dirname, '..', 'Achievements', 'HARD_RESET.ach');
+    if (!fs.existsSync(pathAch)) {
+        fs.writeFileSync(pathAch, 'COMPLETED');
+        // Nota: O Toast deve ser chamado ANTES de limpares a memória ou reiniciares o processo
+        showAchievementToast('HARD_RESET');
+    }
 
   if (fs.existsSync('../CONFIG/AUDIOSTATE.txt')) {
     fs.unlinkSync('../CONFIG/AUDIOSTATE.txt');
@@ -1124,6 +1292,14 @@ function getTerminalType() {
 let terminalName = getTerminalType();
 
 function showSystemInfo() {
+  infoAccessCount++;
+    if (infoAccessCount >= 10) {
+        const pathAch = path.join(__dirname, '..', 'Achievements', 'DATA_MINER.ach');
+        if (!fs.existsSync(pathAch)) {
+            fs.writeFileSync(pathAch, 'COMPLETED');
+            showAchievementToast('DATA_MINER');
+        }
+    }
   const keyFilePath = '../CONFIG/KEY.txt';
   const isUnlocked = fs.existsSync(keyFilePath);
 
@@ -1193,7 +1369,7 @@ function showSystemInfo() {
         const achPath = path.join(__dirname, '..', 'Achievements', 'OVERRIDE.ach');
         if (!fs.existsSync(achPath)) {
             fs.writeFileSync(achPath, 'COMPLETED');
-            showAchievementPopup('OVERRIDE'); // DISPARA AQUI
+            showAchievementToast('OVERRIDE'); // DISPARA AQUI
         }
               
         input.destroy();
@@ -1228,55 +1404,111 @@ function showSystemInfo() {
 }
 
 function supportGame() {
-  const bg1Overlay = blessed.box({
-    parent: screen,
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    style: {
-      bg: 'black',
-      transparent: false // Define como false para esconder o que está atrás
-    }
-  });
+    const bg1Overlay = blessed.box({
+        parent: screen,
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        index: 100, // Garante que fique acima do menu principal
+        style: { bg: 'black', transparent: false }
+    });
 
-  const supportBox = blessed.box({
-    parent: bg1Overlay,
-    top: 'center',
-    left: 'center',
-    width: 55,
-    height: 15,
-    border: 'line',
-    label: ' [ SUPPORT THE GAME ] ',
-    tags: true,
-    style: {
-      border: { fg: COLORDEFAULT },
-      label: { fg: COLORDEFAULT, bold: true, width: 'shrink' }
-    }
-  });
+    const supportBox = blessed.box({
+        parent: bg1Overlay,
+        top: 'center',
+        left: 'center',
+        width: 60,
+        height: 18,
+        border: 'line',
+        label: ' [ SUPPORT THE GAME ] ',
+        tags: true,
+        style: {
+            border: { fg: COLORDEFAULT },
+            label: { fg: COLORDEFAULT, bold: true }
+        }
+    });
 
-  const supportText = [
-    `\n {bold}THANK YOU FOR CONSIDERING SUPPORTING LIGHT GAME!{/bold}`,
-    `\n You can support us by sharing the game with friends,`,
-    `\n leaving a positive review, or following us on social media (@PALELUNAGAME).`,
-    `\n Your support helps us continue developing and improving the game!`,
-    `\n [ESC] TO RETURN`
-  ].join('\n');
+    const infoText = [
+        `\n{bold}THANK YOU FOR SUPPORTING LIGHT GAME!{/bold}`,
+        `Your support allows for further system development.`,
+        `Choose an action below to proceed:`
+    ].join('\n');
 
-  supportBox.setContent('{center}' + supportText + '{/center}');
+    const textContainer = blessed.box({
+        parent: supportBox,
+        top: 1,
+        left: 'center',
+        width: '90%',
+        height: 6,
+        tags: true,
+        content: `{center}${infoText}{/center}`
+    });
+
+    // Lista de opções de suporte
+    const supportOptions = blessed.list({
+        parent: supportBox,
+        bottom: 1,
+        left: 'center',
+        width: '80%',
+        height: 7,
+        keys: true,
+        tags: true,
+        mouse: true,
+        border: 'line',
+        items: [
+            '{center}DONATE ON ITCH.IO{/center}',
+            '{center}POST ON TWITTER (X){/center}',
+            '{center}CLOSE WINDOW{/center}'
+        ],
+        style: {
+            border: { fg: '#333333' },
+            selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
+        }
+    });
+
+    supportOptions.focus(); // Foca na lista para interação imediata
+
+    supportOptions.on('select', (item) => {
+        const text = item.getText();
+
+        if (text.includes('ITCH.IO')) {
+            // Abre link de doação
+            exec('start https://palelunagame.itch.io/light'); 
+        } 
+        else if (text.includes('TWITTER')) {
+            // Abre link para postar com texto pré-definido
+            const tweetText = encodeURIComponent("I'm playing LIGHT! A unique terminal horror experience. Check it out here: https://palelunagame.itch.io/light");
+            exec(`start https://twitter.com/intent/tweet?text=${tweetText}`);
+        } 
+        else if (text.includes('CLOSE')) {
+            closeSupport();
+        }
+        screen.render();
+    });
 
     function closeSupport() {
-    supportBox.destroy();
-    bg1Overlay.destroy();
-    mainList.focus();
-    screen.unkey('escape', closeSupport);
-    screen.render();
-  }
+        supportOptions.destroy();
+        supportBox.destroy();
+        bg1Overlay.destroy();
+        mainList.focus();
+        screen.render();
+    }
+
+    // Atalho rápido de saída
     screen.key(['escape'], closeSupport);
     screen.render();
 }
 
 function Achievements() {
+  achScreenCount++;
+    if (achScreenCount >= 5) {
+        const pathAch = path.join(__dirname, '..', 'Achievements', 'TERMINAL_JUNKIE.ach');
+        if (!fs.existsSync(pathAch)) {
+            fs.writeFileSync(pathAch, 'COMPLETED');
+            showAchievementToast('TERMINAL_JUNKIE');
+        }
+    }
     const backdrop = blessed.box({
         parent: screen,
         top: 0, left: 0,
@@ -1296,17 +1528,20 @@ function Achievements() {
     const trueLightPath = path.join(__dirname, '..', 'Achievements', 'TRUELIGHT.ach');
     
     // Se pegou as 12, desbloqueia a 13ª automaticamente
-    if (unlockedCount === 12 && !fs.existsSync(trueLightPath)) {
-    fs.writeFileSync(trueLightPath, 'COMPLETED');
-    showAchievementPopup('TRUELIGHT'); // DISPARA AQUI
-    
-    // Recarrega a tela após fechar o popup se necessário
-    setTimeout(() => {
-        backdrop.destroy();
-        Achievements();
-    }, 100);
-    return;
-}
+    if (unlockedCount === 18 && !fs.existsSync(trueLightPath)) {
+        fs.writeFileSync(trueLightPath, 'COMPLETED');
+        
+        // 1. Primeiro destrói o que está na tela
+        backdrop.destroy(); 
+        
+        // 2. Recarrega a tela de conquistas primeiro
+        Achievements(); 
+        
+        // 3. Só agora mostra o seu Toast por cima de tudo
+        showAchievementToast('TRUELIGHT'); 
+        
+        return;
+    }
 
     // Recalcula o total real após verificar a TRUELIGHT
     if (fs.existsSync(trueLightPath)) unlockedCount++;
@@ -1465,6 +1700,16 @@ screen.on('keypress', (ch, key) => {
             audiostate = 'ON';
             playAudio();
         }
+        if (audiostate === 'OFF') {
+    muteCount++;
+    if (muteCount >= 5) {
+        const achPath = path.join(__dirname, '..', 'Achievements', 'AUDIOPHOBIC.ach');
+        if (!fs.existsSync(achPath)) {
+                fs.writeFileSync(achPath, 'COMPLETED');
+                showAchievementToast('AUDIOPHOBIC'); // O teu Toast aqui
+            }
+    }
+}
         fs.writeFileSync('../CONFIG/AUDIOSTATE.txt', audiostate, 'utf8');
         updateStatus();
     }
@@ -1477,6 +1722,17 @@ screen.on('keypress', (ch, key) => {
 
     // [C] - Ciclo de Cores
     if (k === 'c') {
+
+
+// Dentro do if (k === 'c')
+colorCycles++;
+if (colorCycles >= 15) { // 3 cores * 5 ciclos = 15 pressões
+    const achPath = path.join(__dirname, '..', 'Achievements', 'COLOR_MASTER.ach');
+    if (!fs.existsSync(achPath)) {
+        fs.writeFileSync(achPath, 'COMPLETED');
+        showAchievementToast('COLOR_MASTER');
+    }
+}
         if (COLORDEFAULT === '#ff0000') { 
             COLORDEFAULT = '#00ff00'; COLORNAME = 'GREEN'; 
         } else if (COLORDEFAULT === '#00ff00') { 
@@ -1505,6 +1761,14 @@ screen.on('keypress', (ch, key) => {
     // [G] - Toggle Glitch
     if (k === 'g') {
         GLITCH = (GLITCH === 'ON') ? 'OFF' : 'ON';
+        glitchCount++;
+    if (glitchCount >= 10) {
+        const pathAch = path.join(__dirname, '..', 'Achievements', 'GLITCH_ADDICT.ach');
+        if (!fs.existsSync(pathAch)) {
+            fs.writeFileSync(pathAch, 'COMPLETED');
+            showAchievementToast('GLITCH_ADDICT');
+        }
+    }
         fs.writeFileSync('../CONFIG/GLITCH.txt', GLITCH, 'utf8');
         updateStatus();
     }
@@ -1536,7 +1800,7 @@ const hotkeysBar = blessed.box({
     style: { fg: COLORDEFAULT, border: { fg: COLORDEFAULT }, label: { fg: COLORDEFAULT } }
 });
 
-// Status Box (agora embaixo da hotkeysBar dentro do container)
+// Status Box (agora em da hotkeysBar dentro do container)
 const statusBox = blessed.box({
     parent: leftSidebar,
     top: 9, // Começa exatamente onde a hotkeysBar termina
@@ -1568,24 +1832,57 @@ mainList.on('select', (item) => {
   const text = item.getText();
   if (text.includes('PACPRO')) {
     mainList.detach();
-    menuBox.setContent(`\n\n{center}LOADING SUB-PROTOCOL...{/center}`);
-    screen.render();
+    let progress = 0;
+    
+    // 1. Efeito de Carregamento Inicial
+    const loadInterval = setInterval(() => {
+        progress += 10;
+        const bar = "█".repeat(progress / 10) + "░".repeat(10 - progress / 10);
+        menuBox.setContent(`\n\n{center}{bold}INITIALIZING EXTERNAL PROTOCOL{/bold}\n\n[${bar}] ${progress}%{/center}`);
+        screen.render();
+        
+        if (progress >= 100) clearInterval(loadInterval);
+    }, 100);
 
     setTimeout(() => {
-      menuBox.destroy();
-      mainList.destroy();
-      screen.destroy();
-      
-      // Abre o processo do PACPRO
-      const child = spawn('node', ['PACPRO.js'], { stdio: 'inherit' });
-      child.on('exit', () => {
-        // Ao sair do PACPRO, volta para este menu (reiniciando o script do menu)
-        spawn('node', [process.argv[1]], { stdio: 'inherit', detached: true });
-        process.exit();
-      });
+        // 2. Prepara a interface para o estado de "Aguardando"
+        menuBox.setContent(`\n\n{center}{yellow-fg}PACPRO RUNNING IN EXTERNAL TERMINAL...{/}\n\nWaiting for session end...{/center}`);
+        screen.render();
+
+        // 3. Abre o PACPRO em um CMD externo e espera o fechamento (/wait)
+const pacmanProc = spawn('cmd.exe /c start /wait node PACPRO.js', { 
+    shell: true 
+});
+
+        pacmanProc.on('exit', () => {
+            // 4. Verificação de Conquista
+            const achPath = path.join(__dirname, '..', 'Achievements', 'PACPRO.ach');
+            const hasWon = fs.existsSync(achPath);
+
+            if (hasWon) {
+                // TELA DE VITÓRIA NO MENU
+                menuBox.style.border.fg = 'yellow';
+                menuBox.setContent(`\n\n{center}{yellow-fg}{bold}CONGRATULATIONS!{/}\n\nPACPRO ELITE LEVEL CLEAR\n\nREBOOTING SYSTEM...{/center}`);
+            } else {
+                // TELA DE GAME OVER NO MENU
+                menuBox.style.border.fg = 'red';
+                menuBox.setContent(`\n\n{center}{red-fg}{bold}GAME OVER{/}\n\nPROTOCOL FAILURE: DATA LOST\n\nRESTARTING...{/center}`);
+            }
+            screen.render();
+
+            // 5. Reinicialização Final
+            setTimeout(() => {
+                screen.destroy();
+                spawn('cmd.exe', ['/c', 'start', 'node', 'menu.js'], { 
+                    shell: true, 
+                    detached: true 
+                }).unref();
+                process.exit(0);
+            }, 3000); // 3 segundos para o jogador ler o resultado no menu
+        });
     }, 1500);
     return;
-  }
+}
 
   if (text.includes('EXIT')) return confirmExit();
   if (text.includes('SETTINGS')) return showSettings();
@@ -1623,7 +1920,6 @@ mainList.on('select', (item) => {
 screen.key(['q', 'C-c'], () => confirmExit());
 startupSequence();
 startLogoAnimation();
-
 mainList.focus();
 screen.render();
 

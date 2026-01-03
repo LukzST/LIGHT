@@ -32,6 +32,9 @@ function wipeSystem() {
         if (fs.existsSync('../CONFIG/KEY.txt')) {
             fs.unlinkSync('../CONFIG/KEY.txt')
         }
+        if (fs.existsSync('../CONFIG/PACPRO_SEEN.TXT')) {
+            fs.unlinkSync('../CONFIG/PACPRO_SEEN.txt')
+        }
 
     } catch (err) {
         // Falha em silêncio absoluto.

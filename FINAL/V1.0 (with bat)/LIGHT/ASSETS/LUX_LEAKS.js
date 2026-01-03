@@ -8,6 +8,93 @@ const screen = blessed.screen({
     title: 'LUX-4_INTERNAL_FILES_REDACTED' 
 });
 
+const ACHIEVEMENT_NAMES = {
+    'PACPRO': 'ELITE OPERATOR',
+    'THE_END': 'LIGHT BRINGER',
+    'NEVERMISS': 'NEVER BE LATE',
+    'OVERRIDE': 'SYSTEM HACKER',
+    'REBEL_PATH': 'HELLO, REBEL',
+    'CEO_CONFRONT': 'DIRECTOR’S CUT',
+    'TRUTH_SEEKER': 'DECRYPTOR',
+    'RADIO_LISTENER': 'STATIC VOICES',
+    'GHOST_GUARDIAN': 'DIGITAL SHEPHERD',
+    'NEW_GOD': 'ELECTRONIC ASCENSION',
+    'SHADOW_FALL': 'CORE MELTDOWN',
+    'CITY_DARK': 'TOTAL BLACKOUT',
+    'SLOWTYPIST': 'SLOW TYPIST',
+    'LEAK_SAVED': 'WHISTLEBLOWER'
+};
+
+function showAchievementToast(id) {
+    const name = ACHIEVEMENT_NAMES[id] || id;
+    
+    const toast = blessed.box({
+        parent: screen,
+        top: 2,
+        right: 2,
+        width: 35,
+        height: 5,
+        border: 'line',
+        tags: true,
+        content: `{center}{yellow-fg}{bold}ACHIEVEMENT UNLOCKED{/}\n{white-fg}${name}{/center}`,
+        style: {
+            border: { fg: 'yellow' },
+            bg: 'black'
+        }
+    });
+
+    // --- GARANTE O TOPO ABSOLUTO ---
+    toast.setIndex(100); 
+    
+    screen.render();
+
+    setTimeout(() => {
+        toast.destroy();
+        screen.render();
+    }, 5000);
+}
+
+// Monitora a pasta por novos arquivos .ach
+function watchAchievements() {
+    const achDir = path.join(__dirname, '..', 'ACHIEVEMENTS');
+    
+    // Garante que a pasta existe para não dar erro no watch
+    if (!fs.existsSync(achDir)) {
+        fs.mkdirSync(achDir, { recursive: true });
+    }
+
+    fs.watch(achDir, (eventType, filename) => {
+        if (eventType === 'rename' && filename && filename.endsWith('.ach')) {
+            const filePath = path.join(achDir, filename);
+            
+            // Se o arquivo foi criado (e não deletado)
+            if (fs.existsSync(filePath)) {
+                const achId = filename.replace('.ach', '');
+                showAchievementToast(achId);
+            }
+        }
+    });
+}
+
+// Inicia o monitoramento
+
+
+async function typeWriter(box, text, delay = 30) {
+    return new Promise((resolve) => {
+        let i = 0;
+        box.content = '';
+        const interval = setInterval(() => {
+            box.content += text[i];
+            screen.render();
+            i++;
+            if (i === text.length) {
+                clearInterval(interval);
+                resolve();
+            }
+        }, delay);
+    });
+}
+
 const logBox = blessed.box({
     parent: screen, 
     top: 0, 
@@ -54,7 +141,11 @@ logBox.setContent(leakText);
 
 // --- SAVE ACTION ---
 screen.key(['s'], () => {
-    fs.writeFileSync('../ACHIEVEMENTS/LEAK_SAVED.ACH', 'COMPLETED')
+        if (!fs.existsSync('../ACHIEVEMENTS/LEAK_SAVED.ACH')) {
+                showAchievementToast('WHISTLEBLOWER')
+                fs.writeFileSync('../ACHIEVEMENTS/LEAK_SAVED.ACH', 'COMPLETED')
+            }
+
     const desktop = path.join(os.homedir(), 'Desktop', 'LUX_CONFIDENTIAL_LEAK.txt');
     
     // Formatting the plain text for the .txt file
