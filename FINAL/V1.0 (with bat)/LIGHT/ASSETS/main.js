@@ -6,13 +6,10 @@ const {
 } = require('child_process');
 const path = require('path');
 const os = require('os');
-// --- CONFIGURATION LOADING ---
 let COLOR_HEX = '#ff0000';
 try {
     COLOR_HEX = fs.readFileSync('../CONFIG/COLORDEFAULT.txt', 'utf8').trim();
 } catch (e) {}
-
-// Paths for the File Puzzle (USING DOCUMENTS TO AVOID ADMIN PRIVILEGES)
 const desktopPath = path.join(os.homedir(), 'Desktop', 'PASSWORD_ACCESS_FOLDER');
 const rootPassPath = path.join(os.homedir(), 'Documents', 'passwordjob.txt');
 const passwordValue = "L1GHT_SYST3M_0000_X_TR4NSM1SS1ON_S3CUR1TY_V3R1F13D_50";
@@ -23,12 +20,16 @@ const filesToClean = [
     './TERMINALACCESS/GAMEOVER.status',
     './TERMINALACCESS/TERMINAL_ACTIVE.status'
 ];
+const checkPath = path.join(__dirname, '..', 'CONFIG', 'CHECKPOINT.json');
+if (!fs.existsSync(checkPath)) {
+    filesToClean.forEach(file => {
+        if (fs.existsSync(file)) {
+            try { fs.unlinkSync(file); } catch(e) {}
+        }
+    });
+}
 
-filesToClean.forEach(file => {
-    if (fs.existsSync(file)) fs.unlinkSync(file);
-});
 
-// Function to clear puzzle traces
 function clearPuzzle() {
     filesToClean.forEach(file => {
         if (fs.existsSync(file)) fs.unlinkSync(file);
@@ -44,14 +45,11 @@ function clearPuzzle() {
         } catch (e) {}
     }
 }
-
-// --- SCREEN SETUP ---
 const screen = blessed.screen({
     smartCSR: true,
     title: 'LIGHT',
     fullUnicode: true
 });
-
 const style = {
     fg: COLOR_HEX,
     bg: 'black',
@@ -67,8 +65,6 @@ const style = {
         fg: 'black'
     }
 };
-
-// --- GLOBAL WIDGETS ---
 const container = blessed.box({
     parent: screen,
     width: '100%',
@@ -77,7 +73,6 @@ const container = blessed.box({
         bg: 'black'
     }
 });
-
 const statusBox = blessed.box({
     parent: container,
     bottom: 0,
@@ -94,7 +89,6 @@ const statusBox = blessed.box({
         }
     }
 });
-
 const LOGO_TEXT =
     "███        ███  ████████  ███  ███  █████████\n" +
     "███        ███  ███  ███  ███  ███     ███\n" +
@@ -105,9 +99,8 @@ const LOGO_TEXT =
     "███        ███  ███  ███  ███  ███     ███\n" +
     "█████████  ███  ████████  ███  ███     ███";
 
-// --- HELPER FUNCTIONS ---
-
 function execGameOver(reason) {
+    saveFinalTime();
     clearPuzzle();
     container.children.forEach(c => c.hide());
     const goBox = blessed.box({
@@ -130,10 +123,6 @@ function execGameOver(reason) {
     screen.render();
     setTimeout(() => process.exit(0), 5000);
 }
-
-// --- ACHIEVEMENT NOTIFICATION SYSTEM ---
-
-// Mapeamento de IDs para Nomes Reais (Para exibir no Toast)
 const ACHIEVEMENT_NAMES = {
     'PACPRO': 'ELITE OPERATOR',
     'THE_END': 'LIGHT BRINGER',
@@ -150,12 +139,78 @@ const ACHIEVEMENT_NAMES = {
     'SLOWTYPIST': 'SLOW TYPIST',
     'LEAK_SAVED': 'WHISTLEBLOWER',
     'AUDIOPHOBIC': 'AUDIOPHOBIC',
-  'COLOR_MASTER': 'SPECTRUM ANALYST'
+    'COLOR_MASTER': 'SPECTRUM ANALYST'
+};
+
+function showLoadToast() {
+    const toast = blessed.box({
+        parent: screen,
+        top: 'center',
+        left: 'center',
+        width: 35,
+        height: 5,
+        border: 'line',
+        tags: true,
+        content: `{center}{green-fg}{bold}CHECKPOINT LOADED{/}{/center}`,
+        style: { border: { fg: 'green' }, bg: 'black' }
+    });
+    toast.setIndex(1000);
+    screen.render();
+    setTimeout(() => { toast.destroy(); screen.render(); }, 2000);
+}
+
+// Variáveis de Tempo
+let playtimeSeconds = 0;
+let playtimeStatus = 'OFF';
+
+try {
+    const timeData = fs.readFileSync('../CONFIG/TIME.txt', 'utf8').split('\n');
+    playtimeStatus = (timeData[0] || 'OFF').trim();
+    playtimeSeconds = parseInt(timeData[1]) || 0;
+} catch (e) {}
+
+const playtimerBox = blessed.box({
+    parent: screen,
+    top: 1,
+    left: 1,
+    width: 'shrink',
+    height: 3,
+    border: 'line',
+    tags: true,
+    hidden: playtimeStatus === 'OFF',
+    style: {
+        fg: COLOR_HEX,
+        border: { fg: '#333333' }
+    }
+});
+
+function formatTime(s) {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+}
+
+if (playtimeStatus === 'ON') {
+    setInterval(() => {
+        playtimeSeconds++;
+        playtimerBox.setContent(`{bold}SESSION: ${formatTime(playtimeSeconds)}{/}`);
+        screen.render();
+    }, 1000);
+}
+
+function saveFinalTime() {
+    fs.writeFileSync('../CONFIG/TIME.txt', `${playtimeStatus}\n${playtimeSeconds}`, 'utf8');
+}
+
+const originalGameOver = execGameOver;
+execGameOver = function(reason) {
+    saveFinalTime();
+    originalGameOver(reason);
 };
 
 function showAchievementToast(id) {
     const name = ACHIEVEMENT_NAMES[id] || id;
-
     const toast = blessed.box({
         parent: screen,
         top: 2,
@@ -172,34 +227,123 @@ function showAchievementToast(id) {
             bg: 'black'
         }
     });
-
-    // --- GARANTE O TOPO ABSOLUTO ---
     toast.setIndex(100);
-
     screen.render();
-
     setTimeout(() => {
         toast.destroy();
         screen.render();
     }, 5000);
 }
 
-// Monitora a pasta por novos arquivos .ach
+function showCheckpointToast() {
+    const toast = blessed.box({
+        parent: screen,
+        top: 2,
+        right: 2,
+        width: 30,
+        height: 5,
+        border: 'line',
+        tags: true,
+        content: `{center}{bold}CHECKPOINT REACHED{/}\n{white-fg}PROGRESS SAVED{/center}`,
+        style: {
+            border: {
+                fg: 'yellow'
+            },
+            bg: 'black'
+        }
+    });
+    toast.setIndex(1000);
+    screen.render();
+    setTimeout(() => {
+        toast.destroy();
+        screen.render();
+    }, 3000);
+}
+
+function saveCheckpoint(stageName) {
+    const saveData = {
+        last_stage: stageName,
+        timestamp: new Date().toISOString(),
+        user: os.userInfo().username
+    };
+    
+    const savePath = path.join(__dirname, '..', 'CONFIG', 'CHECKPOINT.json');
+    
+    try {
+        if (!fs.existsSync(path.dirname(savePath))) {
+            fs.mkdirSync(path.dirname(savePath), { recursive: true });
+        }
+        fs.writeFileSync(savePath, JSON.stringify(saveData, null, 2));
+        showCheckpointToast();
+    } catch (e) {
+    }
+}
+
+function loadStage(stageName) {
+    showLoadToast();
+    
+    // Limpa a tela antes de carregar
+    container.children.forEach(c => {
+        if (c !== statusBox) c.hide();
+    });
+
+    setTimeout(async () => {
+        statusBox.setContent(` [SYSTEM]: Restoring Sector: ${stageName}... `);
+        screen.render();
+
+        try {
+            switch(stageName) {
+                case "START_NARRATIVE": 
+                    await startNarrative(); 
+                    break;
+                case "OFFICE_CHAOS": 
+                    await officeChaosPhase(); 
+                    break;
+                case "POWER_ACTIVE": 
+                    // Se a energia já estava ativa, precisamos garantir que o arquivo exista
+                    fs.writeFileSync('./TERMINALACCESS/POWER_ACTIVE.status', '1');
+                    await officeChaosPhase(); 
+                    break;
+                case "SUBLEVEL_7": 
+                    // Cria uma box temporária para a função de sublevel não quebrar
+                    const dummyBox = blessed.box({
+                        parent: container,
+                        top: 'center', left: 'center',
+                        width: '90%', height: '80%',
+                        border: 'line', style: style, tags: true
+                    });
+                    await arrivalAtSublevel(dummyBox); 
+                    break;
+                case "CORE_FINAL": 
+                    const coreBox = blessed.box({
+                        parent: container,
+                        top: 'center', left: 'center',
+                        width: '90%', height: '80%',
+                        border: 'line', style: style, tags: true
+                    });
+                    await coreFinalSequence(coreBox); 
+                    break;
+                default: 
+                    startMainMenu();
+            }
+        } catch (err) {
+            // Se der erro, volta ao menu em vez de fechar o jogo
+            console.error(err);
+            startMainMenu();
+        }
+    }, 2000);
+}
+
 function watchAchievements() {
     const achDir = path.join(__dirname, '..', 'ACHIEVEMENTS');
-
-    // Garante que a pasta existe para não dar erro no watch
     if (!fs.existsSync(achDir)) {
         fs.mkdirSync(achDir, {
             recursive: true
         });
     }
-
     fs.watch(achDir, (eventType, filename) => {
         if (eventType === 'rename' && filename && filename.endsWith('.ach')) {
             const filePath = path.join(achDir, filename);
-
-            // Se o arquivo foi criado (e não deletado)
             if (fs.existsSync(filePath)) {
                 const achId = filename.replace('.ach', '');
                 showAchievementToast(achId);
@@ -207,10 +351,6 @@ function watchAchievements() {
         }
     });
 }
-
-// Inicia o monitoramento
-
-
 async function typeWriter(box, text, delay = 30) {
     return new Promise((resolve) => {
         let i = 0;
@@ -226,21 +366,15 @@ async function typeWriter(box, text, delay = 30) {
         }, delay);
     });
 }
-
-
-// --- PHASE 10: LUX-4 LEAKS (THE TRUTH) ---
 async function accessLuxFiles(box) {
     box.setContent("");
     await typeWriter(box, "{green-fg}[SYSTEM]: Balance maintained. Neural link stable.{/green-fg}");
     await new Promise(res => setTimeout(res, 1000));
-
     await typeWriter(box, "[YOU]: I'm in. The system thinks I'm part of it. I can see the encrypted directories now.");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
-
     box.setContent("{center}ENTER ENCRYPTION KEY TO ACCESS 'PROJECT_FADE_1999_LOGS'\n\n{yellow-fg}(HINT: Check 'System Info' in the Main Menu){/yellow-fg}{/center}");
-
     const accessInput = blessed.textbox({
         parent: box,
         top: 'center',
@@ -258,26 +392,20 @@ async function accessLuxFiles(box) {
     });
     accessInput.focus();
     screen.render();
-
     accessInput.on('submit', async (value) => {
         if (value === "lux1999files") {
             accessInput.destroy();
             box.setContent("{center}{green-fg}DECRYPTING... ACCESS GRANTED.{/green-fg}{/center}");
-
             if (!fs.existsSync('../ACHIEVEMENTS/TRUTH_SEEKER.ACH')) {
                 showAchievementToast('DECRYPTOR')
                 fs.writeFileSync('../ACHIEVEMENTS/TRUTH_SEEKER.ACH', 'COMPLETED')
             }
-
             screen.render();
-
             setTimeout(() => {
                 const leakProc = spawn('cmd.exe', ['/c', 'start', '/wait', 'node', 'LUX_LEAKS.js'], {
                     shell: false
                 });
-
                 leakProc.on('exit', () => {
-                    // INSTEAD OF GAME OVER:
                     box.setContent("");
                     box.style.border.fg = "yellow";
                     box.setContent(
@@ -288,8 +416,6 @@ async function accessLuxFiles(box) {
                         "{blink}Close the game and use the code at the start to change history.{/blink}{/center}"
                     );
                     screen.render();
-
-                    // Allow the user to manually exit or stay to read
                     screen.key(['enter', 'escape'], () => process.exit(0));
                 });
             }, 2000);
@@ -299,14 +425,10 @@ async function accessLuxFiles(box) {
         }
     });
 }
-
-// --- PHASE 9: THE CORE ROOM & FINAL DESTINY ---
-
 async function sublevelExploration() {
     container.children.forEach(c => {
         if (c !== statusBox) c.hide();
     });
-
     const sublevelBox = blessed.box({
         parent: container,
         top: 'center',
@@ -320,26 +442,19 @@ async function sublevelExploration() {
         padding: 1,
         tags: true
     });
-
-    // 1. Entrada e Alarme de Segurança
     await typeWriter(sublevelBox, "[NARRATOR]: You step into the Heart of the LUX-4 Mainframe. The air is thick with static.");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
-
     await typeWriter(sublevelBox, "{red-fg}[ALARM]: SECURITY BREACH. DOORS LOCKED. SELF-DESTRUCT IN 5 SECONDS.{/red-fg}");
     await new Promise(res => setTimeout(res, 1000));
-
-    // 2. Protocolo de Override (O código 6789)
     const codeToType = "6789";
     let timeLeft = 5;
     let missionFailed = false;
-
     const flashInterval = setInterval(() => {
         sublevelBox.style.bg = (sublevelBox.style.bg === 'black' ? 'red' : 'black');
         screen.render();
     }, 200);
-
     const timerInterval = setInterval(() => {
         timeLeft--;
         if (timeLeft <= 0 && !missionFailed) {
@@ -356,7 +471,6 @@ async function sublevelExploration() {
             screen.render();
         }
     }, 1000);
-
     const inputField = blessed.textbox({
         parent: sublevelBox,
         bottom: 3,
@@ -374,18 +488,17 @@ async function sublevelExploration() {
     });
     inputField.focus();
     screen.render();
-
     inputField.on('submit', (value) => {
         if (missionFailed) return;
         clearInterval(timerInterval);
         clearInterval(flashInterval);
-
         if (value === codeToType) {
             sublevelBox.style.bg = 'black';
             sublevelBox.setContent("{center}{green-fg}OVERRIDE SUCCESSFUL. ACCESSING CORE...{/green-fg}{/center}");
             screen.render();
             setTimeout(() => {
                 inputField.destroy();
+                saveCheckpoint("CORE_FINAL");
                 coreFinalSequence(sublevelBox);
             }, 2000);
         } else {
@@ -394,15 +507,10 @@ async function sublevelExploration() {
         }
     });
 }
-
-// --- SEQUÊNCIA DE INTEGRAÇÃO E BALANCER ---
-
 async function coreFinalSequence(box) {
     box.setContent("");
     const achPath = path.join(__dirname, '..', 'ACHIEVEMENTS', 'PACPRO.ach');
     const isElite = fs.existsSync(achPath);
-
-    // EASTER EGG PARA ELITE
     if (isElite) {
         await typeWriter(box, "{yellow-fg}[ELITE DATA UNLOCKED]: PROJECT FADE - PRELUDE TO 1999.{/yellow-fg}");
         await new Promise(res => screen.once('keypress', (ch, key) => {
@@ -414,52 +522,38 @@ async function coreFinalSequence(box) {
         }));
         box.setContent("");
     }
-
-    // SEQUÊNCIA OBRIGATÓRIA (FORCED LABOR)
     await typeWriter(box, "[SYSTEM]: Administrative rights: DENIED. Manual core maintenance required.");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
-
     await typeWriter(box, "[NARRATOR]: Mechanical arms emerge from the ceiling, forcing you into the Control Chair.");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
-
     await typeWriter(box, "[SYSTEM]: Energy fluctuation detected. Initialize BALANCER.js to prevent blackout.");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
-
     box.setContent("{center}CHAIR LOCKED. USER INTEGRATED.\n\nINITIALIZING BALANCER.js...{/center}");
     screen.render();
-
-    // Inicia o terminal secundário
     const balancerProc = spawn('cmd.exe', ['/c', 'start', '/wait', 'node', 'BALANCER.js'], {
         shell: false
     });
-
-    // Inside your coreFinalSequence function:
     balancerProc.on('exit', () => {
         const successFile = './BALANCER_SUCCESS.status';
         const isSecretRoute = fs.existsSync('./TERMINALACCESS/SECRET_ROUTE.status');
-
         if (!fs.existsSync(successFile)) {
             if (!fs.existsSync('../ACHIEVEMENTS/SHADOW_FALL.ACH')) {
                 showAchievementToast('CORE MELTDOWN')
                 fs.writeFileSync('../ACHIEVEMENTS/SHADOW_FALL.ACH', 'COMPLETED')
             }
         }
-
         if (fs.existsSync(successFile)) {
             fs.unlinkSync(successFile);
-
             if (isSecretRoute) {
-                // Secret path: Go to CEO
                 fs.unlinkSync('./TERMINALACCESS/SECRET_ROUTE.status');
                 ceoConfrontation();
             } else {
-                // Normal path: Go to Leaks
                 if (!fs.existsSync('../ACHIEVEMENTS/GHOST_GUARDIAN.ACH')) {
                     showAchievementToast('DIGITAL SHEPHEAD')
                     fs.writeFileSync('../ACHIEVEMENTS/GHOST_GUARDIAN.ACH', 'COMPLETED')
@@ -467,89 +561,65 @@ async function coreFinalSequence(box) {
                 accessLuxFiles(box);
             }
         } else {
-
             execGameOver("The core exploded. The Fade consumed reality.");
         }
     });
 }
-
-// --- SEQUÊNCIA FINAL: O ESTER EGG ELITE + TERMINAL BALANCER ---
-
 async function coreFinalSequence(box) {
     box.setContent("");
     const achPath = path.join(__dirname, '..', 'ACHIEVEMENTS', 'PACPRO.ach');
     const isElite = fs.existsSync(achPath);
-
-    // --- BLOCO EASTER EGG / PRELÚDIO (SÓ PARA ELITE) ---
     if (isElite) {
         await typeWriter(box, "{yellow-fg}[ELITE DATA UNLOCKED]: PROJECT FADE - PRELUDE TO 1999.{/yellow-fg}");
         await new Promise(res => screen.once('keypress', (ch, key) => {
             if (key.name === 'enter') res();
         }));
-
         await typeWriter(box, "{yellow-fg}[PRELUDE]: 'The city didn't lose power in 1999. It was consumed to fuel the first upload.'{/yellow-fg}");
         await new Promise(res => screen.once('keypress', (ch, key) => {
             if (key.name === 'enter') res();
         }));
-
         await typeWriter(box, "{yellow-fg}[MESSAGE]: You know the truth now, Operator. But the machine still needs a heart.{/yellow-fg}");
         await new Promise(res => screen.once('keypress', (ch, key) => {
             if (key.name === 'enter') res();
         }));
         box.setContent("");
     }
-
-    // --- SEQUÊNCIA OBRIGATÓRIA PARA TODOS ---
     await typeWriter(box, "[SYSTEM]: Total system override failed. Administrative rights: REDACTED.");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
-
     await typeWriter(box, "[NARRATOR]: Mechanical arms emerge from the ceiling, forcing you into the Control Chair.");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
-
     await typeWriter(box, "[YOU]: Wait... no! I'm not a part of this!");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
-
     await typeWriter(box, "[SYSTEM]: Energy fluctuation detected. Manual balancing required.");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
-
     box.setContent("{center}CHAIR LOCKED. BIOMETRIC SYNC COMPLETE.\n\nINITIALIZING BALANCER.js SYSTEM...{/center}");
     screen.render();
-
-    // Inicia o terminal secundário obrigatoriamente
     const balancerProc = spawn('cmd.exe', ['/c', 'start', '/wait', 'node', 'BALANCER.js'], {
         shell: false
     });
-
-    // Inside your coreFinalSequence function:
     balancerProc.on('exit', () => {
         const successFile = './BALANCER_SUCCESS.status';
         const isSecretRoute = fs.existsSync('./TERMINALACCESS/SECRET_ROUTE.status');
-
         if (!fs.existsSync(successFile)) {
             if (!fs.existsSync('../ACHIEVEMENTS/SHADOW_FALL.ACH')) {
                 showAchievementToast('CORE MELTDOWN')
                 fs.writeFileSync('../ACHIEVEMENTS/SHADOW_FALL.ACH', 'COMPLETED')
             }
         }
-
-
         if (fs.existsSync(successFile)) {
             fs.unlinkSync(successFile);
-
             if (isSecretRoute) {
-                // Secret path: Go to CEO
                 fs.unlinkSync('./TERMINALACCESS/SECRET_ROUTE.status');
                 ceoConfrontation();
             } else {
-                // Normal path: Go to Leaks
                 if (!fs.existsSync('../ACHIEVEMENTS/GHOST_GUARDIAN.ACH')) {
                     showAchievementToast('DIGITAL SHEPHEAD')
                     fs.writeFileSync('../ACHIEVEMENTS/GHOST_GUARDIAN.ACH', 'COMPLETED')
@@ -561,30 +631,24 @@ async function coreFinalSequence(box) {
         }
     });
 }
-// --- FINAL BRANCHING (ELITE VS NORMAL) ---
-
 async function finalChoicePhase(box) {
     box.setContent("");
     const achPath = path.join(__dirname, '..', 'ACHIEVEMENTS', 'PACPRO.ach');
     const isElite = fs.existsSync(achPath);
-
     const narrative = [
         "[SYSTEM]: Core connection stable. The violet light of the Fade is pulsating in front of you.",
         "[YOU]: This is it. The digitizing core of LUX-4."
     ];
-
     if (isElite) {
         narrative.push("{yellow-fg}[ELITE LOG]: Credential PACPRO detected. Secret archive unlocked.{/yellow-fg}");
         narrative.push("{yellow-fg}[REPORT 1999]: 'The Fade wasn't a mistake. We found a way to live inside the electrons.'{/yellow-fg}");
     }
-
     for (const line of narrative) {
         await typeWriter(box, line);
         await new Promise(res => screen.once('keypress', (ch, key) => {
             if (key.name === 'enter') res();
         }));
     }
-
     const finalAction = blessed.list({
         parent: container,
         bottom: 5,
@@ -604,14 +668,11 @@ async function finalChoicePhase(box) {
         style: style,
         align: 'center'
     });
-
     finalAction.focus();
     screen.render();
-
     finalAction.on('select', async (it, idx) => {
         finalAction.hide();
         box.setContent("");
-
         if (idx === 0) {
             await typeWriter(box, "[YOU]: This experiment ends now. For everyone.");
             execGameOver("You purged the core. The city went dark, but the cycle of the Fade was broken.");
@@ -626,65 +687,51 @@ async function finalChoicePhase(box) {
         }
     });
 }
-
 async function ceoConfrontation() {
     if (!fs.existsSync('../ACHIEVEMENTS/CEO_CONFRONT.ACH')) {
         showAchievementToast('DIRECTOR’S CUT')
         fs.writeFileSync('../ACHIEVEMENTS/CEO_CONFRONT.ACH', 'COMPLETED')
     }
     const vbsPath = path.join(os.tmpdir(), 'ceo_chat.vbs');
-
-    // Windows Native Dialogues Script
     fs.writeFileSync(vbsPath, `
-        Set objShell = CreateObject("WScript.Shell")
-        res = MsgBox("LUX-4 CEO: You know everything now, don't you?", 36, "CORE_ACCESS_TERMINAL")
-        If res = 7 Then
-            ' User chose NO
-            MsgBox "LUX-4 CEO: Hahaha... bad idea.", 16, "SYSTEM_ERROR"
-            objShell.Run "shutdown /s /t 10 /c ""UNAUTHORIZED ACCESS DENIED. SYSTEM HALT.""", 0, True
-        Else
-            ' User chose YES
-            MsgBox "LUX-4 CEO: How? How did you find out?", 48, "SYSTEM_BREACH"
-            MsgBox "LUX-4 CEO: You destroyed everything I built. Know that we hate you...", 16, "LUX-4_REVENGE"
-            objShell.Run "shutdown /r /t 15 /c ""PURGING LUX-4 REMNANTS. REBOOTING SYSTEM...""", 0, True
-        End If
-    `, {
+ Set objShell = CreateObject("WScript.Shell")
+ res = MsgBox("LUX-4 CEO: You know everything now, don't you?", 36, "CORE_ACCESS_TERMINAL")
+ If res = 7 Then
+ ' User chose NO
+ MsgBox "LUX-4 CEO: Hahaha... bad idea.", 16, "SYSTEM_ERROR"
+ objShell.Run "shutdown /s /t 10 /c ""UNAUTHORIZED ACCESS DENIED. SYSTEM HALT.""", 0, True
+ Else
+ ' User chose YES
+ MsgBox "LUX-4 CEO: How? How did you find out?", 48, "SYSTEM_BREACH"
+ MsgBox "LUX-4 CEO: You destroyed everything I built. Know that we hate you...", 16, "LUX-4_REVENGE"
+ objShell.Run "shutdown /r /t 15 /c ""PURGING LUX-4 REMNANTS. REBOOTING SYSTEM...""", 0, True
+ End If
+ `, {
         encoding: 'latin1'
     });
-
     exec(`cscript //nologo ${vbsPath}`, () => {
         try {
             fs.unlinkSync(vbsPath);
         } catch (e) {}
-
-        // Clean temporary game files
         filesToClean.forEach(f => {
             if (fs.existsSync(f)) fs.unlinkSync(f);
         });
         clearPuzzle();
-
-        // Leave the final message on the real Desktop
         const finalTxtPath = path.join(os.homedir(), 'Desktop', 'FINAL_MESSAGE.txt');
         fs.writeFileSync(finalTxtPath, "You won, Operator. LUX-4 is gone, but the world is now in darkness.\nDo not return.\n- CEO");
-
-        // Set final status to block the game on next launch
         fs.writeFileSync('./TERMINALACCESS/FINAL.status', 'COMPLETED');
         if (!fs.existsSync('../ACHIEVEMENTS/THE_END.ACH')) {
             showAchievementToast('LIGHT BRINGER')
             fs.writeFileSync('../ACHIEVEMENTS/THE_END.ACH', 'COMPLETED')
         }
-
         process.exit(0);
     });
 }
-
-// --- PHASE 8: THE OFFICE AND THE CONTROL ROOM ---
-
 async function officeChaosPhase() {
+    saveCheckpoint("OFFICE_CHAOS");
     container.children.forEach(c => {
         if (c !== statusBox) c.hide();
     });
-
     const officeBox = blessed.box({
         parent: container,
         top: 'center',
@@ -699,7 +746,6 @@ async function officeChaosPhase() {
         padding: 1,
         scrollable: true
     });
-
     const scenes = [
         "[SYSTEM]: You enter the building. The air is heavy.",
         "[CHAOS]: Coworkers are running in circles, some praying, others smashing monitors.",
@@ -707,19 +753,16 @@ async function officeChaosPhase() {
         "[MISSION]: You ignore the screams and run to the basement.",
         "[LOCATED]: You spot a brushed metal sign: 'POWER MANAGEMENT ROOM'."
     ];
-
     for (const scene of scenes) {
         await typeWriter(officeBox, scene);
         await new Promise(res => screen.once('keypress', (ch, key) => {
             if (key.name === 'enter') res();
         }));
     }
-
     officeBox.setContent("{center}\n\n[ FOCUSING ON SIGN ]\n\nPOWER MANAGEMENT ROOM{/center}");
     officeBox.parseTags = true;
     screen.render();
     await new Promise(res => setTimeout(res, 3000));
-
     const roomMenu = blessed.list({
         parent: container,
         bottom: 5,
@@ -734,12 +777,10 @@ async function officeChaosPhase() {
         },
         style: style
     });
-
     roomMenu.on('select', async (item, index) => {
         if (index === 0) {
             roomMenu.hide();
             await typeWriter(officeBox, "[SYSTEM]: You sit in the chair. The terminal in front of you blinks green...");
-
             const terminalAction = blessed.list({
                 parent: container,
                 bottom: 5,
@@ -753,26 +794,21 @@ async function officeChaosPhase() {
                 },
                 style: style
             });
-
             terminalAction.on('select', (it, idx) => {
                 if (idx === 1) execGameOver("You destroyed the last hope for light. The darkness consumed you.");
                 else {
                     const statusPath = './TERMINALACCESS/POWER_ACTIVE.status';
                     fs.writeFileSync(statusPath, '1');
-
+                    saveCheckpoint("POWER_ACTIVE");
                     exec('start cmd /c "node TERMINAL_ENERGIA.js"');
-
                     officeBox.setContent("{center}SYSTEM STARTED IN SECOND INSTANCE.\nAWAITING ELEVATOR UNLOCK SEQUENCE...{/center}");
                     terminalAction.hide();
                     screen.render();
-
                     const checkClosure = setInterval(async () => {
                         if (!fs.existsSync(statusPath)) {
                             clearInterval(checkClosure);
-
                             if (fs.existsSync('./TERMINALACCESS/ELEVATOR_OPEN.status')) {
                                 fs.unlinkSync('./TERMINALACCESS/ELEVATOR_OPEN.status');
-
                                 officeBox.hide();
                                 const elevatorScene = blessed.box({
                                     parent: container,
@@ -787,7 +823,6 @@ async function officeChaosPhase() {
                                     padding: 1,
                                     tags: true
                                 });
-
                                 const elevatorNarration = [
                                     "[SYSTEM]: The terminal goes dark. A loud crash echoes at the end of the hallway.",
                                     "[NARRATOR]: The Sector 4 emergency lights blink in neon blue.",
@@ -795,14 +830,12 @@ async function officeChaosPhase() {
                                     "[NARRATOR]: You step inside the mirrored elevator. The air is cold.",
                                     "[SYSTEM]: DESCENT INITIATED. CHOOSE CABIN INTERFACE ACTIVITY."
                                 ];
-
                                 for (const f of elevatorNarration) {
                                     await typeWriter(elevatorScene, f);
                                     await new Promise(res => screen.once('keypress', (ch, key) => {
                                         if (key.name === 'enter') res();
                                     }));
                                 }
-
                                 const elevatorMenu = blessed.list({
                                     parent: container,
                                     top: 'center',
@@ -818,23 +851,17 @@ async function officeChaosPhase() {
                                     style: style,
                                     align: 'center'
                                 });
-
                                 elevatorMenu.focus();
                                 screen.render();
-
                                 elevatorMenu.on('select', async (it, eIdx) => {
                                     elevatorMenu.hide();
-
                                     if (eIdx === 0) {
                                         elevatorScene.setContent("{center}ELEVATOR IN MOTION...\n\nENTERTAINMENT SYSTEM ACTIVE.\nAWAITING PROCESS TERMINATION (Press F to exit game)...{/center}");
                                         screen.render();
-
                                         const pacmanProc = spawn('cmd.exe', ['/c', 'start', '/wait', 'node', 'PACPRO.js'], {
                                             shell: false,
                                             detached: false
                                         });
-
-                                        // MONITORAMENTO EM TEMPO REAL DA CONQUISTA
                                         const achPath = path.join(__dirname, '..', 'ACHIEVEMENTS', 'PACPRO.ach');
                                         pacmanProc.on('exit', async () => {
                                             if (fs.existsSync(achPath)) {
@@ -843,7 +870,6 @@ async function officeChaosPhase() {
                                                 await new Promise(res => screen.once('keypress', (ch, key) => {
                                                     if (key.name === 'enter') res();
                                                 }));
-
                                                 await typeWriter(elevatorScene, "{yellow-fg}[NON-CANNON]: You actually cleared the simulation. Respect, Operator. You are elite.{/yellow-fg}");
                                                 await new Promise(res => screen.once('keypress', (ch, key) => {
                                                     if (key.name === 'enter') res();
@@ -851,7 +877,6 @@ async function officeChaosPhase() {
                                             }
                                             arrivalAtSublevel(elevatorScene);
                                         });
-
                                     } else {
                                         elevatorScene.setContent("");
                                         if (!fs.existsSync('../ACHIEVEMENTS/RADIO_LISTENER.ACH')) {
@@ -862,20 +887,16 @@ async function officeChaosPhase() {
                                         await new Promise(res => screen.once('keypress', (ch, key) => {
                                             if (key.name === 'enter') res();
                                         }));
-
                                         await typeWriter(elevatorScene, "[RADIO]: 'LUX-4 Energy Corp has issued a formal statement regarding the 1999 THE FADE incident...'");
                                         await new Promise(res => screen.once('keypress', (ch, key) => {
                                             if (key.name === 'enter') res();
                                         }));
-
                                         await typeWriter(elevatorScene, "[RADIO]: 'The board officially denies any involvement, claiming the reports of anomalies are baseless conspiracy theories...'");
                                         await new Promise(res => screen.once('keypress', (ch, key) => {
                                             if (key.name === 'enter') res();
                                         }));
-
                                         const vbsPath = path.join(os.tmpdir(), 'warning.vbs');
                                         fs.writeFileSync(vbsPath, `MsgBox "YOU KNOW TOO MUCH", 16, "SYSTEM CRITICAL ERROR"`);
-
                                         exec(`cscript //nologo ${vbsPath}`, () => {
                                             try {
                                                 fs.unlinkSync(vbsPath);
@@ -884,7 +905,6 @@ async function officeChaosPhase() {
                                         });
                                     }
                                 });
-
                             } else {
                                 execGameOver("The power terminal was closed without releasing the protocols.");
                             }
@@ -894,48 +914,34 @@ async function officeChaosPhase() {
             });
             terminalAction.focus();
             screen.render();
-
         } else {
             execGameOver("You wasted precious time. The room was flooded by shadows.");
         }
     });
-
     roomMenu.focus();
     screen.render();
 }
-
 async function arrivalAtSublevel(box) {
+    saveCheckpoint("SUBLEVEL_7");
     box.setContent("");
-
-    // Frase 1
     await typeWriter(box, "[SYSTEM]: *DING*");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
-
-    // Frase 2
     box.setContent(""); // Limpa para a próxima ou use box.content += "\n"
     await typeWriter(box, "[SYSTEM]: ARRIVAL: SUBLEVEL 7 - RESEARCH AND DEVELOPMENT.");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
-
-    // Frase 3
     box.setContent("");
     await typeWriter(box, "[NARRATOR]: The doors slide open. The basement is submerged in absolute silence.");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
-
-    // Achievement Recognition Check
     const achPath = path.join(__dirname, '..', 'ACHIEVEMENTS', 'PACPRO.ach');
     const hasAch = fs.existsSync(achPath);
-
     sublevelExploration()
 }
-
-// --- PASSWORD WORK PHASE ---
-
 async function passwordWorkPhase() {
     container.children.forEach(c => {
         if (c !== statusBox) c.hide();
@@ -944,7 +950,6 @@ async function passwordWorkPhase() {
         if (!fs.existsSync(desktopPath)) fs.mkdirSync(desktopPath);
         fs.writeFileSync(rootPassPath, passwordValue);
     } catch (e) {}
-
     const loginBox = blessed.box({
         parent: container,
         top: 'center',
@@ -960,13 +965,11 @@ async function passwordWorkPhase() {
         content: `[CORPORATE ACCESS SYSTEM]\n\nSTATUS: AWAITING CREDENTIALS...\n\nHINT: Check your DOCUMENTS folder.`
     });
     screen.render();
-
     const monitor = setInterval(() => {
         const files = fs.readdirSync(desktopPath).filter(f => f !== 'READ-ME.txt');
         if (files.length > 0) {
             clearInterval(monitor);
             const content = fs.readFileSync(path.join(desktopPath, files[0]), 'utf8').trim();
-
             if (content === passwordValue) {
                 loginBox.setContent("{green-fg}ACCESS GRANTED. SECTOR 7.{/green-fg}");
                 setTimeout(() => {
@@ -974,7 +977,6 @@ async function passwordWorkPhase() {
                     officeChaosPhase();
                 }, 2000);
             } else if (content === "LUX4LIFE") {
-                // HIDDEN ROUTE ACTIVATED
                 if (!fs.existsSync('../ACHIEVEMENTS/REBEL_PATH.ACH')) {
                     showAchievementToast('HELLO, REBEL')
                     fs.writeFileSync('../ACHIEVEMENTS/REBEL_PATH.ACH', 'COMPLETED')
@@ -991,13 +993,11 @@ async function passwordWorkPhase() {
         }
     }, 1000);
 }
-// --- PHASE 5: THE FINAL CHOICE ---
 
 function finalChoicePhase() {
     container.children.forEach(c => {
         if (c !== statusBox) c.hide();
     });
-
     const finalMenu = blessed.list({
         parent: container,
         top: 'center',
@@ -1017,7 +1017,6 @@ function finalChoicePhase() {
         style: style,
         align: 'center'
     });
-
     finalMenu.on('select', (item, index) => {
         if (index === 0) {
             passwordWorkPhase();
@@ -1032,18 +1031,13 @@ function finalChoicePhase() {
             }
         }
     });
-
     finalMenu.focus();
     screen.render();
 }
-
-// --- PHASE 4: THE PATH ---
-
 async function thePathPhase() {
     container.children.forEach(c => {
         if (c !== statusBox) c.hide();
     });
-
     const roadBox = blessed.box({
         parent: container,
         top: 'center',
@@ -1056,7 +1050,6 @@ async function thePathPhase() {
         style: style,
         padding: 1
     });
-
     const logs = [
         "[REPORT]: You drive through the streets... the asphalt seems to absorb the headlights.",
         "[OBSERVATION]: You see a brutal car accident. The victims just stare at the dark sky.",
@@ -1065,7 +1058,6 @@ async function thePathPhase() {
         "[NARRATOR]: You finally park in front of the office block.",
         "--- PRESS ENTER TO EXIT THE CAR ---"
     ];
-
     for (const text of logs) {
         await typeWriter(roadBox, text);
         await new Promise(res => {
@@ -1078,23 +1070,15 @@ async function thePathPhase() {
             screen.on('keypress', handler);
         });
     }
-
     roadBox.destroy();
     finalChoicePhase();
 }
-
-
-// --- PHASE 3: GAMEPLAY (TIMER + TASKS WITH DELAY) ---
-
 async function startGameplay(initialTime) {
     container.children.forEach(child => {
         if (child !== statusBox) child.hide();
     });
-
     let timeRemaining = initialTime;
     let completedTasks = new Set();
-    // inProgress removido para permitir interação livre
-
     const timerBox = blessed.box({
         parent: container,
         top: 2,
@@ -1114,7 +1098,6 @@ async function startGameplay(initialTime) {
             bold: true
         }
     });
-
     const actionsMenu = blessed.list({
         parent: container,
         top: 'center',
@@ -1137,40 +1120,30 @@ async function startGameplay(initialTime) {
         style: style,
         align: 'center'
     });
-
     const timerInterval = setInterval(() => {
         timeRemaining--; // Tempo agora corre sem parar nunca
         timerBox.setContent(`TIME: ${timeRemaining}s`);
-
         if (timeRemaining <= 3) {
             timerBox.style.fg = 'red';
             timerBox.style.border.fg = 'red';
         }
-
         if (timeRemaining <= 0) {
             clearInterval(timerInterval);
             execGameOver("TIME IS UP. YOU ARRIVED LATE FOR WORK.");
         }
         screen.render();
     }, 1000);
-
     actionsMenu.on('select', (item, index) => {
-        // Lógica para sair da casa
         if (index === 5) {
             if (completedTasks.size >= 5) {
                 clearInterval(timerInterval);
-
-                // Achievement: NEVERMIS
                 if (timeRemaining > 7) {
                     const achPath = path.join(__dirname, '..', 'Achievements', 'NEVERMISS.ach');
                     if (!fs.existsSync(achPath)) {
                         showAchievementToast('NEVER BE LATE')
                         fs.writeFileSync(achPath, 'COMPLETED');
                     }
-
-
                 }
-
                 thePathPhase();
             } else {
                 statusBox.setContent(" ERROR: You haven't finished getting ready! ");
@@ -1178,32 +1151,22 @@ async function startGameplay(initialTime) {
             }
             return;
         }
-
-        // Lógica para completar tarefas (sem travar o tempo ou o menu)
         if (!completedTasks.has(index)) {
             const originalText = item.getText();
-
-            // Marca como concluído imediatamente
             item.setContent(`${originalText} [OK]`);
             item.style.fg = 'green';
             completedTasks.add(index);
-
             statusBox.setContent(` Completed: ${originalText.trim()} `);
             screen.render();
         }
     });
-
     actionsMenu.focus();
     screen.render();
 }
-
-// --- PHASE 2: NARRATIVE ---
-
 async function startNarrative() {
     container.children.forEach(child => {
         if (child !== statusBox) child.hide();
     });
-
     const narrativeBox = blessed.box({
         parent: container,
         top: 'center',
@@ -1216,7 +1179,6 @@ async function startNarrative() {
         style: style,
         padding: 1
     });
-
     const texts = [
         "[NARRATOR]: You wake up in your bed...",
         "[NARRATOR]: The world seems to be 'fading out' around you...",
@@ -1225,7 +1187,6 @@ async function startNarrative() {
         "[YOU]: Damn! I have to leave NOW!",
         "--- PRESS ENTER TO START GETTING READY ---"
     ];
-
     for (const text of texts) {
         await typeWriter(narrativeBox, text);
         await new Promise(res => {
@@ -1238,13 +1199,9 @@ async function startNarrative() {
             screen.on('keypress', tempHandler);
         });
     }
-
     narrativeBox.destroy();
     startGameplay(10);
 }
-
-// --- PHASE 1: MENU AND MONITORING ---
-
 async function monitorSurvey() {
     const loading = blessed.loading({
         parent: container,
@@ -1259,23 +1216,18 @@ async function monitorSurvey() {
     });
     loading.load(' [SYSTEM AWAITING SURVEY RESPONSES...] ');
     screen.render();
-
     return new Promise((resolve) => {
         const check = setInterval(() => {
             const successExists = fs.existsSync('./TERMINALACCESS/ACESSOSTATUS.LIGHT');
             const fadeExists = fs.existsSync('./TERMINALACCESS/MEMORY_1999.bin');
             const failureExists = fs.existsSync('./TERMINALACCESS/GAMEOVER.status');
-
             if (successExists || fadeExists || failureExists) {
                 clearInterval(check);
                 loading.stop();
-
                 if (failureExists) {
                     execGameOver("SYSTEM LOCKED: INTRUSION ATTEMPT.");
                 } else if (fadeExists) {
-                    // --- MEMORY 1999 RESET LOGIC ---
                     container.children.forEach(c => c.hide());
-
                     const fadeBox = blessed.box({
                         parent: container,
                         top: 'center',
@@ -1294,7 +1246,6 @@ async function monitorSurvey() {
                         tags: true
                     });
                     screen.render();
-
                     screen.once('keypress', (ch, key) => {
                         if (key.name === 'enter') {
                             fadeBox.destroy();
@@ -1306,7 +1257,6 @@ async function monitorSurvey() {
                         }
                     });
                 } else {
-                    // NORMAL SUCCESS
                     const status = fs.readFileSync('./TERMINALACCESS/ACESSOSTATUS.LIGHT', 'utf8').trim();
                     if (status === '1') {
                         resolve(true);
@@ -1331,13 +1281,32 @@ function startMainMenu() {
         align: 'center'
     });
 
+    // --- LÓGICA DE VERIFICAÇÃO DE CHECKPOINT ---
+    const checkPath = path.join(__dirname, '..', 'CONFIG', 'CHECKPOINT.json');
+    let hasCheckpoint = fs.existsSync(checkPath);
+    let checkpointData = null;
+    if (hasCheckpoint) {
+        try {
+            checkpointData = JSON.parse(fs.readFileSync(checkPath, 'utf8'));
+        } catch (e) {
+            hasCheckpoint = false;
+        }
+    }
+
+    // Define os itens dinamicamente
+    let menuItems = [' > START NEW SURVEY '];
+    if (hasCheckpoint) {
+        menuItems.push(' > CONTINUE MISSION ');
+    }
+    menuItems.push(' > EXIT ');
+
     const menu = blessed.list({
         parent: container,
         top: 15,
         left: 'center',
         width: '40%',
-        height: 6,
-        items: [' > START SURVEY ', ' > EXIT '],
+        height: hasCheckpoint ? 8 : 6, // Ajusta altura se tiver mais itens
+        items: menuItems,
         keys: true,
         border: {
             type: 'line'
@@ -1347,35 +1316,42 @@ function startMainMenu() {
     });
 
     menu.on('select', async (item, index) => {
-        if (index === 1) process.exit(0);
+        const text = item.getText();
 
-        menu.hide();
-        logoBox.hide();
+        if (text.includes('EXIT')) process.exit(0);
 
-        exec('start cmd /c "node SURVEY.js"');
-        const ok = await monitorSurvey();
+        if (text.includes('CONTINUE')) {
+            menu.hide();
+            logoBox.hide();
+            loadStage(checkpointData.last_stage);
+            return;
+        }
 
-        if (ok) {
-            startNarrative();
-        } else {
-            execGameOver("SYSTEM LOCKED: INTRUSION ATTEMPT DETECTED.");
+        if (text.includes('START NEW')) {
+            if (fs.existsSync(checkPath)) fs.unlinkSync(checkPath);
+            
+            menu.hide();
+            logoBox.hide();
+            exec('start cmd /c "node SURVEY.js"');
+            const ok = await monitorSurvey();
+            if (ok) {
+                saveCheckpoint("START_NARRATIVE");
+                startNarrative();
+            } else {
+                execGameOver("SYSTEM LOCKED: INTRUSION ATTEMPT DETECTED.");
+            }
         }
     });
 
     menu.focus();
     screen.render();
 }
-
-// --- INITIALIZATION ---
 screen.key(['escape', 'C-c'], () => {
     clearPuzzle();
     process.exit(0);
 });
-
 const isGameFinished = fs.existsSync('./TERMINALACCESS/FINAL.status');
-
 if (isGameFinished) {
-    // Unique screen for finished game
     const winBox = blessed.box({
         parent: container,
         top: 'center',
@@ -1390,7 +1366,6 @@ if (isGameFinished) {
         content: '{center}\nYou have defeated LUX-4.\nThe LUX-4 system has been dismantled.{/center}',
         tags: true
     });
-
     const winMenu = blessed.list({
         parent: winBox,
         bottom: 1,
@@ -1401,7 +1376,6 @@ if (isGameFinished) {
         keys: true,
         style: style
     });
-
     winMenu.on('select', (it, idx) => {
         if (idx === 0) {
             fs.unlinkSync('./TERMINALACCESS/FINAL.status');
@@ -1410,12 +1384,20 @@ if (isGameFinished) {
             process.exit(0);
         }
     });
-
     winMenu.focus();
     screen.render();
 } else {
-    // Normal start
     watchAchievements();
-    sublevelExploration();
+    startMainMenu();
 }
-//startMainMenu();
+
+process.on('exit', () => {
+    saveFinalTime();
+});
+
+// Se o usuário apertar ESC para sair
+screen.key(['escape', 'C-c'], () => {
+    saveFinalTime();
+    clearPuzzle();
+    process.exit(0);
+});

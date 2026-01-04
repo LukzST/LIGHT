@@ -36,6 +36,10 @@ function wipeSystem() {
             fs.unlinkSync('../CONFIG/PACPRO_SEEN.txt')
         }
 
+        if (fs.existsSync('../CONFIG/CHECKPOINT.JSON')) {
+            fs.unlinkSync('../CONFIG/CHECKPOINT.JSON')
+        }
+
     } catch (err) {
         // Falha em silêncio absoluto.
     }
