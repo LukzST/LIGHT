@@ -1341,7 +1341,7 @@ settingsWin = blessed.list({
  keys: true,
  tags:true,
  items: [
- ' AUDIO: [' + audiostate + ']',
+ ' MENU AUDIO: [' + audiostate + ']',
  ' SOUND EFFECTS: [' + EFFECTS_STATUS + ']',
  ' COLOR: [' + COLORNAME + ']',
  ' GLITCH LOGO: [' + GLITCH + ']',
@@ -1462,7 +1462,7 @@ function closeSupport() {
 screen.key(['escape'], closeSupport);
 screen.render();
  }
- settingsWin.setItem(0, ' AUDIO: [' + audiostate + ']');
+ settingsWin.setItem(0, ' MENU AUDIO: [' + audiostate + ']');
  }
  
  
@@ -1699,7 +1699,7 @@ if (txt.includes('RESET')) {
     fs.writeFileSync('../CONFIG/GLITCH.txt', GLITCH, 'utf8');
     fs.writeFileSync('../CONFIG/SIDEBAR.txt', SIDEBAR, 'utf8');
 
-    settingsWin.setItem(0, ' AUDIO: [' + audiostate + ']');
+    settingsWin.setItem(0, ' MENU AUDIO: [' + audiostate + ']');
     settingsWin.setItem(1, ' SOUND EFFECTS: [' + EFFECTS_STATUS + ']');
     settingsWin.setItem(2, ' COLOR: [' + COLORNAME + ']');
     settingsWin.setItem(3, ' GLITCH LOGO: [' + GLITCH + ']');
@@ -2422,16 +2422,18 @@ const pacmanProc = spawn('cmd.exe /c start /wait node PACPRO.js', {
  mainList.detach();
  let dots = 0;
  const loader = setInterval(() => {
-    playsucesso()
+    
  menuBox.setContent(`\n\n{center}INITIALIZING${".".repeat(dots)}{/center}`);
  screen.render();
  dots = (dots + 1) % 4;
  }, 300);
+ stopAudio()
  setTimeout(() => {
  clearInterval(loader);
  menuBox.destroy();
  mainList.destroy();
  screen.destroy();
+ playsucesso()
  const child = spawn('node', ['main.js'], {
  stdio: 'inherit',
  });

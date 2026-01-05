@@ -1,5 +1,6 @@
 const blessed = require('blessed');
 const fs = require('fs');
+let vlcProcess = null;
 const {
     exec,
     spawn
@@ -7,8 +8,27 @@ const {
 const path = require('path');
 const os = require('os');
 const player = require('play-sound')({
- player: './SOUNDTRACK/VLC/cmdmp3.exe'
+ player: '../AUDIO/PLAYER/cmdmp3.exe'
 });
+const audioFile = '../AUDIO/TRACKS/1.mp3';
+const audioaa = '../AUDIO/TRACKS/2.mp3';
+let bgmProcess = null;
+let effectProcess = null;
+const beepfile = '../AUDIO/EFFECTS/BEEP.wav'
+const beepfile2 = '../AUDIO/EFFECTS/BEEP2.wav'
+const freshfile = '../AUDIO/EFFECTS/FRESH.wav'
+const CEOfile = '../AUDIO/TRACKS/CEO.mp3';
+const BOOTfile = '../AUDIO/EFFECTS/LUX-4.wav'
+const winfile = '../AUDIO/EFFECTS/win.wav'
+const warningfile = '../AUDIO/EFFECTS/warning.wav'
+const supportfile = '../AUDIO/EFFECTS/support.wav'
+const backfile = '../AUDIO/EFFECTS/back.wav'
+const startfile = '../AUDIO/EFFECTS/start.wav'
+const checkpointfile = '../AUDIO/EFFECTS/checkpoint.wav'
+const sucessofile = '../AUDIO/EFFECTS/win2.wav'
+const MEMORY1999 = '../AUDIO/EFFECTS/1999.WAV'
+const alarm = '../AUDIO/EFFECTS/alarm.mp3'
+const GOfile = '../AUDIO/EFFECTS/GAMEOVER.wav'
 let iscreditsOpen = false;
  const logocredits =
  "███        ███  ████████  ███  ███  █████████\n" +
@@ -119,6 +139,11 @@ const LOGO_TEXT =
     "█████████  ███  ████████  ███  ███     ███";
 
 function execGameOver(reason) {
+    stopAudio()
+    setTimeout(() => {
+
+    
+    playgameover()
     saveFinalTime();
     clearPuzzle();
     container.children.forEach(c => c.hide());
@@ -141,7 +166,130 @@ function execGameOver(reason) {
     });
     screen.render();
     setTimeout(() => process.exit(0), 5000);
+    },200)
 }
+
+function playgameover() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    player.play(GOfile, (err) => {});
+}
+
+function playalarm() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    player.play(alarm, (err) => {});
+}
+
+function playBeep() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    player.play(beepfile, (err) => {});
+}
+
+function playlux4() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    player.play(BOOTfile, (err) => {});
+}
+
+function playceo() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    player.play(CEOfile, (err) => {});
+}
+
+function play1999() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    player.play(MEMORY1999, (err) => {});
+}
+
+function playBeep2() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    player.play(beepfile2, (err) => {});
+}
+
+function playfresh() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    if (audiostate === 'ON') {
+        stopAudio();
+        setTimeout(() => {
+            player.play(freshfile, (err) => {
+                if (audiostate === 'ON') playAudio();
+            });
+        }, 500);
+    } else {
+        player.play(freshfile, (err) => {});
+    }
+}
+
+function playwin() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    if (audiostate === 'ON') {
+        stopAudio();
+        setTimeout(() => {
+            player.play(winfile, (err) => {
+                if (audiostate === 'ON') playAudio();
+            });
+        }, 500);
+    } else {
+        player.play(winfile, (err) => {});
+    }
+}
+
+function playwarning() {
+    if (EFFECTS_STATUS === 'OFF') return;
+        player.play(warningfile, (err) => {});
+}
+
+function playsupport() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    if (audiostate === 'ON') {
+        stopAudio();
+        setTimeout(() => {
+            player.play(supportfile, (err) => {
+                if (audiostate === 'ON') playAudio();
+            });
+        }, 500);
+    } else {
+        player.play(supportfile, (err) => {});
+    }
+}
+
+function stopAudio() {
+    if (bgmProcess) {
+        bgmProcess.kill();
+        bgmProcess = null;
+    }
+    exec('taskkill /F /IM cmdmp3.exe /T > nul 2>&1');
+}
+
+
+function playback() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    player.play(backfile, (err) => {});
+}
+
+function playstart() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    
+        player.play(startfile, (err) => {});
+}
+
+function playsucesso() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    player.play(sucessofile, (err) => {});
+}
+
+function playcheckpoint() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    if (audiostate === 'ON') {
+        stopAudio();
+        setTimeout(() => {
+            player.play(checkpointfile, (err) => {
+                if (audiostate === 'ON') playAudio();
+            });
+        }, 500);
+    } else {
+        player.play(checkpointfile, (err) => {});
+    }
+}
+
 const ACHIEVEMENT_NAMES = {
     'PACPRO': 'ELITE OPERATOR',
     'THE_END': 'LIGHT BRINGER',
@@ -178,16 +326,83 @@ function showLoadToast() {
     setTimeout(() => { toast.destroy(); screen.render(); }, 2000);
 }
 
+
+if (fs.existsSync('../CONFIG/EFFECTS_STATE.txt')) {
+    var EFFECTS_STATUS = fs.readFileSync(path.join('../CONFIG/EFFECTS_STATE.txt'), 'utf8').trim();
+} else {
+    var EFFECTS_STATUS = 'ON';
+    fs.writeFileSync('../CONFIG/EFFECTS_STATE.txt', EFFECTS_STATUS, 'utf8');
+}
+if (fs.existsSync('../CONFIG/TIME.txt')) {
+    var timeRaw = fs.readFileSync('../CONFIG/TIME.txt', 'utf8').split('\n');
+    var TIME_STATUS = timeRaw[0].trim();
+    var TOTAL_PLAYTIME = parseInt(timeRaw[1]) || 0;
+} else {
+    var TIME_STATUS = 'ON';
+    var TOTAL_PLAYTIME = 0;
+    fs.writeFileSync('../CONFIG/TIME.txt', `${TIME_STATUS}\n${TOTAL_PLAYTIME}`, 'utf8');
+}
+if (fs.existsSync('../CONFIG/SIDEBAR.txt')) {
+ var SIDEBAR = fs.readFileSync(path.join('../CONFIG/SIDEBAR.txt'), 'utf8').trim();
+} else {
+ var SIDEBAR = 'OFF';
+ fs.writeFileSync('../CONFIG/SIDEBAR.txt', SIDEBAR, 'utf8');
+}
+if (fs.existsSync('../CONFIG/GLITCH.txt')) {
+ var GLITCH = fs.readFileSync(path.join('../CONFIG/GLITCH.txt'), 'utf8').trim();
+} else {
+ var GLITCH = 'ON';
+ fs.writeFileSync('../CONFIG/GLITCH.txt', GLITCH, 'utf8');
+}
+if (fs.existsSync('../CONFIG/FULLSCREEN.txt')) {
+ var FULLSCREEN = fs.readFileSync(path.join('../CONFIG/FULLSCREEN.txt'), 'utf8').trim();
+} else {
+ var FULLSCREEN = 'OFF';
+ fs.writeFileSync('../CONFIG/FULLSCREEN.txt', FULLSCREEN, 'utf8');
+}
+if (fs.existsSync('../CONFIG/AUDIOSTATE.txt')) {
+ var audiostate = fs.readFileSync(path.join('../CONFIG/AUDIOSTATE.txt'), 'utf8')
+} else {
+ var audiostate = 'ON';
+ fs.writeFileSync('../CONFIG/AUDIOSTATE.txt', audiostate, 'utf8');
+}
+if (fs.existsSync('../CONFIG/COLORDEFAULT.txt')) {
+ var COLORNAME = fs.readFileSync(path.join('../CONFIG/COLORNAME.txt'), 'utf8').trim();
+ var COLORDEFAULT = fs.readFileSync(path.join('../CONFIG/COLORDEFAULT.txt'), 'utf8').trim();
+} else {
+ var COLORNAME = 'RED';
+ var COLORDEFAULT = '#ff0000';
+ fs.writeFileSync('../CONFIG/COLORNAME.txt', COLORNAME, 'utf8');
+ fs.writeFileSync('../CONFIG/COLORDEFAULT.txt', COLORDEFAULT, 'utf8');
+}
+if (fs.existsSync('../CONFIG/USER.txt')) {
+ var USERNAMEP = fs.readFileSync(path.join('../CONFIG/USER.txt'), 'utf8').trim();
+} else {
+ var USERNAMEP = 'OPERATOR 07';
+ fs.writeFileSync('../CONFIG/USER.txt', USERNAMEP, 'utf8');
+}
+if (fs.existsSync('../CONFIG/DIFFICULTY.txt')) {
+ var DIFFICULTY = fs.readFileSync(path.join('../CONFIG/DIFFICULTY.txt'), 'utf8').trim();
+} else {
+ var DIFFICULTY = 'NORMAL';
+ fs.writeFileSync('../CONFIG/DIFFICULTY.txt', DIFFICULTY, 'utf8');
+}
+
 function credits() {
-    // 1. LIMPEZA TOTAL DE LISTENERS (Mata o ESC global do fim do arquivo)
+    screen.unkey('enter');
+screen.unkey('escape');
     screen.removeAllListeners('keypress');
     
     if (audiostate === 'ON') {
         stopAudio();
     }
+    setTimeout(() => {
+playcreditsaudio();
+    },200)
     
     iscreditsOpen = true;
-    let slideTimer = null; // Variável para controlar os Timeouts
+    let slideTimer = null;
+    let buttonsActive = false;
     const currentYear = new Date().getFullYear();
 
     const bgOverlay = blessed.box({
@@ -198,8 +413,7 @@ function credits() {
         index: 100
     });
 
-    // Bloqueia o ESC durante os créditos
-    screen.key(['escape'], () => { /* Faz nada */ });
+    screen.key(['escape'], () => { });
 
     const displayBox = blessed.box({
         parent: bgOverlay,
@@ -222,47 +436,58 @@ function credits() {
     const slides = [
         `{center}{bold}${logocredits}{/bold}\n\nA TERMINAL HORROR GAME{/center}`,
         `{center}{yellow-fg}AN ORIGINAL STORY BY{/yellow-fg}\n\n{bold}PALE LUNA DEVELOPER{/bold}{/center}`,
-        `{center}{yellow-fg}DIRECTOR: LUCAS EDUARDO{/yellow-fg}`,
+        `{center}{yellow-fg}DIRECTOR{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
+        `{center}{yellow-fg}MAIN PROGRAMMER{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
+        `{center}{yellow-fg}EVENT PROGRAMMER{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
+        `{center}{yellow-fg}GRAPHICS{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
+        `{center}{yellow-fg}LEVEL DESIGN{/yellow-fg}\n\n{bold}ISABELLA SANCHES{/bold}{/center}`,
+        `{center}{yellow-fg}STORY DESIGNER{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
+        `{center}{yellow-fg}SOUND DESIGN{/yellow-fg}\n\n{bold}LUCAS EDUARDO\nISABELLA SANCHES{/bold}{/center}`,
+        `{center}{yellow-fg}UI/UX ART & QUALITY ASSURANCE{/yellow-fg}\n\n{bold}LUIZ OTAVIO{/bold}{/center}`,
+        `{center}{yellow-fg}ENDING THEME{/yellow-fg}\n\n{bold}SUBNAUTICA - ALEXUPLAY{/bold}{/center}`,
+        `{center}{yellow-fg}PUBLICITY{/yellow-fg}\n\n{bold}PALE LUNA DEVELOPER{/bold}{/center}`,
+        `{center}{yellow-fg}BETA TESTER{/yellow-fg}\n\n{bold}LUCAS EDUARDO, ISABELLA SANCHES, LUIZ OTÁVIO and some friends{/bold}{/center}`,
+        `{center}{yellow-fg}PRODUCT COORDINATOR{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
         `{center}{yellow-fg}THANKS FOR PLAYING{/yellow-fg}`,
         `{center}CREATED FOR THE FADE\n\n${currentYear} © ALL RIGHTS RESERVED{/center}`
-    ];
+    ]; 
 
-    let currentSlide = 0;
-
-    const optionsContainer = blessed.box({
+    const finalMenu = blessed.list({
         parent: bgOverlay,
-        bottom: 5, left: 'center',
-        width: 60, height: 3,
-        hidden: true
+        top: 'center',
+        left: 'center',
+        width: 35,
+        height: 8,
+        border: 'line',
+        label: ' [ SESSION END ] ',
+        tags: true,
+        hidden: true,
+        keys: true,
+        items: [
+            '{center}TWITTER (X){/center}',
+            '{center}EXIT GAME{/center}'
+        ],
+        style: {
+            border: { fg: COLORDEFAULT },
+            label: { fg: COLORDEFAULT, bold: true },
+            selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
+        }
     });
 
-    const btnTwitter = blessed.button({
-        parent: optionsContainer,
-        left: 0, width: 25, height: 3,
-        content: '{center}TWITTER (X){/center}',
-        border: 'line', tags: true,
-        style: { border: { fg: 'cyan' }, focus: { bg: 'cyan', fg: 'black' } }
-    });
-
-    const btnClose = blessed.button({
-        parent: optionsContainer,
-        right: 0, width: 25, height: 3,
-        content: '{center}CLOSE{/center}',
-        border: 'line', tags: true,
-        style: { border: { fg: 'red' }, focus: { bg: 'red', fg: 'white' } }
-    });
-
-    // Função para finalizar os slides e mostrar botões
     const finishCredits = () => {
         iscreditsOpen = false;
-        if (slideTimer) clearTimeout(slideTimer); // PARA OS TIMERS
+        if (slideTimer) clearTimeout(slideTimer);
         stopcreditsaudio();
         
         skipMsg.hide();
-        displayBox.setContent("{center}{bold}WHAT YOU GONNA DO?{/bold}{/center}");
-        optionsContainer.show();
-        btnTwitter.focus();
-        screen.render();
+        displayBox.hide();
+        finalMenu.show();
+
+        setTimeout(() => {
+            buttonsActive = true;
+            finalMenu.focus();
+            screen.render();
+        }, 100);
     };
 
     function showNextSlide() {
@@ -273,6 +498,7 @@ function credits() {
             screen.render();
 
             slideTimer = setTimeout(() => {
+                if (!iscreditsOpen) return;
                 displayBox.setContent(slides[currentSlide]);
                 currentSlide++;
                 screen.render();
@@ -283,29 +509,32 @@ function credits() {
         }
     }
 
-    playcreditsaudio();
+    let currentSlide = 0;
+    
     showNextSlide();
 
-    // ENTER PARA PULAR (Agora chama a função que limpa tudo)
     screen.onceKey(['enter'], () => {
-        finishCredits();
+        if (iscreditsOpen) finishCredits();
     });
 
-    btnTwitter.on('press', () => exec('start https://twitter.com/PlayLightGame'));
-    
-    btnClose.on('press', () => {
-        saveFinalTime();
-        process.exit(0);
+    finalMenu.on('select item', () => {
+        if (buttonsActive) playBeep();
     });
 
-    btnTwitter.key(['right', 'tab'], () => btnClose.focus());
-    btnClose.key(['left', 'tab'], () => btnTwitter.focus());
+    finalMenu.on('select', (item) => {
+        if (!buttonsActive) return;
+        const txt = item.getText();
+        if (txt.includes('TWITTER')) {
+            exec('start https://twitter.com/PlayLightGame');
+        }
+        if (txt.includes('EXIT')) {
+            saveFinalTime();
+            process.exit(0);
+        }
+    });
 
     screen.render();
 }
-
-const audioFile = './SOUNDTRACK/1.mp3';
-const audioaa = './SOUNDTRACK/2.mp3';
 
 function stopcreditsaudio() {
     if (vlcProcess) {
@@ -373,6 +602,7 @@ execGameOver = function(reason) {
 };
 
 function showAchievementToast(id) {
+    playwin();
     const name = ACHIEVEMENT_NAMES[id] || id;
     const toast = blessed.box({
         parent: screen,
@@ -399,6 +629,7 @@ function showAchievementToast(id) {
 }
 
 function showCheckpointToast() {
+    playwin();
     const toast = blessed.box({
         parent: screen,
         top: 2,
@@ -531,13 +762,15 @@ async function typeWriter(box, text, delay = 30) {
 }
 async function accessLuxFiles(box) {
     box.setContent("");
+    playBeep2()
     await typeWriter(box, "{green-fg}[SYSTEM]: Balance maintained. Neural link stable.{/green-fg}");
     await new Promise(res => setTimeout(res, 1000));
+    playBeep2()
     await typeWriter(box, "[YOU]: I'm in. The system thinks I'm part of it. I can see the encrypted directories now.");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
-    box.setContent("{center}ENTER ENCRYPTION KEY TO ACCESS 'PROJECT_FADE_1999_LOGS'\n\n{yellow-fg}(HINT: Check 'System Info' in the Main Menu){/yellow-fg}{/center}");
+    box.setContent("{center}ENTER ENCRYPTION KEY TO ACCESS 'PROJECT_FADE_1999_LOGS'\n\n{yellow-fg}(HINT: Check 'System Info' in the Main Menu){/yellow-fg}{/center}\n\n{center}DO NOT PRESS ESC{/}");
     const accessInput = blessed.textbox({
         parent: box,
         top: 'center',
@@ -556,6 +789,7 @@ async function accessLuxFiles(box) {
     accessInput.focus();
     screen.render();
     accessInput.on('submit', async (value) => {
+        playBeep2()
         if (value === "lux1999files") {
             accessInput.destroy();
             box.setContent("{center}{green-fg}DECRYPTING... ACCESS GRANTED.{/green-fg}{/center}");
@@ -569,14 +803,15 @@ async function accessLuxFiles(box) {
                     shell: false
                 });
                 leakProc.on('exit', () => {
+                    playalarm()
                     box.setContent("");
                     box.style.border.fg = "yellow";
                     box.setContent(
                         "{center}{yellow-fg}{bold}ATTENTION: DATA BREACH SUCCESSFUL{/bold}{/yellow-fg}\n\n" +
                         "The classified files have been exposed. \n" +
                         "If you saved the leak [S], check your {white-fg}DESKTOP{/white-fg} for 'LUX_CONFIDENTIAL.txt'.\n\n" +
-                        "There is a hidden bypass code inside that file.\n" +
-                        "{blink}Close the game and use the code at the start to change history.{/blink}{/center}"
+                        "There is a hidden bypass code inside that file.\n\n\n\n\n" +
+                        "{blink}PRESS [ENTER] TO CONTINUE.{/blink}{/center}"
                     );
                     screen.render();
                     screen.key(['enter', 'escape'], () => credits());
@@ -605,12 +840,15 @@ async function sublevelExploration() {
         padding: 1,
         tags: true
     });
+    playBeep2()
     await typeWriter(sublevelBox, "[NARRATOR]: You step into the Heart of the LUX-4 Mainframe. The air is thick with static.");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
+    playBeep2()
     await typeWriter(sublevelBox, "{red-fg}[ALARM]: SECURITY BREACH. DOORS LOCKED. SELF-DESTRUCT IN 5 SECONDS.{/red-fg}");
     await new Promise(res => setTimeout(res, 1000));
+playalarm()
     const codeToType = "6789";
     let timeLeft = 5;
     let missionFailed = false;
@@ -656,6 +894,11 @@ async function sublevelExploration() {
         clearInterval(timerInterval);
         clearInterval(flashInterval);
         if (value === codeToType) {
+            stopAudio()
+            setTimeout(() => {
+            playwin()
+            },200)
+            
             sublevelBox.style.bg = 'black';
             sublevelBox.setContent("{center}{green-fg}OVERRIDE SUCCESSFUL. ACCESSING CORE...{/green-fg}{/center}");
             screen.render();
@@ -675,30 +918,36 @@ async function coreFinalSequence(box) {
     const achPath = path.join(__dirname, '..', 'ACHIEVEMENTS', 'PACPRO.ach');
     const isElite = fs.existsSync(achPath);
     if (isElite) {
+        playBeep2()
         await typeWriter(box, "{yellow-fg}[ELITE DATA UNLOCKED]: PROJECT FADE - PRELUDE TO 1999.{/yellow-fg}");
         await new Promise(res => screen.once('keypress', (ch, key) => {
             if (key.name === 'enter') res();
         }));
+        playBeep2()
         await typeWriter(box, "{yellow-fg}[PRELUDE]: 'The city didn't lose power in 1999. It was consumed to fuel the first upload.'{/yellow-fg}");
         await new Promise(res => screen.once('keypress', (ch, key) => {
             if (key.name === 'enter') res();
         }));
         box.setContent("");
     }
+    playBeep2()
     await typeWriter(box, "[SYSTEM]: Administrative rights: DENIED. Manual core maintenance required.");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
+    playBeep2()
     await typeWriter(box, "[NARRATOR]: Mechanical arms emerge from the ceiling, forcing you into the Control Chair.");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
+    playBeep2()
     await typeWriter(box, "[SYSTEM]: Energy fluctuation detected. Initialize BALANCER.js to prevent blackout.");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
     box.setContent("{center}CHAIR LOCKED. USER INTEGRATED.\n\nINITIALIZING BALANCER.js...{/center}");
     screen.render();
+    playceo()
     const balancerProc = spawn('cmd.exe', ['/c', 'start', '/wait', 'node', 'BALANCER.js'], {
         shell: false
     });
@@ -733,38 +982,36 @@ async function coreFinalSequence(box) {
     const achPath = path.join(__dirname, '..', 'ACHIEVEMENTS', 'PACPRO.ach');
     const isElite = fs.existsSync(achPath);
     if (isElite) {
+        playBeep2()
         await typeWriter(box, "{yellow-fg}[ELITE DATA UNLOCKED]: PROJECT FADE - PRELUDE TO 1999.{/yellow-fg}");
         await new Promise(res => screen.once('keypress', (ch, key) => {
             if (key.name === 'enter') res();
         }));
+        playBeep2()
         await typeWriter(box, "{yellow-fg}[PRELUDE]: 'The city didn't lose power in 1999. It was consumed to fuel the first upload.'{/yellow-fg}");
-        await new Promise(res => screen.once('keypress', (ch, key) => {
-            if (key.name === 'enter') res();
-        }));
-        await typeWriter(box, "{yellow-fg}[MESSAGE]: You know the truth now, Operator. But the machine still needs a heart.{/yellow-fg}");
         await new Promise(res => screen.once('keypress', (ch, key) => {
             if (key.name === 'enter') res();
         }));
         box.setContent("");
     }
-    await typeWriter(box, "[SYSTEM]: Total system override failed. Administrative rights: REDACTED.");
+    playBeep2()
+    await typeWriter(box, "[SYSTEM]: Administrative rights: DENIED. Manual core maintenance required.");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
+    playBeep2()
     await typeWriter(box, "[NARRATOR]: Mechanical arms emerge from the ceiling, forcing you into the Control Chair.");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
-    await typeWriter(box, "[YOU]: Wait... no! I'm not a part of this!");
+    playBeep2()
+    await typeWriter(box, "[SYSTEM]: Energy fluctuation detected. Initialize BALANCER.js to prevent blackout.");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
-    await typeWriter(box, "[SYSTEM]: Energy fluctuation detected. Manual balancing required.");
-    await new Promise(res => screen.once('keypress', (ch, key) => {
-        if (key.name === 'enter') res();
-    }));
-    box.setContent("{center}CHAIR LOCKED. BIOMETRIC SYNC COMPLETE.\n\nINITIALIZING BALANCER.js SYSTEM...{/center}");
+    box.setContent("{center}CHAIR LOCKED. USER INTEGRATED.\n\nINITIALIZING BALANCER.js...{/center}");
     screen.render();
+    playceo()
     const balancerProc = spawn('cmd.exe', ['/c', 'start', '/wait', 'node', 'BALANCER.js'], {
         shell: false
     });
@@ -780,6 +1027,7 @@ async function coreFinalSequence(box) {
         if (fs.existsSync(successFile)) {
             fs.unlinkSync(successFile);
             if (isSecretRoute) {
+                playsupport()
                 fs.unlinkSync('./TERMINALACCESS/SECRET_ROUTE.status');
                 ceoConfrontation();
             } else {
@@ -912,6 +1160,7 @@ async function officeChaosPhase() {
         "[LOCATED]: You spot a brushed metal sign: 'POWER MANAGEMENT ROOM'."
     ];
     for (const scene of scenes) {
+        playBeep2()
         await typeWriter(officeBox, scene);
         await new Promise(res => screen.once('keypress', (ch, key) => {
             if (key.name === 'enter') res();
@@ -921,6 +1170,7 @@ async function officeChaosPhase() {
     officeBox.parseTags = true;
     screen.render();
     await new Promise(res => setTimeout(res, 3000));
+    playceo()
     const roomMenu = blessed.list({
         parent: container,
         bottom: 5,
@@ -936,7 +1186,9 @@ async function officeChaosPhase() {
         style: style
     });
     roomMenu.on('select', async (item, index) => {
+        playBeep()
         if (index === 0) {
+            playBeep2()
             roomMenu.hide();
             await typeWriter(officeBox, "[SYSTEM]: You sit in the chair. The terminal in front of you blinks green...");
             const terminalAction = blessed.list({
@@ -953,8 +1205,10 @@ async function officeChaosPhase() {
                 style: style
             });
             terminalAction.on('select', (it, idx) => {
+                playBeep()
                 if (idx === 1) execGameOver("You destroyed the last hope for light. The darkness consumed you.");
                 else {
+                    playBeep2()
                     const statusPath = './TERMINALACCESS/POWER_ACTIVE.status';
                     fs.writeFileSync(statusPath, '1');
                     saveCheckpoint("POWER_ACTIVE");
@@ -966,6 +1220,8 @@ async function officeChaosPhase() {
                         if (!fs.existsSync(statusPath)) {
                             clearInterval(checkClosure);
                             if (fs.existsSync('./TERMINALACCESS/ELEVATOR_OPEN.status')) {
+                                stopAudio()
+                                playwin()
                                 fs.unlinkSync('./TERMINALACCESS/ELEVATOR_OPEN.status');
                                 officeBox.hide();
                                 const elevatorScene = blessed.box({
@@ -989,6 +1245,7 @@ async function officeChaosPhase() {
                                     "[SYSTEM]: DESCENT INITIATED. CHOOSE CABIN INTERFACE ACTIVITY."
                                 ];
                                 for (const f of elevatorNarration) {
+                                    playBeep2()
                                     await typeWriter(elevatorScene, f);
                                     await new Promise(res => screen.once('keypress', (ch, key) => {
                                         if (key.name === 'enter') res();
@@ -1012,10 +1269,13 @@ async function officeChaosPhase() {
                                 elevatorMenu.focus();
                                 screen.render();
                                 elevatorMenu.on('select', async (it, eIdx) => {
+                                    playBeep()
                                     elevatorMenu.hide();
                                     if (eIdx === 0) {
+                                        playBeep2()
                                         elevatorScene.setContent("{center}ELEVATOR IN MOTION...\n\nENTERTAINMENT SYSTEM ACTIVE.\nAWAITING PROCESS TERMINATION (Press F to exit game)...{/center}");
                                         screen.render();
+                                        playceo()
                                         const pacmanProc = spawn('cmd.exe', ['/c', 'start', '/wait', 'node', 'PACPRO.js'], {
                                             shell: false,
                                             detached: false
@@ -1023,11 +1283,19 @@ async function officeChaosPhase() {
                                         const achPath = path.join(__dirname, '..', 'ACHIEVEMENTS', 'PACPRO.ach');
                                         pacmanProc.on('exit', async () => {
                                             if (fs.existsSync(achPath)) {
+                                                stopAudio()
+                                                setTimeout(() => {
+                                                playsupport()
+                                                },200)
+                                                
                                                 elevatorScene.setContent("");
+                                                playBeep2()
                                                 await typeWriter(elevatorScene, "{yellow-fg}[SYSTEM]: ELITE DATA DETECTED. READING 'PACPRO.ach'...{/yellow-fg}");
+            
                                                 await new Promise(res => screen.once('keypress', (ch, key) => {
                                                     if (key.name === 'enter') res();
                                                 }));
+                                                playBeep2()
                                                 await typeWriter(elevatorScene, "{yellow-fg}[NON-CANNON]: You actually cleared the simulation. Respect, Operator. You are elite.{/yellow-fg}");
                                                 await new Promise(res => screen.once('keypress', (ch, key) => {
                                                     if (key.name === 'enter') res();
@@ -1036,20 +1304,26 @@ async function officeChaosPhase() {
                                             arrivalAtSublevel(elevatorScene);
                                         });
                                     } else {
+                                        stopAudio()
                                         elevatorScene.setContent("");
                                         if (!fs.existsSync('../ACHIEVEMENTS/RADIO_LISTENER.ACH')) {
                                             showAchievementToast('STATIC VOICES')
                                             fs.writeFileSync('../ACHIEVEMENTS/RADIO_LISTENER.ACH', 'COMPLETED')
                                         }
+                                        playBeep2()
                                         await typeWriter(elevatorScene, "[RADIO]: '...signal acquired. Tuning to 99.7 FM local news...'");
                                         await new Promise(res => screen.once('keypress', (ch, key) => {
                                             if (key.name === 'enter') res();
                                         }));
+                                        playBeep2()
                                         await typeWriter(elevatorScene, "[RADIO]: 'LUX-4 Energy Corp has issued a formal statement regarding the 1999 THE FADE incident...'");
+                                        
                                         await new Promise(res => screen.once('keypress', (ch, key) => {
                                             if (key.name === 'enter') res();
                                         }));
+                                        playBeep2()
                                         await typeWriter(elevatorScene, "[RADIO]: 'The board officially denies any involvement, claiming the reports of anomalies are baseless conspiracy theories...'");
+                                        
                                         await new Promise(res => screen.once('keypress', (ch, key) => {
                                             if (key.name === 'enter') res();
                                         }));
@@ -1073,6 +1347,7 @@ async function officeChaosPhase() {
             terminalAction.focus();
             screen.render();
         } else {
+            stopAudio()
             execGameOver("You wasted precious time. The room was flooded by shadows.");
         }
     });
@@ -1082,16 +1357,19 @@ async function officeChaosPhase() {
 async function arrivalAtSublevel(box) {
     saveCheckpoint("SUBLEVEL_7");
     box.setContent("");
+    playBeep2()
     await typeWriter(box, "[SYSTEM]: *DING*");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
     box.setContent(""); // Limpa para a próxima ou use box.content += "\n"
+    playBeep2()
     await typeWriter(box, "[SYSTEM]: ARRIVAL: SUBLEVEL 7 - RESEARCH AND DEVELOPMENT.");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
     box.setContent("");
+    playBeep2()
     await typeWriter(box, "[NARRATOR]: The doors slide open. The basement is submerged in absolute silence.");
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
@@ -1101,6 +1379,7 @@ async function arrivalAtSublevel(box) {
     sublevelExploration()
 }
 async function passwordWorkPhase() {
+    playceo()
     container.children.forEach(c => {
         if (c !== statusBox) c.hide();
     });
@@ -1129,12 +1408,20 @@ async function passwordWorkPhase() {
             clearInterval(monitor);
             const content = fs.readFileSync(path.join(desktopPath, files[0]), 'utf8').trim();
             if (content === passwordValue) {
+                stopAudio()
+                setTimeout(() => {
+            playceo()
+            },200)
                 loginBox.setContent("{green-fg}ACCESS GRANTED. SECTOR 7.{/green-fg}");
                 setTimeout(() => {
                     clearPuzzle();
                     officeChaosPhase();
                 }, 2000);
             } else if (content === "LUX4LIFE") {
+                stopAudio()
+                setTimeout(() => {
+            playsupport()
+            },200)
                 if (!fs.existsSync('../ACHIEVEMENTS/REBEL_PATH.ACH')) {
                     showAchievementToast('HELLO, REBEL')
                     fs.writeFileSync('../ACHIEVEMENTS/REBEL_PATH.ACH', 'COMPLETED')
@@ -1146,6 +1433,7 @@ async function passwordWorkPhase() {
                     officeChaosPhase();
                 }, 2000);
             } else {
+                stopAudio()
                 execGameOver("FALSE OR CORRUPTED CREDENTIAL FILE. SECURITY TRIGGERED.");
             }
         }
@@ -1153,6 +1441,7 @@ async function passwordWorkPhase() {
 }
 
 function finalChoicePhase() {
+    playceo()
     container.children.forEach(c => {
         if (c !== statusBox) c.hide();
     });
@@ -1176,15 +1465,31 @@ function finalChoicePhase() {
         align: 'center'
     });
     finalMenu.on('select', (item, index) => {
+playBeep()
+    })
+
+    finalMenu.on('select', (item, index) => {
+        playBeep()
         if (index === 0) {
+            playBeep2()
+            stopAudio()
+            setTimeout(() => {
             passwordWorkPhase();
+            },200)
+            
         } else if (index === 1) {
+            stopAudio()
             execGameOver("You chose life. As the world went dark, you felt peace for the first time.");
         } else {
             const failChance = Math.random() < 0.15;
             if (failChance) {
-                passwordWorkPhase();
+                playBeep2()
+                stopAudio()
+                setTimeout(() => {
+            passwordWorkPhase();
+            },200)
             } else {
+                stopAudio()
                 execGameOver("The die saved you. You turned your back on the building and went to enjoy the end.");
             }
         }
@@ -1217,6 +1522,7 @@ async function thePathPhase() {
         "--- PRESS ENTER TO EXIT THE CAR ---"
     ];
     for (const text of logs) {
+        playBeep2()
         await typeWriter(roadBox, text);
         await new Promise(res => {
             const handler = (ch, key) => {
@@ -1232,6 +1538,7 @@ async function thePathPhase() {
     finalChoicePhase();
 }
 async function startGameplay(initialTime) {
+    playceo()
     container.children.forEach(child => {
         if (child !== statusBox) child.hide();
     });
@@ -1287,21 +1594,31 @@ async function startGameplay(initialTime) {
         }
         if (timeRemaining <= 0) {
             clearInterval(timerInterval);
+            stopAudio()
             execGameOver("TIME IS UP. YOU ARRIVED LATE FOR WORK.");
+ 
+            
         }
         screen.render();
     }, 1000);
     actionsMenu.on('select', (item, index) => {
         if (index === 5) {
             if (completedTasks.size >= 5) {
+                const achPath = path.join(__dirname, '..', 'Achievements', 'NEVERMISS.ach');
                 clearInterval(timerInterval);
                 if (timeRemaining > 7) {
-                    const achPath = path.join(__dirname, '..', 'Achievements', 'NEVERMISS.ach');
                     if (!fs.existsSync(achPath)) {
                         showAchievementToast('NEVER BE LATE')
                         fs.writeFileSync(achPath, 'COMPLETED');
                     }
                 }
+                if (timeRemaining <= 7 || fs.existsSync(achPath) === true) {
+                    stopAudio()
+                    setTimeout(() => {
+                    playwin()
+                    },200)
+                }
+                
                 thePathPhase();
             } else {
                 statusBox.setContent(" ERROR: You haven't finished getting ready! ");
@@ -1310,6 +1627,7 @@ async function startGameplay(initialTime) {
             return;
         }
         if (!completedTasks.has(index)) {
+            playBeep2()
             const originalText = item.getText();
             item.setContent(`${originalText} [OK]`);
             item.style.fg = 'green';
@@ -1346,6 +1664,7 @@ async function startNarrative() {
         "--- PRESS ENTER TO START GETTING READY ---"
     ];
     for (const text of texts) {
+        playBeep2()
         await typeWriter(narrativeBox, text);
         await new Promise(res => {
             const tempHandler = (ch, key) => {
@@ -1373,6 +1692,7 @@ async function monitorSurvey() {
         style: style
     });
     loading.load(' [SYSTEM AWAITING SURVEY RESPONSES...] ');
+    playcheckpoint()
     screen.render();
     return new Promise((resolve) => {
         const check = setInterval(() => {
@@ -1385,6 +1705,7 @@ async function monitorSurvey() {
                 if (failureExists) {
                     execGameOver("SYSTEM LOCKED: INTRUSION ATTEMPT.");
                 } else if (fadeExists) {
+                    play1999()
                     container.children.forEach(c => c.hide());
                     const fadeBox = blessed.box({
                         parent: container,
@@ -1452,11 +1773,11 @@ function startMainMenu() {
     }
 
     // Define os itens dinamicamente
-    let menuItems = [' > START NEW SURVEY '];
+    let menuItems = [' START NEW SURVEY '];
     if (hasCheckpoint) {
-        menuItems.push(' > CONTINUE MISSION ');
+        menuItems.push(' CONTINUE MISSION ');
     }
-    menuItems.push(' > EXIT ');
+    menuItems.push(' EXIT ');
 
     const menu = blessed.list({
         parent: container,
@@ -1476,9 +1797,22 @@ function startMainMenu() {
     menu.on('select', async (item, index) => {
         const text = item.getText();
 
-        if (text.includes('EXIT')) process.exit(0);
+
+        function closeft() {
+            playback();
+           const child = spawn('cmd.exe', ['/c', 'start', '/wait', 'node', 'menu.js'], {
+                shell: false,
+                detached: true
+            });
+            setTimeout(() => {
+process.exit();
+            },200)
+            
+        }
+        if (text.includes('EXIT')) closeft();
 
         if (text.includes('CONTINUE')) {
+            playBeep2();
             menu.hide();
             logoBox.hide();
             loadStage(checkpointData.last_stage);
@@ -1486,6 +1820,7 @@ function startMainMenu() {
         }
 
         if (text.includes('START NEW')) {
+            playBeep2();
             if (fs.existsSync(checkPath)) fs.unlinkSync(checkPath);
             
             menu.hide();
@@ -1500,6 +1835,10 @@ function startMainMenu() {
             }
         }
     });
+
+    menu.on('select item', () => {
+    playBeep(); // <--- Som de "tic" ao subir/descer no menu
+});
 
     menu.focus();
     screen.render();
@@ -1540,10 +1879,13 @@ if (isGameFinished) {
         style: style
     });
     winMenu.on('select', (it, idx) => {
+        playBeep()
         if (idx === 0) {
+            playBeep2()
             fs.unlinkSync('./TERMINALACCESS/FINAL.status');
             process.exit(0);
         } else {
+            playBeep2()
             process.exit(0);
         }
     });

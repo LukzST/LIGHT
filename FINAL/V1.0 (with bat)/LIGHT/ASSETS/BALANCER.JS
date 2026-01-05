@@ -10,7 +10,7 @@ const screen = blessed.screen({
 // --- ESTADO DO SISTEMA ---
 let energyLevel = 50;   
 let targetPos = 50;     
-let timeLeft = 1;      
+let timeLeft = 30;      
 let gameActive = true;
 let warningCounter = 0; 
 const safeRange = 12;   

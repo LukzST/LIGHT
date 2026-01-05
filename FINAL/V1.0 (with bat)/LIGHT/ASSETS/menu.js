@@ -3,9 +3,34 @@ const os = require('os');
 const { spawn } = require('child_process');
 const { exec } = require('child_process');
 const fs = require('fs');
+let isBooting = true;
+let blockMenuInput = false;
+let isOverrideActive = false;
 const path = require('path');
+let cheatBuffer = "";
 const achievements = fs.readdirSync('../Achievements').filter(f => f.endsWith('.bin')).length;
 let dots = 0;
+const player = require('play-sound')({
+ player: '../AUDIO/PLAYER/cmdmp3.exe'
+});
+
+const rareBootPath = path.join(__dirname, '..', 'Achievements', 'RARE_BOOT.ach');
+const hasRareBoot = fs.existsSync(rareBootPath);
+const audioFile = '../AUDIO/TRACKS/1.mp3';
+const audioaa = '../AUDIO/TRACKS/2.mp3';
+let bgmProcess = null;
+let effectProcess = null;
+const beepfile = '../AUDIO/EFFECTS/BEEP.wav'
+const beepfile2 = '../AUDIO/EFFECTS/BEEP2.wav'
+const freshfile = '../AUDIO/EFFECTS/FRESH.wav'
+const BOOTfile = '../AUDIO/EFFECTS/LUX-4.wav'
+const winfile = '../AUDIO/EFFECTS/win.wav'
+const warningfile = '../AUDIO/EFFECTS/warning.wav'
+const supportfile = '../AUDIO/EFFECTS/support.wav'
+const backfile = '../AUDIO/EFFECTS/back.wav'
+const startfile = '../AUDIO/EFFECTS/start.wav'
+const checkpointfile = '../AUDIO/EFFECTS/checkpoint.wav'
+const sucessofile = '../AUDIO/EFFECTS/win2.wav'
 const key = 'lux1999files'
 let hintDisplay = null; // Adicione isso perto das suas outras globais
 let hintListWin = null
@@ -48,6 +73,7 @@ const ALL_ACHIEVEMENTS = [
  { id: 'GLITCH_ADDICT', name: 'GLITCH ADDICT', desc: 'Toggle the Glitch effect 10 times.', hint: 'Do you prefer the broken reality or the fake stability?' },
  { id: 'TERMINAL_JUNKIE', name: 'TERMINAL JUNKIE', desc: 'Enter and exit the Achievements screen 5 times.', hint: 'Checking your progress won’t make it go faster.' },
  { id: 'HARD_RESET', name: 'FRESH START', desc: 'Use the Reset to Defaults option in Settings.', hint: 'Wipe the slate clean. Forget the errors of the past.' },
+ { id: 'RARE_BOOT', name: 'SYSTEM ANOMALY', desc: 'Triggered the rare LUX-4 initialization sequence.', hint: 'The system has a small chance to reveal its true face upon boot.' },
  ];
 const ACHIEVEMENT_NAMES = {
  'PACPRO': 'ELITE OPERATOR',
@@ -65,6 +91,7 @@ const ACHIEVEMENT_NAMES = {
  'TRUELIGHT': 'THE TRUE LIGHT',
  'AUDIOPHOBIC': 'AUDIOPHOBIC',
  'COLOR_MASTER': 'SPECTRUM ANALYST',
+ 'RARE_BOOT': 'SYSTEM ANOMALY',
  'DATA_MINER': 'DATA MINER',
  'GLITCH_ADDICT': 'GLITCH ADDICT',
  'TERMINAL_JUNKIE': 'TERMINAL JUNKIE',
@@ -84,15 +111,20 @@ const achPath = path.join(__dirname, '..', 'Achievements', 'PACPRO.ach');
     const pacSeenPath = '../CONFIG/PACPRO_SEEN.txt';
     const isNewPac = hasPacAch && !fs.existsSync(pacSeenPath);
 
+
+    
 function showAchievementToast(id) {
+    playwin()
  const name = ACHIEVEMENT_NAMES[id] || id;
  const offset = 2 + (activeToasts * 6);
+
  const toast = blessed.box({
  parent: screen,
- top: offset,
+ bottom: offset,
  right: 2,
  width: 35,
  height: 5,
+ index: 5000,
  border: 'line',
  tags: true,
  content: `{center}{yellow-fg}{bold}ACHIEVEMENT UNLOCKED{/}\n{white-fg}${name}{/center}`,
@@ -101,7 +133,6 @@ function showAchievementToast(id) {
  bg: 'black'
  }
  });
- toast.setIndex(2000);
  activeToasts++;
  screen.render();
  setTimeout(() => {
@@ -128,6 +159,7 @@ function watchAchievements() {
 color = '#555555'
 const isModernTerminal = process.argv.includes('--wt');
 function startLogoAnimation() {
+    
  setInterval(() => {
  if (GLITCH === 'ON' && Math.random() > 0.85) {
  const glitchContent = logoOriginal.replace(/█/g, (char) => {
@@ -144,6 +176,7 @@ function startLogoAnimation() {
  }
  screen.render();
  }, 150);
+ 
 }
 function initNormalMenu() {
  screen.append(logoBox);
@@ -152,66 +185,165 @@ function initNormalMenu() {
  mainList.focus();
  screen.render();
 }
-function startupSequence() {
- const roll = Math.random();
- if (roll <= 0.20) {
- 
- const wasFocused = mainList.focused;
- 
- mainList.detach();
- mainList.hide(); 
- menuBox.hide();    
- 
- const easterEggBox = blessed.box({
- parent: screen,
- top: 'center',
- left: 'center',
- width: 'shrink',
- height: 'shrink',
- content: LUX4_LOGO,
- style: { fg: '#ffffff' },
- tags: true
- });
- 
- descriptionBox.setContent('{bold}LUX-4 PRESENTS{/}');
- screen.render();
- 
- setTimeout(() => {
- const glitchInterval = setInterval(() => {
- easterEggBox.setContent(LUX4_LOGO.replace(/[:+]/g, () => (Math.random() > 0.5 ? '?' : '#')));
- easterEggBox.style.fg = Math.random() > 0.5 ? 'red' : 'white';
- screen.render();
- }, 80);
- 
- setTimeout(() => {
- clearInterval(glitchInterval);
- easterEggBox.destroy();
- 
- menuBox.show();
- 
- menuBox.append(mainList);
- mainList.show();
- 
- if (wasFocused) {
- mainList.focus();
- }
- 
- initNormalMenu();
- }, 1000);
- 
- }, 1500);
- 
- setTimeout(() => {
- descriptionBox.setContent('{bold}SELECT AN OPTION USING ARROW KEYS AND PRESS ENTER{/}')
- }, 2500);
- 
- } else {
- initNormalMenu();
- }
+
+function bootSequence() {
+    isBooting = true;
+
+    const bootContainer = blessed.box({
+        parent: screen,
+        top: 0, left: 0,
+        width: '100%', height: '100%',
+        style: { bg: 'black' },
+        index: 1000
+    });
+
+    const msgBox = blessed.box({
+        parent: bootContainer,
+        top: 'center', left: 'center',
+        width: 65, height: 10,
+        border: 'line',
+        tags: true,
+        content: '{center}\n{yellow-fg}{bold}SYSTEM INTERACTION WARNING{/}\n\n' +
+                 'This software is designed to interact with and modify\n' +
+                 'local files within the operational directory.\n\n' +
+                 '{blink}PRESS [ENTER] TO ACKNOWLEDGE{/}{/center}',
+        style: { border: { fg: 'yellow' } }
+    });
+
+    screen.render();
+
+    screen.onceKey(['enter'], () => {
+        if (EFFECTS_STATUS === 'ON') playBeep2();
+        msgBox.destroy();
+
+        const controlsBox = blessed.box({
+            parent: bootContainer,
+            top: 'center', left: 'center',
+            width: 50, height: 14, // Aumentado para caber tudo
+            border: 'line',
+            label: ' [ SYSTEM CONTROLS ] ',
+            tags: true,
+            content: '{center}\n' +
+                     '{bold}ARROWS{/bold} ........ NAVIGATE MENU  \n' +
+                     '{bold}ENTER{/bold} ......... EXECUTE COMMAND \n' +
+                     '{bold}ESC{/bold} ........... RETURN / CANCEL \n' +
+                     '{bold}[M]{/bold} ............ TOGGLE AUDIO   \n' +
+                     '{bold}[C]{/bold} ............ CYCLE COLORS   \n' +
+                     '{bold}[G]{/bold} ............ TOGGLE GLITCH  \n' +
+                     '{bold}[F1 / I]{/bold} ....... SYSTEM INFO   \n\n\n' +
+                     '{cyan-fg}PRESS [ENTER] TO CONTINUE{/}\n{/center}',
+            style: { border: { fg: 'cyan' }, label: { fg: 'cyan', bold: true } }
+        });
+
+        screen.render();
+
+        setTimeout(() => {
+            screen.onceKey(['enter'], () => {
+                if (EFFECTS_STATUS === 'ON') playBeep2();
+                controlsBox.destroy();
+
+                const devBrandBox = blessed.box({
+                    parent: bootContainer,
+                    top: 'center', left: 'center',
+                    width: '80%', height: 10,
+                    tags: true,
+                    content: '{center}\n\n{white-fg}A{/}\n\n{bold}PALE LUNA DEVELOPER{/bold}\n\n{white-fg}GAME{/}\n\n\n{grey-fg}INITIALIZING...{/}{/center}',
+                });
+
+                screen.render();
+
+                // Mostra a marca por 2.5 segundos e depois entra no menu automaticamente
+                setTimeout(() => {
+                    if (EFFECTS_STATUS === 'ON') playstart();
+                    bootContainer.destroy();
+                    startLogoAnimation();
+                    startupSequence();
+                    
+                    
+                    setTimeout(() => {
+                        isBooting = false;
+                        mainList.focus();
+                        screen.render();
+                    }, 500);
+                }, 2500); 
+            });
+        }, 500);
+    });
 }
-const player = require('play-sound')({
- player: './SOUNDTRACK/VLC/cmdmp3.exe'
-});
+
+function startupSequence() {
+    isconquistaActive = false; // Começa limpo
+    let currentBootIsRare = hasRareBoot || (Math.random() <= 0.10);
+
+    if (currentBootIsRare) {
+        let isFirstTimeWinning = !hasRareBoot;
+
+        if (isFirstTimeWinning) {
+            isconquistaActive = true; // Trava o menu principal
+            showAchievementToast('RARE_BOOT');
+            fs.writeFileSync(rareBootPath, 'COMPLETED');
+            setTimeout(() => {
+                showRareBootUnlockedOverlay();
+            }, 2500);
+        }
+
+        const wasFocused = mainList.focused;
+        mainList.detach();
+        mainList.hide(); 
+        menuBox.hide();    
+
+        const easterEggBox = blessed.box({
+            parent: screen,
+            top: 'center',
+            left: 'center',
+            width: 'shrink',
+            height: 'shrink',
+            content: LUX4_LOGO,
+            style: { fg: '#ffffff' },
+            tags: true
+        });
+
+        descriptionBox.setContent('{bold}LUX-4 PROTOCOL ACTIVE{/}');
+        screen.render();
+
+        const glitchInterval = setInterval(() => {
+            easterEggBox.setContent(LUX4_LOGO.replace(/[:+]/g, () => (Math.random() > 0.5 ? '?' : '#')));
+            easterEggBox.style.fg = Math.random() > 0.5 ? 'red' : 'white';
+            screen.render();
+        }, 80);
+
+        if (isFirstTimeWinning) {
+            // Guarda refs globais para o overlay limpar depois
+            global.bootGlitchInt = glitchInterval;
+            global.bootEggBox = easterEggBox;
+            global.wasFocusedBoot = wasFocused;
+        } else {
+            // Boot raro padrão (para quem já tem a conquista)
+            setTimeout(() => {
+                clearInterval(glitchInterval);
+                easterEggBox.destroy();
+                finalizeBoot(wasFocused);
+                isconquistaActive = false;
+            }, 1500);
+        }
+
+    } else {
+        initNormalMenu();
+    }
+}
+
+// Função auxiliar para limpar a tela e focar o menu
+function finalizeBoot(wasFocused) {
+    isconquistaActive = false
+    menuBox.show();
+    menuBox.append(mainList);
+    mainList.show();
+    if (wasFocused) mainList.focus();
+    initNormalMenu();
+    descriptionBox.setContent('{bold}SELECT AN OPTION USING ARROW KEYS AND PRESS ENTER{/}')
+    screen.render();
+}
+
 function fullscreen_pre_save() {
  if(FULLSCREEN === 'ON' && isModernTerminal) {
  const vbsPath = path.join(__dirname, 'toggle_fs.vbs');
@@ -225,7 +357,12 @@ function fullscreen_pre_save() {
  }
 }
 
-
+if (fs.existsSync('../CONFIG/EFFECTS_STATE.txt')) {
+    var EFFECTS_STATUS = fs.readFileSync(path.join('../CONFIG/EFFECTS_STATE.txt'), 'utf8').trim();
+} else {
+    var EFFECTS_STATUS = 'ON';
+    fs.writeFileSync('../CONFIG/EFFECTS_STATE.txt', EFFECTS_STATUS, 'utf8');
+}
 if (fs.existsSync('../CONFIG/TIME.txt')) {
     var timeRaw = fs.readFileSync('../CONFIG/TIME.txt', 'utf8').split('\n');
     var TIME_STATUS = timeRaw[0].trim();
@@ -282,8 +419,7 @@ if (fs.existsSync('../CONFIG/DIFFICULTY.txt')) {
 }
 let CANwin = 'OFF';
 let vlcProcess = null;
-const audioFile = './SOUNDTRACK/1.mp3';
-const audioaa = './SOUNDTRACK/2.mp3';
+
 let winVersion = os.release()
 let userName = os.userInfo().username;
 let friendlyName = 'Windows';
@@ -292,7 +428,7 @@ if (winVersion.startsWith('10.0.1')) friendlyName = 'Windows 10';
 if (winVersion.startsWith('6.3')) friendlyName = 'Windows 8.1 - NOT SUPPORTED';
 if (winVersion.startsWith('6.1')) friendlyName = 'Windows 7 - NOT SUPPORTED';
 if (audiostate === 'ON') {
- vlcProcess = spawn('./SOUNDTRACK/VLC/vlc.exe', ['-I', 'dummy', '--loop', audioFile]);
+ playAudio()
  }
  fullscreen_pre_save();
 const screen = blessed.screen({
@@ -301,19 +437,25 @@ const screen = blessed.screen({
  fullUnicode: true
 });
 function refreshMenu() {
+    const checkPacPath = path.join(__dirname, '..', 'Achievements', 'PACPRO.ach');
+    const hasPac = fs.existsSync(checkPacPath);
+    const checkNewPac = hasPac && !fs.existsSync('../CONFIG/PACPRO_SEEN.txt');
+
     let items = ['{center}START MISSION{/center}'];
 
-    if (hasPacAch) {
-        if (isNewPac) {
+    if (hasPac) {
+        if (checkNewPac) {
             items.push('{center}{yellow-fg}PACPRO SUBSYSTEM (NEW){/yellow-fg}{/center}');
         } else {
             items.push('{center}{yellow-fg}PACPRO SUBSYSTEM{/yellow-fg}{/center}');
         }
     }
 
+
     items.push('{center}ACHIEVEMENTS{/center}');
-    items.push('{center}CHECKPOINTS{/center}')
+    items.push('{center}CHECKPOINTS{/center}');
     items.push('{center}SETTINGS{/center}');
+
 
     if (TIME_STATUS === 'ON') {
         items.push('{center}{cyan-fg}RESET TIME{/cyan-fg}{/center}');
@@ -329,13 +471,17 @@ function refreshMenu() {
 
     try {
         if (typeof mainList !== 'undefined' && mainList !== null) {
+
             mainList.setItems(items);
+            
+            mainList.style.selected.bg = COLORDEFAULT;
+            
             screen.render();
         }
     } catch (e) {
     }
     
-    return items; 
+    return items;
 }
 const logoOriginal =
  "███        ███  ████████  ███  ███  █████████\n" +
@@ -378,7 +524,7 @@ const menuBox = blessed.form({
  top: 11,
  left: 'center',
  width: 45,
- height: 15,
+ height: 12,
  tags: true,
  border: { type: 'line' },
  style: {
@@ -389,10 +535,10 @@ const menuBox = blessed.form({
 const mainList = blessed.list({
  parent: menuBox,
  tags: true,
- top: 1,
+ top: 0,
  left: 'center',
  width: '90%',
- height: '80%',
+ height: '95%',
  keys: true,
  mouse: true,
  items: refreshMenu(),
@@ -405,6 +551,7 @@ if (isNewPac) {
  fs.writeFileSync(pacSeenPath, 'SEEN', 'utf8');
 }
 mainList.on('select item', (item) => {
+    playBeep();
  const rawText = item.getText().replace(/{.*?}/g, '').trim();
  const desc = menuDescriptions[rawText] || 'SELECT AN OPTION USING ARROW KEYS AND PRESS ENTER';
  descriptionBox.setContent(`{bold}${desc.toUpperCase()}{/}`);
@@ -475,7 +622,101 @@ function showAchievementPopup(achId) {
  screen.render();
  });
 }
+
+function playBeep() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    player.play(beepfile, (err) => {});
+}
+
+function playlux4() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    player.play(BOOTfile, (err) => {});
+}
+
+function playBeep2() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    player.play(beepfile2, (err) => {});
+}
+
+function playfresh() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    if (audiostate === 'ON') {
+        stopAudio();
+        setTimeout(() => {
+            player.play(freshfile, (err) => {
+                if (audiostate === 'ON') playAudio();
+            });
+        }, 500);
+    } else {
+        player.play(freshfile, (err) => {});
+    }
+}
+
+function playwin() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    if (audiostate === 'ON') {
+        stopAudio();
+        setTimeout(() => {
+            player.play(winfile, (err) => {
+                if (audiostate === 'ON') playAudio();
+            });
+        }, 500);
+    } else {
+        player.play(winfile, (err) => {});
+    }
+}
+
+function playwarning() {
+    if (EFFECTS_STATUS === 'OFF') return;
+        player.play(warningfile, (err) => {});
+}
+
+function playsupport() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    if (audiostate === 'ON') {
+        stopAudio();
+        setTimeout(() => {
+            player.play(supportfile, (err) => {
+                if (audiostate === 'ON') playAudio();
+            });
+        }, 500);
+    } else {
+        player.play(supportfile, (err) => {});
+    }
+}
+
+function playback() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    player.play(backfile, (err) => {});
+}
+
+function playstart() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    
+        player.play(startfile, (err) => {});
+}
+
+function playsucesso() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    player.play(sucessofile, (err) => {});
+}
+
+function playcheckpoint() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    if (audiostate === 'ON') {
+        stopAudio();
+        setTimeout(() => {
+            player.play(checkpointfile, (err) => {
+                if (audiostate === 'ON') playAudio();
+            });
+        }, 500);
+    } else {
+        player.play(checkpointfile, (err) => {});
+    }
+}
+
 function confirmExit() {
+    playwarning()
  const bgOverlay = blessed.box({
  parent: screen,
  top: 0,
@@ -518,6 +759,7 @@ function confirmExit() {
  process.exit(0);
  }
  if (txt.includes('NO')) {
+    playback()
  bgOverlay.destroy();
  mainList.focus();
  screen.render();
@@ -530,12 +772,69 @@ function confirmExit() {
  screen.render();
  });
 }
+
+function showRareBootUnlockedOverlay() {
+    playwin();
+    isconquistaActive = true; 
+
+    const overlay = blessed.box({
+        parent: screen,
+        top: 0, left: 0,
+        width: '100%', height: '100%',
+        style: { bg: 'black' },
+        index: 10000
+    });
+
+    const achBox = blessed.box({
+        parent: overlay,
+        top: 'center', left: 'center',
+        width: 50, height: 12,
+        border: 'line',
+        label: ' [ ACHIEVEMENT UNLOCKED ] ',
+        tags: true,
+        content: '{center}\n{yellow-fg}{bold}SYSTEM ANOMALY{/bold}{/}\n\n' +
+                 'The rare LUX-4 initialization sequence\n' +
+                 'has been permanently synchronized.\n\n' +
+                 '{white-fg}This boot protocol is now your default.{/}\n\n' +
+                 '{cyan-fg}[ENTER] TO CONTINUE{/center}',
+        style: { border: { fg: 'yellow' }, label: { fg: 'yellow', bold: true } }
+    });
+
+    screen.render();
+
+    // Pequeno delay para registrar o input (evita pegar o enter do boot original)
+    setTimeout(() => {
+        screen.onceKey(['enter'], () => {
+            // ATIVA BLOQUEIO DE SEGURANÇA CONTRA VAZAMENTO
+            blockMenuInput = true;
+
+            if (global.bootGlitchInt) clearInterval(global.bootGlitchInt);
+            if (global.bootEggBox) global.bootEggBox.destroy();
+            
+            overlay.destroy();
+            finalizeBoot(global.wasFocusedBoot);
+            
+            isconquistaActive = false; 
+
+            // Libera o input do menu apenas após 500ms
+            setTimeout(() => {
+                blockMenuInput = false;
+            }, 500);
+
+            screen.render();
+        });
+    }, 500);
+}
+
 function credits() {
+    if (iscreditsOpen) return;
     if (audiostate === 'ON') {
-        stopAudio()
+        stopAudio();
     }
     
     iscreditsOpen = true;
+    let slideTimer = null;
+    let buttonsActive = false; 
     const currentYear = new Date().getFullYear();
 
     const bgOverlay = blessed.box({
@@ -555,216 +854,232 @@ function credits() {
         style: { fg: 'white' }
     });
 
-    // Blocos de crédito (Cada um durará 10 segundos)
+    const skipMsg = blessed.box({
+        parent: bgOverlay,
+        bottom: 2, left: 'center',
+        width: 'shrink', height: 1,
+        tags: true,
+        content: '{grey-fg}{bold}PRESS [ESC] TO CLOSE{/grey-fg}{/}',
+        style: { fg: '#555555' }
+    });
+
     const slides = [
         `{center}{bold}${logocredits}{/bold}\n\nA TERMINAL HORROR GAME{/center}`,
-
         `{center}{yellow-fg}AN ORIGINAL STORY BY{/yellow-fg}\n\n{bold}PALE LUNA DEVELOPER{/bold}{/center}`,
-        
         `{center}{yellow-fg}DIRECTOR{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
-        
         `{center}{yellow-fg}MAIN PROGRAMMER{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
-        
         `{center}{yellow-fg}EVENT PROGRAMMER{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
-
         `{center}{yellow-fg}GRAPHICS{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
-
         `{center}{yellow-fg}LEVEL DESIGN{/yellow-fg}\n\n{bold}ISABELLA SANCHES{/bold}{/center}`,
-
         `{center}{yellow-fg}STORY DESIGNER{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
-        
         `{center}{yellow-fg}SOUND DESIGN{/yellow-fg}\n\n{bold}LUCAS EDUARDO\nISABELLA SANCHES{/bold}{/center}`,
-        
         `{center}{yellow-fg}UI/UX ART & QUALITY ASSURANCE{/yellow-fg}\n\n{bold}LUIZ OTAVIO{/bold}{/center}`,
-        
         `{center}{yellow-fg}ENDING THEME{/yellow-fg}\n\n{bold}SUBNAUTICA - ALEXUPLAY{/bold}{/center}`,
-
         `{center}{yellow-fg}PUBLICITY{/yellow-fg}\n\n{bold}PALE LUNA DEVELOPER{/bold}{/center}`,
-        
         `{center}{yellow-fg}BETA TESTER{/yellow-fg}\n\n{bold}LUCAS EDUARDO, ISABELLA SANCHES, LUIZ OTÁVIO and some friends{/bold}{/center}`,
-
         `{center}{yellow-fg}PRODUCT COORDINATOR{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
-
         `{center}{yellow-fg}THANKS FOR PLAYING{/yellow-fg}`,
-
         `{center}CREATED FOR THE FADE\n\n${currentYear} © ALL RIGHTS RESERVED{/center}`
-    ];
+    ]; 
 
     let currentSlide = 0;
 
-    // Container de opções (escondido até o fim)
-    const optionsContainer = blessed.box({
+    // A TELA FINAL AGORA É UMA LISTA PROFISSIONAL
+    const finalMenu = blessed.list({
         parent: bgOverlay,
-        bottom: 5, left: 'center',
-        width: 60, height: 3,
-        hidden: true
+        top: 'center',
+        left: 'center',
+        width: 35,
+        height: 8,
+        border: 'line',
+        label: ' [ SESSION END ] ',
+        tags: true,
+        hidden: true,
+        keys: true,
+        items: [
+            '{center}TWITTER (X){/center}',
+            '{center}CLOSE{/center}'
+        ],
+        style: {
+            border: { fg: COLORDEFAULT },
+            label: { fg: COLORDEFAULT, bold: true },
+            selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
+        }
     });
 
-    const btnTwitter = blessed.button({
-        parent: optionsContainer,
-        left: 0, width: 25, height: 3,
-        content: '{center}TWITTER (X){/center}',
-        border: 'line', tags: true,
-        style: { border: { fg: 'cyan' }, focus: { bg: 'cyan', fg: 'black' } }
-    });
+    const closeCredits = () => {
+        iscreditsOpen = false;
+        buttonsActive = false;
+        if (slideTimer) clearTimeout(slideTimer);
+        screen.removeListener('keypress', blockEnter);
+        stopcreditsaudio();
+        bgOverlay.destroy();
+        mainList.focus();
+        if (audiostate === 'ON') playAudio();
+        screen.render();
+    };
 
-    const btnClose = blessed.button({
-        parent: optionsContainer,
-        right: 0, width: 25, height: 3,
-        content: '{center}CLOSE{/center}',
-        border: 'line', tags: true,
-        style: { border: { fg: 'red' }, focus: { bg: 'red', fg: 'white' } }
-    });
+    function blockEnter(ch, key) {
+        if (key.name === 'enter' && !buttonsActive) {
+            return false;
+        }
+    }
+    screen.on('keypress', blockEnter);
 
     function showNextSlide() {
         if (!iscreditsOpen) return;
-
         if (currentSlide < slides.length) {
-            // Efeito simples de "piscar" ao trocar
             displayBox.setContent("");
             screen.render();
-
-            setTimeout(() => {
+            slideTimer = setTimeout(() => {
+                if (!iscreditsOpen) return;
                 displayBox.setContent(slides[currentSlide]);
                 currentSlide++;
                 screen.render();
-                
-               
-                setTimeout(showNextSlide, 5500); 
+                slideTimer = setTimeout(showNextSlide, 5500); 
             }, 1000);
         } else {
-            stopcreditsaudio()
-            displayBox.setContent("{center}{bold}WHAT YOU GONNA DO?.{/bold}{/center}");
-            optionsContainer.show();
-            btnTwitter.focus();
-            screen.render();
+            stopcreditsaudio();
+            displayBox.hide(); // Esconde o texto para mostrar o menu
+            skipMsg.hide();
+            finalMenu.show();
+            setTimeout(() => {
+                buttonsActive = true;
+                finalMenu.focus();
+                screen.render();
+            }, 500);
         }
     }
 
-    // Inicia a sequência
-    setTimeout(() => {
-        if (iscreditsOpen) playcreditsaudio();
-    }, 200);
+    setTimeout(() => { if (iscreditsOpen) playcreditsaudio(); }, 200);
     showNextSlide();
 
-    // Funções de saída
-    const closeCredits = () => {
-        stopcreditsaudio()
-        iscreditsOpen = false;
-        bgOverlay.destroy();
-        mainList.focus();
-        screen.render();
-        if (audiostate === 'ON') {
-        playAudio()
-    }
-        
-    };
-    
-    
-
-    btnTwitter.on('press', () => exec('start https://twitter.com/PlayLightGame'));
-    btnClose.on('press', closeCredits);
     screen.onceKey(['escape'], closeCredits);
 
-    btnTwitter.key(['right', 'tab'], () => btnClose.focus());
-    btnClose.key(['left', 'tab'], () => btnTwitter.focus());
+    finalMenu.on('select item', () => { if(buttonsActive) playBeep(); });
+    
+    finalMenu.on('select', (item) => {
+        if (!buttonsActive) return;
+        const txt = item.getText();
+        if (txt.includes('TWITTER')) exec('start https://twitter.com/PlayLightGame');
+        if (txt.includes('CLOSE')) closeCredits();
+    });
 
     screen.render();
 }
 function eraseData() {
- const bg1Overlay = blessed.box({
- parent: screen,
- top: 0,
- left: 0,
- width: '100%',
- height: '100%',
- style: { bg: 'black' }
- });
- const eraseWin = blessed.list({
- parent: bg1Overlay,
- top: 'center',
- left: 'center',
- width: 40,
- height: 10,
- border: 'line',
- label: ' [ ERASE DATA ] ',
- keys: true,
- items: [' YES ', ' NO '],
- selected: 0,
- style: {
- border: { fg: COLORDEFAULT },
- selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
- }
- });
- eraseWin.focus();
- screen.render();
- eraseWin.on('select', (item) => {
- const txt = item.getText();
- if (txt.includes('NO')) {
- bg1Overlay.destroy();
- mainList.focus();
- screen.render();
- return;
- }
- if (txt.includes('YES')) {
- eraseWin.destroy(); // Remove o menu de escolha
- const logBox = blessed.log({
- parent: bg1Overlay,
- top: 'center',
- left: 'center',
- width: '80%',
- height: '80%',
- border: 'line',
- label: ' [ WIPING SECTORS ] ',
- style: { border: { fg: 'red' }, fg: 'red' },
- tags: true
- });
- const dummyLogs = [
- "ACCESSING ROOT FILES...", "MOUNTING PARTITION /DEV/SDA1...",
- "DELETING USER_DATA/ACHIEVEMENTS...", "OVERWRITING SECTOR 0x882A...",
- "WIPING CONFIG/USER.TXT...", "DELETING CACHE...",
- "LOG: Accessing restricted directory...", "RM -RF /SYSTEM/CORE",
- "ERASING LIGHT_DATA.BIN...", "CLEARING REGISTRY KEYS...",
- "DISABLING SUBSYSTEMS...", "FLUSHING MEMORY BUFFER...",
- "ERASING LOGS...", "TERMINATING SESSIONS...",
- "STATUS: 404 NOT FOUND", "STATUS: ACCESS REVOKED"
- ];
- let logIndex = 0;
- const logInterval = setInterval(() => {
- const randomHex = Math.random().toString(16).substring(2, 10).toUpperCase();
- logBox.log(`{red-fg}[DELETING]{/} SECTOR_${randomHex} ... {bold}WIPED{/}`);
- if (logIndex < dummyLogs.length) {
- logBox.log(`{white-fg}> ${dummyLogs[logIndex]}{/}`);
- logIndex++;
- }
- screen.render();
- }, 50); // Velocidade rápida para efeito de terminal
- setTimeout(() => {
- clearInterval(logInterval);
- logBox.setContent(`{center}\n\n\n{bold}DATA PURGE COMPLETE{/}{/center}`);
- screen.render();
- setTimeout(() => {
- const eraser = spawn('node', ['./EraseData.js'], { stdio: 'inherit' });
- eraser.on('close', () => {
- bg1Overlay.destroy();
- const hasPac = fs.existsSync(path.join(__dirname, '..', 'Achievements', 'PACPRO.ach'));
- let items = ['{center}START MISSION{/center}'];
- if (hasPac) items.push('{center}PACPRO{/center}');
- mainList.setItems(items.concat([
- '{center}ACHIEVEMENTS{/center}', '{center}CHECKPOINTS{/center}', '{center}SETTINGS{/center}',
- '{center}ERASE DATA{/center}', '{center}SYSTEM INFO{/center}',
- '{center}CREDITS{/center}', '{center}SUPPORT{/center}', '{center}EXIT{/center}'
- ]));
- mainList.focus();
- screen.render();
- });
- }, 1500);
- }, 2500); // Duração total da animação de log
- }
- });
+    playwarning();
+    const bg1Overlay = blessed.box({
+        parent: screen,
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        style: { bg: 'black' },
+        index: 100
+    });
+
+    const eraseWin = blessed.list({
+        parent: bg1Overlay,
+        top: 'center',
+        left: 'center',
+        width: 40,
+        height: 10,
+        border: 'line',
+        label: ' [ ERASE DATA ] ',
+        keys: true,
+        items: [' YES ', ' NO '],
+        selected: 1, // Inicia no NO por segurança
+        style: {
+            border: { fg: COLORDEFAULT },
+            selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
+        }
+    });
+
+    eraseWin.focus();
+    screen.render();
+
+    eraseWin.on('select', (item) => {
+        const txt = item.getText();
+
+        if (txt.includes('NO')) {
+            playback();
+            bg1Overlay.destroy();
+            mainList.focus();
+            screen.render();
+            return;
+        }
+
+        if (txt.includes('YES')) {
+            playfresh();
+            eraseWin.destroy();
+
+            const logBox = blessed.log({
+                parent: bg1Overlay,
+                top: 'center',
+                left: 'center',
+                width: '80%',
+                height: '80%',
+                border: 'line',
+                label: ' [ WIPING SECTORS ] ',
+                style: { border: { fg: 'red' }, fg: 'red' },
+                tags: true
+            });
+
+            const dummyLogs = [
+                "ACCESSING ROOT FILES...", "MOUNTING PARTITION /DEV/SDA1...",
+                "DELETING USER_DATA/ACHIEVEMENTS...", "OVERWRITING SECTOR 0x882A...",
+                "WIPING CONFIG/USER.TXT...", "DELETING CACHE...",
+                "LOG: Accessing restricted directory...", "RM -RF /SYSTEM/CORE",
+                "ERASING LIGHT_DATA.BIN...", "CLEARING REGISTRY KEYS...",
+                "DISABLING SUBSYSTEMS...", "FLUSHING MEMORY BUFFER...",
+                "ERASING LOGS...", "TERMINATING SESSIONS...",
+                "STATUS: 404 NOT FOUND", "STATUS: ACCESS REVOKED"
+            ];
+
+            let logIndex = 0;
+            const logInterval = setInterval(() => {
+                const randomHex = Math.random().toString(16).substring(2, 10).toUpperCase();
+                logBox.log(`{red-fg}[DELETING]{/} SECTOR_${randomHex} ... {bold}WIPED{/}`);
+                if (logIndex < dummyLogs.length) {
+                    logBox.log(`{white-fg}> ${dummyLogs[logIndex]}{/}`);
+                    logIndex++;
+                }
+                screen.render();
+            }, 50);
+
+            setTimeout(() => {
+                clearInterval(logInterval);
+                logBox.setContent(`{center}\n\n\n{bold}DATA PURGE COMPLETE{/}{/center}`);
+                screen.render();
+                
+                // Pausa de 1.5s antes de chamar o script (como no seu original)
+                setTimeout(() => {
+                    const eraser = spawn('node', ['./EraseData.js'], { stdio: 'inherit' });
+                    
+                    eraser.on('close', () => {
+                        // Reset de variáveis para o padrão
+                        TIME_STATUS = 'ON';
+                        TOTAL_PLAYTIME = 0;
+                        COLORNAME = 'RED';
+                        COLORDEFAULT = '#ff0000';
+                        
+                        bg1Overlay.destroy();
+                        
+                        // Reconstrói o menu com a ordem correta (Checkpoints, etc)
+                        refreshMenu();
+                        
+                        mainList.focus();
+                        screen.render();
+                    });
+                }, 1500); 
+            }, 2500);
+        }
+    });
 }
 
 function erasePlaytime() {
+    playwarning()
     // 1. Lógica para formatar o tempo para exibição
     function formatTime(s) {
         const h = Math.floor(s / 3600);
@@ -829,6 +1144,7 @@ function erasePlaytime() {
         if (txt.includes('SESSION') || txt.includes('──')) return;
 
         if (txt.includes('NO')) {
+            playback()
             bg1Overlay.destroy();
             mainList.focus();
             screen.render();
@@ -836,6 +1152,7 @@ function erasePlaytime() {
         }
 
         if (txt.includes('YES')) {
+            playfresh()
             eraseWin.destroy();
 
             const logBox = blessed.log({
@@ -858,6 +1175,8 @@ function erasePlaytime() {
                 "PURGING TIME_STAMPS...",
                 "RESETTING CLOCK TO 00:00:00",
                 "STABILIZING TIMELINE...",
+                "STABILIZING TIME...",
+                "STABILIZING FADE...",
                 "STATUS: TIME DATA WIPED."
             ];
 
@@ -892,7 +1211,7 @@ function erasePlaytime() {
                         descriptionBox.setContent('{yellow-fg}TIME DATA HAS BEEN PURGED SUCCESSFULLY.{/}');
                     }, 1500);
                 });
-            }, 2000);
+            }, 2300);
         }
     });
 }
@@ -976,6 +1295,7 @@ function showCheckpointGallery(parentWin) {
 
     const closeGallery = () => {
         backdrop.destroy();
+        playback()
         isGalleryOpen = false;
         mainList.focus(); 
         screen.render();
@@ -988,6 +1308,7 @@ function showCheckpointGallery(parentWin) {
 
 function showSettings() {
   issettigsopen = true
+
  const bgOverlay = blessed.box({
  parent: screen,
  top: 0,
@@ -1013,14 +1334,15 @@ settingsWin = blessed.list({
  parent: bgOverlay,
  top: 'center',
  left: 'center',
- width: 43,
- height: 12,
+ width: 44,
+ height: 13,
  border: 'line',
  label: ' [ SETTINGS ] ',
  keys: true,
  tags:true,
  items: [
- ' AUDIO: [' + audiostate + ']',
+ ' MENU AUDIO: [' + audiostate + ']',
+ ' SOUND EFFECTS: [' + EFFECTS_STATUS + ']',
  ' COLOR: [' + COLORNAME + ']',
  ' GLITCH LOGO: [' + GLITCH + ']',
  ' USERNAME: [' + USERNAMEP + ']',
@@ -1039,11 +1361,12 @@ settingsWin = blessed.list({
  });
  settingsWin._lastIndex = 0;
   settingsWin.on('select item', (item, index) => {
-    if (index === 7) {
+    playBeep()
+    if (index === 8) {
       if (settingsWin._lastIndex < index) {
-        settingsWin.select(8);
+        settingsWin.select(9);
       } else {
-        settingsWin.select(6);
+        settingsWin.select(7);
       }
     }
     settingsWin._lastIndex = settingsWin.selected;
@@ -1052,11 +1375,14 @@ settingsWin = blessed.list({
  settingsWin.focus();
  settingsWin.select(0);
  screen.render();
+
  settingsWin.on('select', (item) => {
  const txt = item.getText();
+ playBeep()
  if (txt.includes('───')) return;
  if (txt.includes('BACK')) {
   issettigsopen = false
+  playback()
   refreshMenu()
  bgOverlay.destroy();
  mainList.focus();
@@ -1067,10 +1393,10 @@ settingsWin = blessed.list({
 
  if (txt.includes('PLAYTIME HUD')) {
         TIME_STATUS = (TIME_STATUS === 'ON') ? 'OFF' : 'ON';
-        
+        playBeep2()
         fs.writeFileSync('../CONFIG/TIME.txt', `${TIME_STATUS}\n${TOTAL_PLAYTIME}`, 'utf8');
         
-        settingsWin.setItem(6, ' PLAYTIME HUD: [' + TIME_STATUS + ']');
+        settingsWin.setItem(7, ' PLAYTIME HUD: [' + TIME_STATUS + ']');
         refreshMenu()
         screen.render();
     }
@@ -1083,6 +1409,7 @@ settingsWin = blessed.list({
  fs.writeFileSync('../CONFIG/AUDIOSTATE.txt', audiostate, 'utf8');
  stopAudio();
  } else {
+    playwarning()
  audiostate = 'ON';
  if (fs.existsSync('../CONFIG/AUDIOSTATE.txt')) {
  fs.unlinkSync('../CONFIG/AUDIOSTATE.txt');
@@ -1135,10 +1462,13 @@ function closeSupport() {
 screen.key(['escape'], closeSupport);
 screen.render();
  }
- settingsWin.setItem(0, ' AUDIO: [' + audiostate + ']');
+ settingsWin.setItem(0, ' MENU AUDIO: [' + audiostate + ']');
  }
+ 
+ 
  if (txt.includes('COLOR')) {
  if (COLORDEFAULT === '#ff0000') {
+    playBeep2()
  COLORDEFAULT = '#00ff00';
  COLORNAME = 'GREEN';
  if (fs.existsSync('../CONFIG/COLORDEFAULT.txt')) {
@@ -1150,6 +1480,7 @@ screen.render();
  fs.writeFileSync('../CONFIG/COLORNAME.txt', COLORNAME, 'utf8');
  fs.writeFileSync('../CONFIG/COLORDEFAULT.txt', COLORDEFAULT, 'utf8');
  } else if (COLORDEFAULT === '#00ff00') {
+    playBeep2()
  COLORDEFAULT = '#0000ff';
  COLORNAME = 'BLUE';
  if (fs.existsSync('../CONFIG/COLORDEFAULT.txt')) {
@@ -1161,6 +1492,7 @@ screen.render();
  fs.writeFileSync('../CONFIG/COLORNAME.txt', COLORNAME, 'utf8');
  fs.writeFileSync('../CONFIG/COLORDEFAULT.txt', COLORDEFAULT, 'utf8');
  } else {
+    playBeep2()
  COLORDEFAULT = '#ff0000';
  COLORNAME = 'RED';
  if (fs.existsSync('../CONFIG/COLORDEFAULT.txt')) {
@@ -1172,7 +1504,7 @@ screen.render();
  fs.writeFileSync('../CONFIG/COLORNAME.txt', COLORNAME, 'utf8');
  fs.writeFileSync('../CONFIG/COLORDEFAULT.txt', COLORDEFAULT, 'utf8');
  }
- settingsWin.setItem(1, ' COLOR: [' + COLORNAME + ']');
+ settingsWin.setItem(2, ' COLOR: [' + COLORNAME + ']');
  logoBox.style.fg = COLORDEFAULT;
  mainList.style.selected.bg = COLORDEFAULT;
  settingsWin.style.border.fg = COLORDEFAULT;
@@ -1186,6 +1518,7 @@ screen.render();
  settingsWin.focus();
  }
  if (txt.includes('USERNAME')) {
+    playBeep2()
  const bgOverlay1 = blessed.box({
  parent: screen,
  top: 0,
@@ -1221,18 +1554,20 @@ screen.render();
  screen.render();
  input.on('submit', (value) => {
  if (value && value.trim() !== "") {
+    playsucesso()
  USERNAMEP = value.trim().toUpperCase();
  if (fs.existsSync('../CONFIG/USER.txt')) {
  fs.unlinkSync('../CONFIG/USER.txt');
  }
  fs.writeFileSync('../CONFIG/USER.txt', USERNAMEP, 'utf8');
- settingsWin.setItem(3, ' USERNAME: [' + USERNAMEP + ']');
+ settingsWin.setItem(4, ' USERNAME: [' + USERNAMEP + ']');
  }
  input.destroy();
  bgOverlay1.destroy();
  screen.render();
  });
  input.on('cancel', () => {
+    playback()
  bgOverlay1.destroy();
  input.destroy();
  screen.render();
@@ -1271,6 +1606,7 @@ if (txt.includes('FULL SCREEN')) {
  return screen.render();
  }
  FULLSCREEN = (FULLSCREEN === 'OFF') ? 'ON' : 'OFF';
+ playBeep2()
  const vbsPath = path.join(__dirname, 'toggle_fs.vbs');
  const BCT = `Set objShell = WScript.CreateObject("WScript.Shell")\nWScript.Sleep 100\nobjShell.SendKeys "{F11}"`;
  try {
@@ -1284,22 +1620,24 @@ if (txt.includes('FULL SCREEN')) {
  }
  if (fs.existsSync('../CONFIG/FULLSCREEN.txt')) fs.unlinkSync('../CONFIG/FULLSCREEN.txt');
  fs.writeFileSync('../CONFIG/FULLSCREEN.txt', FULLSCREEN, 'utf8');
- settingsWin.setItem(4, ' FULL SCREEN: [' + FULLSCREEN + ']');
+ settingsWin.setItem(5, ' FULL SCREEN: [' + FULLSCREEN + ']');
  screen.render();
 }
 if (txt.includes('GLITCH')) {
  GLITCH = (GLITCH === 'ON') ? 'OFF' : 'ON';
+ playBeep2()
  if (fs.existsSync('../CONFIG/GLITCH.txt')) {
  fs.unlinkSync('../CONFIG/GLITCH.txt');
  }
  fs.writeFileSync('../CONFIG/GLITCH.txt', GLITCH, 'utf8');
- settingsWin.setItem(2, ' GLITCH LOGO: [' + GLITCH + ']');
+ settingsWin.setItem(3, ' GLITCH LOGO: [' + GLITCH + ']');
  screen.render();
 }
 if (txt.includes('SIDEBAR')) {
  SIDEBAR = (SIDEBAR === 'ON') ? 'OFF' : 'ON';
+ playBeep2()
  fs.writeFileSync('../CONFIG/SIDEBAR.txt', SIDEBAR, 'utf8');
- settingsWin.setItem(5, ' SIDEBAR: [' + SIDEBAR + ']');
+ settingsWin.setItem(6, ' SIDEBAR: [' + SIDEBAR + ']');
  if (SIDEBAR === 'ON') {
  leftSidebar.show();
  } else {
@@ -1307,91 +1645,226 @@ if (txt.includes('SIDEBAR')) {
  }
  screen.render();
 }
-if (txt.includes('RESET')) {
- const pathAch = path.join(__dirname, '..', 'Achievements', 'HARD_RESET.ach');
- if (!fs.existsSync(pathAch)) {
- fs.writeFileSync(pathAch, 'COMPLETED');
- showAchievementToast('HARD_RESET');
- }
- if (fs.existsSync('../CONFIG/AUDIOSTATE.txt')) {
- fs.unlinkSync('../CONFIG/AUDIOSTATE.txt');
- }
- if (fs.existsSync('../CONFIG/COLORNAME.txt')) {
- fs.unlinkSync('../CONFIG/COLORNAME.txt');
- }
- if (fs.existsSync('../CONFIG/COLORDEFAULT.txt')) {
- fs.unlinkSync('../CONFIG/COLORDEFAULT.txt');
- }
- if (fs.existsSync('../CONFIG/USER.txt')) {
- fs.unlinkSync('../CONFIG/USER.txt');
- }
- if (fs.existsSync('../CONFIG/FULLSCREEN.txt')) {
- fs.unlinkSync('../CONFIG/FULLSCREEN.txt');
- }
- if (fs.existsSync('../CONFIG/DIFFICULTY.txt')) {
- fs.unlinkSync('../CONFIG/DIFFICULTY.txt');
- }
- if (fs.existsSync('../CONFIG/GLITCH.txt')) {
- fs.unlinkSync('../CONFIG/GLITCH.txt');
-}
-if (fs.existsSync('../CONFIG/TIME.txt')) {
-  fs.unlinkSync('../CONFIG/TIME.txt')
-}
- audiostate = 'ON';
- COLORNAME = 'RED';
- COLORDEFAULT = '#ff0000';
- USERNAMEP = 'OPERATOR 07';
- FULLSCREEN = 'OFF';
- DIFFICULTY = 'NORMAL';
- GLITCH = 'ON';
- SIDEBAR = 'OFF';
- TIME_STATUS = 'ON'
 
- fs.writeFileSync('../CONFIG/TIME.txt', `${TIME_STATUS}\n${TOTAL_PLAYTIME}`, 'utf8');
- fs.writeFileSync('../CONFIG/FULLSCREEN.txt', FULLSCREEN, 'utf8');
- fs.writeFileSync('../CONFIG/AUDIOSTATE.txt', audiostate, 'utf8');
- fs.writeFileSync('../CONFIG/COLORNAME.txt', COLORNAME, 'utf8');
- fs.writeFileSync('../CONFIG/COLORDEFAULT.txt', COLORDEFAULT, 'utf8');
- fs.writeFileSync('../CONFIG/USER.txt', USERNAMEP, 'utf8');
- fs.writeFileSync('../CONFIG/GLITCH.txt', GLITCH, 'utf8');
- fs.writeFileSync('../CONFIG/SIDEBAR.txt', SIDEBAR, 'utf8');
- settingsWin.setItem(0, ' AUDIO: [' + audiostate + ']');
- settingsWin.setItem(1, ' COLOR: [' + COLORNAME + ']');
- settingsWin.setItem(2, ' GLITCH LOGO: [' + GLITCH + ']');
- settingsWin.setItem(3, ' USERNAME: [' + USERNAMEP + ']');
- settingsWin.setItem(4, ' FULL SCREEN: [' + FULLSCREEN + ']');
- settingsWin.setItem(5, ' SIDEBAR: [' + SIDEBAR + ']');
- settingsWin.setItem(6, ' PLAYTIME HUD: [' + TIME_STATUS + ']');
- logoBox.style.fg = COLORDEFAULT;
- mainList.style.selected.bg = COLORDEFAULT;
- settingsWin.style.border.fg = COLORDEFAULT;
- settingsWin.style.selected.bg = COLORDEFAULT;
- settingsWin.focus();
- if (audiostate === 'ON') {
- playAudio();
- } else {
- stopAudio();
+
+if (txt.includes('SOUND EFFECTS')) {
+    EFFECTS_STATUS = (EFFECTS_STATUS === 'ON') ? 'OFF' : 'ON';
+    
+
+    fs.writeFileSync('../CONFIG/EFFECTS_STATE.txt', EFFECTS_STATUS, 'utf8');
+
+    settingsWin.setItem(1, ' SOUND EFFECTS: [' + EFFECTS_STATUS + ']');
+    
+
+    if (EFFECTS_STATUS === 'ON') playBeep2();
+    
+    screen.render();
 }
-leftSidebar.hide();
-updateStatus();
+
+if (txt.includes('RESET')) {
+    const pathAch = path.join(__dirname, '..', 'Achievements', 'HARD_RESET.ach');
+    if (!fs.existsSync(pathAch)) {
+        fs.writeFileSync(pathAch, 'COMPLETED');
+        showAchievementToast('HARD_RESET');
+    }
+
+    const configs = [
+        'AUDIOSTATE.txt', 'EFFECTS_STATE.txt', 'COLORNAME.txt', 
+        'COLORDEFAULT.txt', 'USER.txt', 'FULLSCREEN.txt', 
+        'DIFFICULTY.txt', 'GLITCH.txt', 'TIME.txt', 'SIDEBAR.txt'
+    ];
+    configs.forEach(cfg => {
+        const p = path.join('../CONFIG/', cfg);
+        if (fs.existsSync(p)) fs.unlinkSync(p);
+    });
+
+    audiostate = 'ON';
+    EFFECTS_STATUS = 'ON';
+    COLORNAME = 'RED';
+    COLORDEFAULT = '#ff0000';
+    USERNAMEP = 'OPERATOR 07';
+    FULLSCREEN = 'OFF';
+    DIFFICULTY = 'NORMAL';
+    GLITCH = 'ON';
+    SIDEBAR = 'OFF';
+    TIME_STATUS = 'ON';
+
+    fs.writeFileSync('../CONFIG/TIME.txt', `${TIME_STATUS}\n${TOTAL_PLAYTIME}`, 'utf8');
+    fs.writeFileSync('../CONFIG/FULLSCREEN.txt', FULLSCREEN, 'utf8');
+    fs.writeFileSync('../CONFIG/AUDIOSTATE.txt', audiostate, 'utf8');
+    fs.writeFileSync('../CONFIG/EFFECTS_STATE.txt', EFFECTS_STATUS, 'utf8');
+    fs.writeFileSync('../CONFIG/COLORNAME.txt', COLORNAME, 'utf8');
+    fs.writeFileSync('../CONFIG/COLORDEFAULT.txt', COLORDEFAULT, 'utf8');
+    fs.writeFileSync('../CONFIG/USER.txt', USERNAMEP, 'utf8');
+    fs.writeFileSync('../CONFIG/GLITCH.txt', GLITCH, 'utf8');
+    fs.writeFileSync('../CONFIG/SIDEBAR.txt', SIDEBAR, 'utf8');
+
+    settingsWin.setItem(0, ' MENU AUDIO: [' + audiostate + ']');
+    settingsWin.setItem(1, ' SOUND EFFECTS: [' + EFFECTS_STATUS + ']');
+    settingsWin.setItem(2, ' COLOR: [' + COLORNAME + ']');
+    settingsWin.setItem(3, ' GLITCH LOGO: [' + GLITCH + ']');
+    settingsWin.setItem(4, ' USERNAME: [' + USERNAMEP + ']');
+    settingsWin.setItem(5, ' FULL SCREEN: [' + FULLSCREEN + ']');
+    settingsWin.setItem(6, ' SIDEBAR: [' + SIDEBAR + ']');
+    settingsWin.setItem(7, ' PLAYTIME HUD: [' + TIME_STATUS + ']');
+
+    logoBox.style.fg = COLORDEFAULT;
+    mainList.style.selected.bg = COLORDEFAULT;
+    settingsWin.style.border.fg = COLORDEFAULT;
+    settingsWin.style.selected.bg = COLORDEFAULT;
+    hotkeysBar.style.border.fg = COLORDEFAULT;
+    statusBox.style.border.fg = COLORDEFAULT;
+
+    if (audiostate === 'ON') {
+        playAudio();
+    } else {
+        stopAudio();
+    }
+
+    leftSidebar.hide(); 
+    updateStatus();
+    settingsWin.focus();
+    screen.render();
+    
+    if (EFFECTS_STATUS === 'ON') playfresh();
 }
  screen.render();
  });
 }
 function stopAudio() {
-    if (vlcProcess) {
-        vlcProcess.kill();
-        vlcProcess = null;
+    if (bgmProcess) {
+        bgmProcess.kill();
+        bgmProcess = null;
     }
-    // Garante que o cmdmp3 morra mesmo se o kill falhar
-    spawn('taskkill', ['/F', '/IM', 'cmdmp3.exe', '/T']);
+    exec('taskkill /F /IM cmdmp3.exe /T > nul 2>&1');
 }
 
+// Monitora teclas globais para o código secreto
+// Gatilho do Cheat Protocolo "/"
+screen.key(['/'], () => {
+    // Só ativa se estiver no menu principal e sem janelas abertas
+    if (!mainList.focused || issettigsopen || isGalleryOpen || iscreditsOpen || issupportOpen || isOverrideActive) {
+        return;
+    }
+
+    isOverrideActive = true;
+    playwarning();
+
+    const overlay = blessed.box({
+        parent: screen,
+        top: 0, left: 0,
+        width: '100%', height: '100%',
+        style: { bg: 'black' },
+        index: 9999
+    });
+
+    const confirmBox = blessed.box({
+        parent: overlay,
+        top: 'center', left: 'center',
+        width: 50, height: 10,
+        border: 'line',
+        label: ' [ SYSTEM OVERRIDE ] ',
+        tags: true,
+        content: '{center}\n{bold}ADMINISTRATIVE UNLOCK DETECTED{/bold}\n\n' +
+                 'This will bypass all encryption and unlock\n' +
+                 'all localized data sectors.\n\n' +
+                 '{yellow-fg}[ENTER]{/} PROCEED | {white-fg}[ESC]{/} ABORT{/center}',
+        style: {
+            border: { fg: 'yellow' },
+            label: { fg: 'yellow', bold: true }
+        }
+    });
+
+    // Efeito de pulsação da borda
+    let borderTick = false;
+    const blinkInterval = setInterval(() => {
+        borderTick = !borderTick;
+        confirmBox.style.border.fg = borderTick ? 'white' : 'yellow';
+        confirmBox.style.label.fg = borderTick ? 'white' : 'yellow';
+        screen.render();
+    }, 500);
+
+    const closeCheat = () => {
+        clearInterval(blinkInterval);
+        overlay.destroy();
+        isOverrideActive = false;
+        mainList.focus();
+        screen.render();
+    };
+
+    // ESC para cancelar
+    screen.onceKey(['escape'], () => {
+        playback();
+        closeCheat();
+    });
+
+    // ENTER para iniciar simulação e unlock
+    screen.onceKey(['enter'], () => {
+        clearInterval(blinkInterval);
+        confirmBox.destroy();
+
+        const logBox = blessed.log({
+            parent: overlay,
+            top: 'center', left: 'center',
+            width: '80%', height: '80%',
+            border: 'line',
+            label: ' [ EXECUTING PROTOCOL ] ',
+            style: { border: { fg: 'red' }, fg: 'red' },
+            tags: true
+        });
+
+        const logLines = [
+            '>> Initializing Bypass...', '>> Scanning Sectors...', 
+            '>> 0xAF3C Decrypted', '>> Injecting Payload...', 
+            '>> unlockall.js: [EXECUTING]', '>> Permissions: [GRANTED]',
+            '>> Override Complete.'
+        ];
+
+        let line = 0;
+        const logInt = setInterval(() => {
+            if (line < logLines.length) {
+                logBox.log(logLines[line]);
+                line++;
+                screen.render();
+            } else {
+                clearInterval(logInt);
+                
+                // Roda o unlock real em background
+                spawn('node', ['./unlockall.js'], { detached: true, stdio: 'ignore' }).unref();
+
+                // Delay de 1s após o log para mostrar o reboot
+                setTimeout(() => {
+                    logBox.destroy();
+                    const rebootBox = blessed.box({
+                        parent: overlay,
+                        top: 'center', left: 'center',
+                        width: 40, height: 7,
+                        border: 'line',
+                        label: ' [ SYSTEM ] ',
+                        tags: true,
+                        content: '{center}\n{bold}REBOOTING...{/bold}\n\n{white-fg}Please Stand By...{/center}',
+                        style: { border: { fg: 'blue' }, label: { fg: 'blue', bold: true } }
+                    });
+                    screen.render();
+
+                    // Reboot final após 2s
+                    setTimeout(() => {
+                        screen.destroy();
+                        spawn('cmd.exe', ['/c', 'start', 'node', 'menu.js'], { shell: true, detached: true }).unref();
+                        process.exit(0);
+                    }, 2000);
+                }, 1000);
+            }
+        }, 400); // Velocidade das linhas do log (Total ~3s)
+    });
+
+    screen.render();
+});
 function playAudio() {
     if (audiostate === 'ON') {
-        // O play-sound usa o cmdmp3.exe que você configurou no topo
-        vlcProcess = player.play(audioFile, function(err){
-            if (err && !err.killed) console.error("Erro áudio menu:", err);
+        if (bgmProcess) return;
+        bgmProcess = player.play(audioFile, function(err) {
+            if (err && !err.killed) bgmProcess = null;
         });
     }
 }
@@ -1405,7 +1878,6 @@ function stopcreditsaudio() {
 }
 
 function playcreditsaudio() {
-    // Toca a música dos créditos (2.mp3)
     vlcProcess = player.play(audioaa, function(err){
         if (err && !err.killed) console.error("Erro áudio créditos:", err);
     });
@@ -1503,12 +1975,14 @@ function showSystemInfo() {
  });
  input.on('cancel', () => {
  input.destroy();
+ playback()
  backdrop.destroy();
  mainList.focus();
  screen.render();
  });
  }
  function closeInfo() {
+    playback()
  backdrop.destroy();
  mainList.focus();
  screen.unkey('escape', closeInfo);
@@ -1518,91 +1992,112 @@ function showSystemInfo() {
  screen.render();
 }
 function supportGame() {
-  issupportOpen = true
- const bg1Overlay = blessed.box({
- parent: screen,
- top: 0,
- left: 0,
- width: '100%',
- height: '100%',
- index: 100, // Garante que fique acima do menu principal
- style: { bg: 'black', transparent: false }
- });
- const supportBox = blessed.box({
- parent: bg1Overlay,
- top: 'center',
- left: 'center',
- width: 60,
- height: 18,
- border: 'line',
- label: ' [ SUPPORT THE GAME ] ',
- tags: true,
- style: {
- border: { fg: COLORDEFAULT },
- label: { fg: COLORDEFAULT, bold: true }
- }
- });
- const infoText = [
- `\n{bold}THANK YOU FOR SUPPORTING LIGHT GAME!{/bold}`,
- `Your support allows for further system development.`,
- `Choose an action below to proceed:`
- ].join('\n');
- const textContainer = blessed.box({
- parent: supportBox,
- top: 1,
- left: 'center',
- width: '90%',
- height: 6,
- tags: true,
- content: `{center}${infoText}{/center}`
- });
- const supportOptions = blessed.list({
- parent: supportBox,
- bottom: 1,
- left: 'center',
- width: '80%',
- height: 7,
- keys: true,
- tags: true,
- mouse: true,
- border: 'line',
- items: [
- '{center}DONATE ON ITCH.IO{/center}',
- '{center}POST ON TWITTER (X){/center}',
- '{center}CLOSE WINDOW{/center}'
- ],
- style: {
- border: { fg: '#333333' },
- selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
- }
- });
- supportOptions.focus();
- supportOptions.on('select', (item) => {
- const text = item.getText();
- if (text.includes('ITCH.IO')) {
- exec('start https://palelunagame.itch.io/light');
- }
- else if (text.includes('TWITTER')) {
- const tweetText = encodeURIComponent("I'm playing LIGHT! A unique terminal horror experience. Check it out here: https://palelunagame.itch.io/light");
- exec(`start https://twitter.com/intent/tweet?text=${tweetText}`);
- }
- else if (text.includes('CLOSE')) {
- closeSupport();
- }
- screen.render();
- });
- function closeSupport() {
-  issupportOpen = false
- supportOptions.destroy();
- supportBox.destroy();
- bg1Overlay.destroy();
- mainList.focus();
- screen.render();
- }
- screen.render();
+    issupportOpen = true;
+    playsupport();
+    
+    const bg1Overlay = blessed.box({
+        parent: screen,
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        index: 100,
+        style: { bg: 'black' }
+    });
+
+    const supportBox = blessed.box({
+        parent: bg1Overlay,
+        top: 'center',
+        left: 'center',
+        width: 60,
+        height: 18,
+        border: 'line',
+        label: ' [ SUPPORT THE GAME ] ',
+        tags: true,
+        style: {
+            border: { fg: COLORDEFAULT },
+            label: { fg: COLORDEFAULT, bold: true }
+        }
+    });
+
+    const infoText = [
+        `\n{bold}THANK YOU FOR SUPPORTING LIGHT GAME!{/bold}`,
+        `Your support allows for further system development.`,
+        `Choose an action below to proceed:`
+    ].join('\n');
+
+    blessed.box({
+        parent: supportBox,
+        top: 1,
+        left: 'center',
+        width: '90%',
+        height: 6,
+        tags: true,
+        content: `{center}${infoText}{/center}`
+    });
+
+    const supportOptions = blessed.list({
+        parent: supportBox,
+        bottom: 1,
+        left: 'center',
+        width: '80%',
+        height: 7,
+        keys: true,
+        tags: true,
+        mouse: true,
+        border: 'line',
+        items: [
+            '{center}DONATE ON ITCH.IO{/center}',
+            '{center}POST ON TWITTER (X){/center}',
+            '{center}CLOSE WINDOW{/center}'
+        ],
+        style: {
+            border: { fg: '#333333' },
+            selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
+        }
+    });
+
+    const closeSupport = () => {
+        issupportOpen = false;
+        playback();
+        // Remove o listener de ESC para não acumular
+        screen.unkey('escape', closeSupport); 
+        bg1Overlay.destroy();
+        mainList.focus();
+        screen.render();
+    };
+
+    // Define o ESC para fechar esta janela especificamente
+    screen.onceKey(['escape'], closeSupport);
+
+    supportOptions.focus();
+
+    supportOptions.on('select item', () => {
+        playBeep();
+    });
+
+    supportOptions.on('select', (item) => {
+        const text = item.getText();
+        if (text.includes('ITCH.IO')) {
+            exec('start https://palelunadev.itch.io/light');
+            playBeep2();
+        }
+        else if (text.includes('TWITTER')) {
+            const tweetText = encodeURIComponent("I'm playing LIGHT! A unique terminal horror experience. Check it out here: https://palelunadev.itch.io/light");
+            exec(`start https://twitter.com/intent/tweet?text=${tweetText}`);
+            playBeep2();
+        }
+        else if (text.includes('CLOSE')) {
+            closeSupport();
+        }
+        screen.render();
+    });
+
+    screen.render();
 }
 function Achievements() {
  achScreenCount++;
+ playBeep2()
  if (achScreenCount >= 5) {
  const pathAch = path.join(__dirname, '..', 'Achievements', 'TERMINAL_JUNKIE.ach');
  if (!fs.existsSync(pathAch)) {
@@ -1624,7 +2119,7 @@ function Achievements() {
  if (fs.existsSync(achPath)) unlockedCount++;
  });
  const trueLightPath = path.join(__dirname, '..', 'Achievements', 'TRUELIGHT.ach');
- if (unlockedCount === 18 && !fs.existsSync(trueLightPath)) {
+ if (unlockedCount === 19 && !fs.existsSync(trueLightPath)) {
  fs.writeFileSync(trueLightPath, 'COMPLETED');
  backdrop.destroy();
  Achievements();
@@ -1694,6 +2189,7 @@ function Achievements() {
  mouse: true, keys: true
  });
  const openHintMenu = () => {
+    playBeep2()
  const bg1Overlay = blessed.box({
  parent: screen,
  top: 0,
@@ -1720,8 +2216,10 @@ function Achievements() {
  hintListWin.focus();
  screen.render();
  hintListWin.on('select', (item, index) => {
+    playBeep()
  const selectedAch = ALL_ACHIEVEMENTS[index];
  hintDisplay.setContent(`{center}{yellow-fg}HINT [${selectedAch.id}]: ${selectedAch.hint}{/center}`);
+ playBeep2()
  hintDisplay.style.border.fg = 'yellow';
  bg1Overlay.destroy()
  hintListWin.destroy();
@@ -1729,6 +2227,7 @@ function Achievements() {
  screen.render();
  });
  const closeSub = () => {
+    playback()
  bg1Overlay.destroy()
  hintListWin.destroy();
  mainList.focus();
@@ -1740,6 +2239,7 @@ function Achievements() {
  screen.key(['h', 'H'], openHintMenu);
  listContainer.focus();
  const closeAchievements = () => {
+    playback()
  screen.unkey('h', openHintMenu);
  screen.unkey('H', openHintMenu);
  backdrop.destroy();
@@ -1864,6 +2364,12 @@ function updateStatus() {
 }
 updateStatus();
 mainList.on('select', (item) => {
+    if (isBooting) return;
+    if (isOverrideActive) return;
+    if (blockMenuInput) return;
+
+
+
  const text = item.getText();
  if (text.includes('PACPRO')) {
  mainList.detach();
@@ -1904,27 +2410,30 @@ const pacmanProc = spawn('cmd.exe /c start /wait node PACPRO.js', {
  }, 1500);
  return;
 }
- if (text.includes('EXIT')) return confirmExit();
- if (text.includes('SETTINGS')) return showSettings();
- if (text.includes('SYSTEM INFO')) return showSystemInfo();
- if (text.includes('ERASE DATA')) return eraseData();
+ if (text.includes('EXIT')) {return confirmExit();}
+ if (text.includes('SETTINGS')) {playBeep2(); return showSettings();}
+ if (text.includes('SYSTEM INFO')) {playwarning(); return showSystemInfo();}
+ if (text.includes('ERASE DATA')) {playwarning(); return eraseData();}
  if (text.includes('CREDITS')) { return credits() ; } // Implementar depois
  if (text.includes('SUPPORT')) { return supportGame() ; } // Implementar depois
  if (text.includes('ACHIEVEMENTS')) { return Achievements(); }
- if (text.includes('CHECKPOINTS')) { return showCheckpointGallery(); }
+ if (text.includes('CHECKPOINTS')) {  playBeep2();return showCheckpointGallery(); }
  if (text.includes('START MISSION')) {
  mainList.detach();
  let dots = 0;
  const loader = setInterval(() => {
+    
  menuBox.setContent(`\n\n{center}INITIALIZING${".".repeat(dots)}{/center}`);
  screen.render();
  dots = (dots + 1) % 4;
  }, 300);
+ stopAudio()
  setTimeout(() => {
  clearInterval(loader);
  menuBox.destroy();
  mainList.destroy();
  screen.destroy();
+ playsucesso()
  const child = spawn('node', ['main.js'], {
  stdio: 'inherit',
  });
@@ -1938,10 +2447,7 @@ const pacmanProc = spawn('cmd.exe /c start /wait node PACPRO.js', {
 }
 });
 screen.key(['q', 'C-c'], () => confirmExit());
-startupSequence();
-startLogoAnimation();
-mainList.focus();
-screen.render();
+bootSequence();
 process.on('SIGINT', () => {
  confirmExit();
 });
