@@ -7,8 +7,22 @@ const {
 const path = require('path');
 const os = require('os');
 const player = require('play-sound')({
- player: './SOUNDTRACK/VLC/cmdmp3.exe'
+ player: '../AUDIO/PLAYER/cmdmp3.exe'
 });
+const audioFile = '../AUDIO/TRACKS/1.mp3';
+const audioaa = '../AUDIO/TRACKS/2.mp3';
+let bgmProcess = null;
+let effectProcess = null;
+const beepfile = '../AUDIO/EFFECTS/BEEP.wav'
+const beepfile2 = '../AUDIO/EFFECTS/BEEP2.wav'
+const freshfile = '../AUDIO/EFFECTS/FRESH.wav'
+const winfile = '../AUDIO/EFFECTS/win.wav'
+const warningfile = '../AUDIO/EFFECTS/warning.wav'
+const supportfile = '../AUDIO/EFFECTS/support.wav'
+const backfile = '../AUDIO/EFFECTS/back.wav'
+const startfile = '../AUDIO/EFFECTS/start.wav'
+const checkpointfile = '../AUDIO/EFFECTS/checkpoint.wav'
+const sucessofile = '../AUDIO/EFFECTS/win2.wav'
 let iscreditsOpen = false;
  const logocredits =
  "███        ███  ████████  ███  ███  █████████\n" +
@@ -178,16 +192,184 @@ function showLoadToast() {
     setTimeout(() => { toast.destroy(); screen.render(); }, 2000);
 }
 
+function playBeep() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    player.play(beepfile, (err) => {});
+}
+
+function playBeep2() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    player.play(beepfile2, (err) => {});
+}
+
+function playfresh() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    if (audiostate === 'ON') {
+        stopAudio();
+        setTimeout(() => {
+            player.play(freshfile, (err) => {
+                if (audiostate === 'ON') playAudio();
+            });
+        }, 500);
+    } else {
+        player.play(freshfile, (err) => {});
+    }
+}
+
+function playwin() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    if (audiostate === 'ON') {
+        stopAudio();
+        setTimeout(() => {
+            player.play(winfile, (err) => {
+                if (audiostate === 'ON') playAudio();
+            });
+        }, 500);
+    } else {
+        player.play(winfile, (err) => {});
+    }
+}
+
+function playwarning() {
+    if (EFFECTS_STATUS === 'OFF') return;
+        player.play(warningfile, (err) => {});
+}
+
+function playsupport() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    if (audiostate === 'ON') {
+        stopAudio();
+        setTimeout(() => {
+            player.play(supportfile, (err) => {
+                if (audiostate === 'ON') playAudio();
+            });
+        }, 500);
+    } else {
+        player.play(supportfile, (err) => {});
+    }
+}
+
+function playback() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    player.play(backfile, (err) => {});
+}
+
+function playstart() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    
+        player.play(startfile, (err) => {});
+}
+
+function playsucesso() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    player.play(sucessofile, (err) => {});
+}
+
+function playcheckpoint() {
+    if (EFFECTS_STATUS === 'OFF') return;
+    if (audiostate === 'ON') {
+        stopAudio();
+        setTimeout(() => {
+            player.play(checkpointfile, (err) => {
+                if (audiostate === 'ON') playAudio();
+            });
+        }, 500);
+    } else {
+        player.play(checkpointfile, (err) => {});
+    }
+}
+
+function stopAudio() {
+    if (bgmProcess) {
+        bgmProcess.kill();
+        bgmProcess = null;
+    }
+    exec('taskkill /F /IM cmdmp3.exe /T > nul 2>&1');
+}
+
+function playAudio() {
+    if (audiostate === 'ON') {
+        if (bgmProcess) return;
+        bgmProcess = player.play(audioFile, function(err) {
+            if (err && !err.killed) bgmProcess = null;
+        });
+    }
+}
+
+if (fs.existsSync('../CONFIG/EFFECTS_STATE.txt')) {
+    var EFFECTS_STATUS = fs.readFileSync(path.join('../CONFIG/EFFECTS_STATE.txt'), 'utf8').trim();
+} else {
+    var EFFECTS_STATUS = 'ON';
+    fs.writeFileSync('../CONFIG/EFFECTS_STATE.txt', EFFECTS_STATUS, 'utf8');
+}
+if (fs.existsSync('../CONFIG/TIME.txt')) {
+    var timeRaw = fs.readFileSync('../CONFIG/TIME.txt', 'utf8').split('\n');
+    var TIME_STATUS = timeRaw[0].trim();
+    var TOTAL_PLAYTIME = parseInt(timeRaw[1]) || 0;
+} else {
+    var TIME_STATUS = 'ON';
+    var TOTAL_PLAYTIME = 0;
+    fs.writeFileSync('../CONFIG/TIME.txt', `${TIME_STATUS}\n${TOTAL_PLAYTIME}`, 'utf8');
+}
+if (fs.existsSync('../CONFIG/SIDEBAR.txt')) {
+ var SIDEBAR = fs.readFileSync(path.join('../CONFIG/SIDEBAR.txt'), 'utf8').trim();
+} else {
+ var SIDEBAR = 'OFF';
+ fs.writeFileSync('../CONFIG/SIDEBAR.txt', SIDEBAR, 'utf8');
+}
+if (fs.existsSync('../CONFIG/GLITCH.txt')) {
+ var GLITCH = fs.readFileSync(path.join('../CONFIG/GLITCH.txt'), 'utf8').trim();
+} else {
+ var GLITCH = 'ON';
+ fs.writeFileSync('../CONFIG/GLITCH.txt', GLITCH, 'utf8');
+}
+if (fs.existsSync('../CONFIG/FULLSCREEN.txt')) {
+ var FULLSCREEN = fs.readFileSync(path.join('../CONFIG/FULLSCREEN.txt'), 'utf8').trim();
+} else {
+ var FULLSCREEN = 'OFF';
+ fs.writeFileSync('../CONFIG/FULLSCREEN.txt', FULLSCREEN, 'utf8');
+}
+if (fs.existsSync('../CONFIG/AUDIOSTATE.txt')) {
+ var audiostate = fs.readFileSync(path.join('../CONFIG/AUDIOSTATE.txt'), 'utf8')
+} else {
+ var audiostate = 'ON';
+ fs.writeFileSync('../CONFIG/AUDIOSTATE.txt', audiostate, 'utf8');
+}
+if (fs.existsSync('../CONFIG/COLORDEFAULT.txt')) {
+ var COLORNAME = fs.readFileSync(path.join('../CONFIG/COLORNAME.txt'), 'utf8').trim();
+ var COLORDEFAULT = fs.readFileSync(path.join('../CONFIG/COLORDEFAULT.txt'), 'utf8').trim();
+} else {
+ var COLORNAME = 'RED';
+ var COLORDEFAULT = '#ff0000';
+ fs.writeFileSync('../CONFIG/COLORNAME.txt', COLORNAME, 'utf8');
+ fs.writeFileSync('../CONFIG/COLORDEFAULT.txt', COLORDEFAULT, 'utf8');
+}
+if (fs.existsSync('../CONFIG/USER.txt')) {
+ var USERNAMEP = fs.readFileSync(path.join('../CONFIG/USER.txt'), 'utf8').trim();
+} else {
+ var USERNAMEP = 'OPERATOR 07';
+ fs.writeFileSync('../CONFIG/USER.txt', USERNAMEP, 'utf8');
+}
+if (fs.existsSync('../CONFIG/DIFFICULTY.txt')) {
+ var DIFFICULTY = fs.readFileSync(path.join('../CONFIG/DIFFICULTY.txt'), 'utf8').trim();
+} else {
+ var DIFFICULTY = 'NORMAL';
+ fs.writeFileSync('../CONFIG/DIFFICULTY.txt', DIFFICULTY, 'utf8');
+}
+
 function credits() {
-    // 1. LIMPEZA TOTAL DE LISTENERS (Mata o ESC global do fim do arquivo)
     screen.removeAllListeners('keypress');
     
     if (audiostate === 'ON') {
         stopAudio();
     }
+    setTimeout(() => {
+playcreditsaudio();
+    },200)
     
     iscreditsOpen = true;
-    let slideTimer = null; // Variável para controlar os Timeouts
+    let slideTimer = null;
+    let buttonsActive = false;
     const currentYear = new Date().getFullYear();
 
     const bgOverlay = blessed.box({
@@ -198,8 +380,7 @@ function credits() {
         index: 100
     });
 
-    // Bloqueia o ESC durante os créditos
-    screen.key(['escape'], () => { /* Faz nada */ });
+    screen.key(['escape'], () => { });
 
     const displayBox = blessed.box({
         parent: bgOverlay,
@@ -222,47 +403,58 @@ function credits() {
     const slides = [
         `{center}{bold}${logocredits}{/bold}\n\nA TERMINAL HORROR GAME{/center}`,
         `{center}{yellow-fg}AN ORIGINAL STORY BY{/yellow-fg}\n\n{bold}PALE LUNA DEVELOPER{/bold}{/center}`,
-        `{center}{yellow-fg}DIRECTOR: LUCAS EDUARDO{/yellow-fg}`,
+        `{center}{yellow-fg}DIRECTOR{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
+        `{center}{yellow-fg}MAIN PROGRAMMER{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
+        `{center}{yellow-fg}EVENT PROGRAMMER{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
+        `{center}{yellow-fg}GRAPHICS{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
+        `{center}{yellow-fg}LEVEL DESIGN{/yellow-fg}\n\n{bold}ISABELLA SANCHES{/bold}{/center}`,
+        `{center}{yellow-fg}STORY DESIGNER{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
+        `{center}{yellow-fg}SOUND DESIGN{/yellow-fg}\n\n{bold}LUCAS EDUARDO\nISABELLA SANCHES{/bold}{/center}`,
+        `{center}{yellow-fg}UI/UX ART & QUALITY ASSURANCE{/yellow-fg}\n\n{bold}LUIZ OTAVIO{/bold}{/center}`,
+        `{center}{yellow-fg}ENDING THEME{/yellow-fg}\n\n{bold}SUBNAUTICA - ALEXUPLAY{/bold}{/center}`,
+        `{center}{yellow-fg}PUBLICITY{/yellow-fg}\n\n{bold}PALE LUNA DEVELOPER{/bold}{/center}`,
+        `{center}{yellow-fg}BETA TESTER{/yellow-fg}\n\n{bold}LUCAS EDUARDO, ISABELLA SANCHES, LUIZ OTÁVIO and some friends{/bold}{/center}`,
+        `{center}{yellow-fg}PRODUCT COORDINATOR{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
         `{center}{yellow-fg}THANKS FOR PLAYING{/yellow-fg}`,
         `{center}CREATED FOR THE FADE\n\n${currentYear} © ALL RIGHTS RESERVED{/center}`
-    ];
+    ]; 
 
-    let currentSlide = 0;
-
-    const optionsContainer = blessed.box({
+    const finalMenu = blessed.list({
         parent: bgOverlay,
-        bottom: 5, left: 'center',
-        width: 60, height: 3,
-        hidden: true
+        top: 'center',
+        left: 'center',
+        width: 35,
+        height: 8,
+        border: 'line',
+        label: ' [ SESSION END ] ',
+        tags: true,
+        hidden: true,
+        keys: true,
+        items: [
+            '{center}TWITTER (X){/center}',
+            '{center}EXIT GAME{/center}'
+        ],
+        style: {
+            border: { fg: COLORDEFAULT },
+            label: { fg: COLORDEFAULT, bold: true },
+            selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
+        }
     });
 
-    const btnTwitter = blessed.button({
-        parent: optionsContainer,
-        left: 0, width: 25, height: 3,
-        content: '{center}TWITTER (X){/center}',
-        border: 'line', tags: true,
-        style: { border: { fg: 'cyan' }, focus: { bg: 'cyan', fg: 'black' } }
-    });
-
-    const btnClose = blessed.button({
-        parent: optionsContainer,
-        right: 0, width: 25, height: 3,
-        content: '{center}CLOSE{/center}',
-        border: 'line', tags: true,
-        style: { border: { fg: 'red' }, focus: { bg: 'red', fg: 'white' } }
-    });
-
-    // Função para finalizar os slides e mostrar botões
     const finishCredits = () => {
         iscreditsOpen = false;
-        if (slideTimer) clearTimeout(slideTimer); // PARA OS TIMERS
+        if (slideTimer) clearTimeout(slideTimer);
         stopcreditsaudio();
         
         skipMsg.hide();
-        displayBox.setContent("{center}{bold}WHAT YOU GONNA DO?{/bold}{/center}");
-        optionsContainer.show();
-        btnTwitter.focus();
-        screen.render();
+        displayBox.hide();
+        finalMenu.show();
+
+        setTimeout(() => {
+            buttonsActive = true;
+            finalMenu.focus();
+            screen.render();
+        }, 500);
     };
 
     function showNextSlide() {
@@ -273,6 +465,7 @@ function credits() {
             screen.render();
 
             slideTimer = setTimeout(() => {
+                if (!iscreditsOpen) return;
                 displayBox.setContent(slides[currentSlide]);
                 currentSlide++;
                 screen.render();
@@ -283,29 +476,32 @@ function credits() {
         }
     }
 
-    playcreditsaudio();
+    let currentSlide = 0;
+    
     showNextSlide();
 
-    // ENTER PARA PULAR (Agora chama a função que limpa tudo)
     screen.onceKey(['enter'], () => {
-        finishCredits();
+        if (iscreditsOpen) finishCredits();
     });
 
-    btnTwitter.on('press', () => exec('start https://twitter.com/PlayLightGame'));
-    
-    btnClose.on('press', () => {
-        saveFinalTime();
-        process.exit(0);
+    finalMenu.on('select item', () => {
+        if (buttonsActive) playBeep();
     });
 
-    btnTwitter.key(['right', 'tab'], () => btnClose.focus());
-    btnClose.key(['left', 'tab'], () => btnTwitter.focus());
+    finalMenu.on('select', (item) => {
+        if (!buttonsActive) return;
+        const txt = item.getText();
+        if (txt.includes('TWITTER')) {
+            exec('start https://twitter.com/PlayLightGame');
+        }
+        if (txt.includes('EXIT')) {
+            saveFinalTime();
+            process.exit(0);
+        }
+    });
 
     screen.render();
 }
-
-const audioFile = './SOUNDTRACK/1.mp3';
-const audioaa = './SOUNDTRACK/2.mp3';
 
 function stopcreditsaudio() {
     if (vlcProcess) {
