@@ -277,7 +277,7 @@ function credits() {
                 currentSlide++;
                 screen.render();
                 slideTimer = setTimeout(showNextSlide, 5500); 
-            }, 900);
+            }, 1000);
         } else {
             finishCredits();
         }

@@ -631,7 +631,7 @@ function credits() {
                 
                
                 setTimeout(showNextSlide, 5500); 
-            }, 900);
+            }, 1000);
         } else {
             stopcreditsaudio()
             displayBox.setContent("{center}{bold}WHAT YOU GONNA DO?.{/bold}{/center}");
