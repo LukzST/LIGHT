@@ -283,6 +283,7 @@ if (fs.existsSync('../CONFIG/DIFFICULTY.txt')) {
 let CANwin = 'OFF';
 let vlcProcess = null;
 const audioFile = './SOUNDTRACK/1.mp3';
+const audioaa = './SOUNDTRACK/2.mp3';
 let winVersion = os.release()
 let userName = os.userInfo().username;
 let friendlyName = 'Windows';
@@ -355,6 +356,16 @@ const logoText =
  "███        ███  ███  ███  ███  ███     ███\n" +
  "███        ███  ███  ███  ███  ███     ███\n" +
  "█████████  ███  ████████  ███  ███     ███";
+
+ const logocredits =
+ "███        ███  ████████  ███  ███  █████████\n" +
+ "███        ███  ███  ███  ███  ███     ███   \n" +
+ "███        ███  ███       ███  ███     ███   \n" +
+ "███        ███  ███ ████  ████████     ███   \n" +
+ "███        ███  ███  ███  ███  ███     ███   \n" +
+ "███        ███  ███  ███  ███  ███     ███   \n" +
+ "███        ███  ███  ███  ███  ███     ███   \n" +
+ "  █████████  ███  ████████  ███  ███     ███     ";
 const logoBox = blessed.box({
  top: 2,
  left: 'center',
@@ -520,90 +531,144 @@ function confirmExit() {
  });
 }
 function credits() {
-  iscreditsOpen = true
- const currentYear = new Date().getFullYear();
- const bg1Overlay = blessed.box({
- parent: screen,
- top: 0,
- left: 0,
- width: '100%',
- height: '100%',
- index: 100, // Sobrepõe o menu principal
- style: { bg: 'black', transparent: false }
- });
- const creditsBox = blessed.box({
- parent: bg1Overlay,
- top: 'center',
- left: 'center',
- width: 45,
- height: 16,
- border: 'line',
- label: ' [ CREDITS ] ',
- tags: true,
- style: {
- border: { fg: COLORDEFAULT },
- label: { fg: COLORDEFAULT, bold: true }
- }
- });
- const creditsContent = [
- `\n{bold}LIGHT GAME{/bold}`,
- `Version 1.0`,
- `\nDeveloped by {bold}Pale Luna Developer{/bold}`,
- `${currentYear} © All Rights Reserved`,
- `\nSelect an option to interact:`
- ].join('\n');
- const textContainer = blessed.box({
- parent: creditsBox,
- top: 1,
- left: 'center',
- width: '90%',
- height: 10,
- tags: true,
- content: `{center}${creditsContent}{/center}`
- });
- const creditOptions = blessed.list({
- parent: creditsBox,
- bottom: 1,
- left: 'center',
- width: '80%',
- height: 6,
- keys: true,
- mouse: true,
- tags:true,
- border: 'line',
- items: [
- '{center}FOLLOW ON TWITTER (X){/center}',
- '{center}VISIT ITCH.IO PAGE{/center}',
- '{center}RETURN TO MENU{/center}'
- ],
- style: {
- border: { fg: '#333333' },
- selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
- }
- });
- creditOptions.focus();
- creditOptions.on('select', (item) => {
- const text = item.getText();
- if (text.includes('TWITTER')) {
- exec('start https://twitter.com/PALELUNAGAME'); // Link das redes
- }
- else if (text.includes('ITCH.IO')) {
- exec('start https://palelunagame.itch.io/'); // Link do portfólio
- }
- else if (text.includes('RETURN')) {
- closeCredits();
- }
- screen.render();
- });
- function closeCredits() {
-  iscreditsOpen = false
- creditOptions.destroy();
- creditsBox.destroy();
- bg1Overlay.destroy();
- mainList.focus();
- screen.render();
- }
- screen.render();
+    if (audiostate === 'ON') {
+        stopAudio()
+    }
+    
+    iscreditsOpen = true;
+    const currentYear = new Date().getFullYear();
+
+    const bgOverlay = blessed.box({
+        parent: screen,
+        top: 0, left: 0,
+        width: '100%', height: '100%',
+        style: { bg: 'black' },
+        index: 100
+    });
+
+    const displayBox = blessed.box({
+        parent: bgOverlay,
+        top: 'center', left: 'center',
+        width: '80%', height: 10,
+        tags: true,
+        content: "",
+        style: { fg: 'white' }
+    });
+
+    // Blocos de crédito (Cada um durará 10 segundos)
+    const slides = [
+        `{center}{bold}${logocredits}{/bold}\n\nA TERMINAL HORROR GAME{/center}`,
+
+        `{center}{yellow-fg}AN ORIGINAL STORY BY{/yellow-fg}\n\n{bold}PALE LUNA DEVELOPER{/bold}{/center}`,
+        
+        `{center}{yellow-fg}DIRECTOR{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
+        
+        `{center}{yellow-fg}MAIN PROGRAMMER{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
+        
+        `{center}{yellow-fg}EVENT PROGRAMMER{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
+
+        `{center}{yellow-fg}GRAPHICS{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
+
+        `{center}{yellow-fg}LEVEL DESIGN{/yellow-fg}\n\n{bold}ISABELLA SANCHES{/bold}{/center}`,
+
+        `{center}{yellow-fg}STORY DESIGNER{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
+        
+        `{center}{yellow-fg}SOUND DESIGN{/yellow-fg}\n\n{bold}LUCAS EDUARDO\nISABELLA SANCHES{/bold}{/center}`,
+        
+        `{center}{yellow-fg}UI/UX ART & QUALITY ASSURANCE{/yellow-fg}\n\n{bold}LUIZ OTAVIO{/bold}{/center}`,
+        
+        `{center}{yellow-fg}ENDING THEME{/yellow-fg}\n\n{bold}SUBNAUTICA - ALEXUPLAY{/bold}{/center}`,
+
+        `{center}{yellow-fg}PUBLICITY{/yellow-fg}\n\n{bold}PALE LUNA DEVELOPER{/bold}{/center}`,
+        
+        `{center}{yellow-fg}BETA TESTER{/yellow-fg}\n\n{bold}LUCAS EDUARDO, ISABELLA SANCHES, LUIZ OTÁVIO and some friends{/bold}{/center}`,
+
+        `{center}{yellow-fg}PRODUCT COORDINATOR{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
+
+        `{center}{yellow-fg}THANKS FOR PLAYING{/yellow-fg}`,
+
+        `{center}CREATED FOR THE FADE\n\n${currentYear} © ALL RIGHTS RESERVED{/center}`
+    ];
+
+    let currentSlide = 0;
+
+    // Container de opções (escondido até o fim)
+    const optionsContainer = blessed.box({
+        parent: bgOverlay,
+        bottom: 5, left: 'center',
+        width: 60, height: 3,
+        hidden: true
+    });
+
+    const btnTwitter = blessed.button({
+        parent: optionsContainer,
+        left: 0, width: 25, height: 3,
+        content: '{center}TWITTER (X){/center}',
+        border: 'line', tags: true,
+        style: { border: { fg: 'cyan' }, focus: { bg: 'cyan', fg: 'black' } }
+    });
+
+    const btnClose = blessed.button({
+        parent: optionsContainer,
+        right: 0, width: 25, height: 3,
+        content: '{center}CLOSE{/center}',
+        border: 'line', tags: true,
+        style: { border: { fg: 'red' }, focus: { bg: 'red', fg: 'white' } }
+    });
+
+    function showNextSlide() {
+        if (!iscreditsOpen) return;
+
+        if (currentSlide < slides.length) {
+            // Efeito simples de "piscar" ao trocar
+            displayBox.setContent("");
+            screen.render();
+
+            setTimeout(() => {
+                displayBox.setContent(slides[currentSlide]);
+                currentSlide++;
+                screen.render();
+                
+               
+                setTimeout(showNextSlide, 5500); 
+            }, 900);
+        } else {
+            stopcreditsaudio()
+            displayBox.setContent("{center}{bold}WHAT YOU GONNA DO?.{/bold}{/center}");
+            optionsContainer.show();
+            btnTwitter.focus();
+            screen.render();
+        }
+    }
+
+    // Inicia a sequência
+    setTimeout(() => {
+        if (iscreditsOpen) playcreditsaudio();
+    }, 200);
+    showNextSlide();
+
+    // Funções de saída
+    const closeCredits = () => {
+        iscreditsOpen = false;
+        bgOverlay.destroy();
+        mainList.focus();
+        screen.render();
+        if (audiostate === 'ON') {
+        playAudio()
+    }
+        
+    };
+    
+    
+
+    btnTwitter.on('press', () => exec('start https://twitter.com/PlayLightGame'));
+    btnClose.on('press', closeCredits);
+    screen.onceKey(['escape'], closeCredits);
+
+    btnTwitter.key(['right', 'tab'], () => btnClose.focus());
+    btnClose.key(['left', 'tab'], () => btnTwitter.focus());
+
+    screen.render();
 }
 function eraseData() {
  const bg1Overlay = blessed.box({
@@ -1052,7 +1117,7 @@ const supportBox = blessed.box({
  const supportContent = [
  `\n{center}{bold}WARNING{/bold}{/center}`,
  `{center}Audio settings saved.{/center}`,
- `{center}VLC (External Player) may take a moment to initialize.{/center}`,
+ `{center}System audio initialized.{/center}`,
  `\n\n{center}[ESC] TO RETURN{/center}`
  ].join('\n');
  supportBox.setContent(supportContent);
@@ -1313,13 +1378,36 @@ updateStatus();
  });
 }
 function stopAudio() {
- spawn('taskkill', ['/F', '/IM', 'vlc.exe', '/T']);
- vlcProcess = null;
+    if (vlcProcess) {
+        vlcProcess.kill();
+        vlcProcess = null;
+    }
+    // Garante que o cmdmp3 morra mesmo se o kill falhar
+    spawn('taskkill', ['/F', '/IM', 'cmdmp3.exe', '/T']);
 }
+
 function playAudio() {
- if (audiostate === 'ON') {
- vlcProcess = spawn('./SOUNDTRACK/VLC/vlc.exe', ['-I', 'dummy', '--loop', audioFile]);
- }
+    if (audiostate === 'ON') {
+        // O play-sound usa o cmdmp3.exe que você configurou no topo
+        vlcProcess = player.play(audioFile, function(err){
+            if (err && !err.killed) console.error("Erro áudio menu:", err);
+        });
+    }
+}
+
+function stopcreditsaudio() {
+    if (vlcProcess) {
+        vlcProcess.kill();
+        vlcProcess = null;
+    }
+    spawn('taskkill', ['/F', '/IM', 'cmdmp3.exe', '/T']);
+}
+
+function playcreditsaudio() {
+    // Toca a música dos créditos (2.mp3)
+    vlcProcess = player.play(audioaa, function(err){
+        if (err && !err.killed) console.error("Erro áudio créditos:", err);
+    });
 }
 function getTerminalType() {
  const args = process.argv;
