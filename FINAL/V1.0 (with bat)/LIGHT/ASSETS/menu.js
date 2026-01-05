@@ -649,6 +649,7 @@ function credits() {
 
     // Funções de saída
     const closeCredits = () => {
+        stopcreditsaudio()
         iscreditsOpen = false;
         bgOverlay.destroy();
         mainList.focus();
