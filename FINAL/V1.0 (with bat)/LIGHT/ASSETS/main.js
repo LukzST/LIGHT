@@ -6,6 +6,19 @@ const {
 } = require('child_process');
 const path = require('path');
 const os = require('os');
+const player = require('play-sound')({
+ player: './SOUNDTRACK/VLC/cmdmp3.exe'
+});
+let iscreditsOpen = false;
+ const logocredits =
+ "███        ███  ████████  ███  ███  █████████\n" +
+ "███        ███  ███  ███  ███  ███     ███   \n" +
+ "███        ███  ███       ███  ███     ███   \n" +
+ "███        ███  ███ ████  ████████     ███   \n" +
+ "███        ███  ███  ███  ███  ███     ███   \n" +
+ "███        ███  ███  ███  ███  ███     ███   \n" +
+ "███        ███  ███  ███  ███  ███     ███   \n" +
+ "  █████████  ███  ████████  ███  ███     ███     ";
 let COLOR_HEX = '#ff0000';
 try {
     COLOR_HEX = fs.readFileSync('../CONFIG/COLORDEFAULT.txt', 'utf8').trim();
@@ -29,6 +42,12 @@ if (!fs.existsSync(checkPath)) {
     });
 }
 
+if (fs.existsSync('../CONFIG/AUDIOSTATE.txt')) {
+ var audiostate = fs.readFileSync(path.join('../CONFIG/AUDIOSTATE.txt'), 'utf8')
+} else {
+ var audiostate = 'ON';
+ fs.writeFileSync('../CONFIG/AUDIOSTATE.txt', audiostate, 'utf8');
+}
 
 function clearPuzzle() {
     filesToClean.forEach(file => {
@@ -157,6 +176,150 @@ function showLoadToast() {
     toast.setIndex(1000);
     screen.render();
     setTimeout(() => { toast.destroy(); screen.render(); }, 2000);
+}
+
+function credits() {
+    // 1. LIMPEZA TOTAL DE LISTENERS (Mata o ESC global do fim do arquivo)
+    screen.removeAllListeners('keypress');
+    
+    if (audiostate === 'ON') {
+        stopAudio();
+    }
+    
+    iscreditsOpen = true;
+    let slideTimer = null; // Variável para controlar os Timeouts
+    const currentYear = new Date().getFullYear();
+
+    const bgOverlay = blessed.box({
+        parent: screen,
+        top: 0, left: 0,
+        width: '100%', height: '100%',
+        style: { bg: 'black' },
+        index: 100
+    });
+
+    // Bloqueia o ESC durante os créditos
+    screen.key(['escape'], () => { /* Faz nada */ });
+
+    const displayBox = blessed.box({
+        parent: bgOverlay,
+        top: 'center', left: 'center',
+        width: '80%', height: 10,
+        tags: true,
+        content: "",
+        style: { fg: 'white' }
+    });
+
+    const skipMsg = blessed.box({
+        parent: bgOverlay,
+        bottom: 2, left: 'center',
+        width: 'shrink', height: 1,
+        tags: true,
+        content: '{grey-fg}{bold}PRESS [ENTER] TO SKIP CREDITS{/grey-fg}{/}',
+        style: { fg: '#555555' }
+    });
+
+    const slides = [
+        `{center}{bold}${logocredits}{/bold}\n\nA TERMINAL HORROR GAME{/center}`,
+        `{center}{yellow-fg}AN ORIGINAL STORY BY{/yellow-fg}\n\n{bold}PALE LUNA DEVELOPER{/bold}{/center}`,
+        `{center}{yellow-fg}DIRECTOR: LUCAS EDUARDO{/yellow-fg}`,
+        `{center}{yellow-fg}THANKS FOR PLAYING{/yellow-fg}`,
+        `{center}CREATED FOR THE FADE\n\n${currentYear} © ALL RIGHTS RESERVED{/center}`
+    ];
+
+    let currentSlide = 0;
+
+    const optionsContainer = blessed.box({
+        parent: bgOverlay,
+        bottom: 5, left: 'center',
+        width: 60, height: 3,
+        hidden: true
+    });
+
+    const btnTwitter = blessed.button({
+        parent: optionsContainer,
+        left: 0, width: 25, height: 3,
+        content: '{center}TWITTER (X){/center}',
+        border: 'line', tags: true,
+        style: { border: { fg: 'cyan' }, focus: { bg: 'cyan', fg: 'black' } }
+    });
+
+    const btnClose = blessed.button({
+        parent: optionsContainer,
+        right: 0, width: 25, height: 3,
+        content: '{center}CLOSE{/center}',
+        border: 'line', tags: true,
+        style: { border: { fg: 'red' }, focus: { bg: 'red', fg: 'white' } }
+    });
+
+    // Função para finalizar os slides e mostrar botões
+    const finishCredits = () => {
+        iscreditsOpen = false;
+        if (slideTimer) clearTimeout(slideTimer); // PARA OS TIMERS
+        stopcreditsaudio();
+        
+        skipMsg.hide();
+        displayBox.setContent("{center}{bold}WHAT YOU GONNA DO?{/bold}{/center}");
+        optionsContainer.show();
+        btnTwitter.focus();
+        screen.render();
+    };
+
+    function showNextSlide() {
+        if (!iscreditsOpen) return;
+
+        if (currentSlide < slides.length) {
+            displayBox.setContent("");
+            screen.render();
+
+            slideTimer = setTimeout(() => {
+                displayBox.setContent(slides[currentSlide]);
+                currentSlide++;
+                screen.render();
+                slideTimer = setTimeout(showNextSlide, 5500); 
+            }, 900);
+        } else {
+            finishCredits();
+        }
+    }
+
+    playcreditsaudio();
+    showNextSlide();
+
+    // ENTER PARA PULAR (Agora chama a função que limpa tudo)
+    screen.onceKey(['enter'], () => {
+        finishCredits();
+    });
+
+    btnTwitter.on('press', () => exec('start https://twitter.com/PlayLightGame'));
+    
+    btnClose.on('press', () => {
+        saveFinalTime();
+        process.exit(0);
+    });
+
+    btnTwitter.key(['right', 'tab'], () => btnClose.focus());
+    btnClose.key(['left', 'tab'], () => btnTwitter.focus());
+
+    screen.render();
+}
+
+const audioFile = './SOUNDTRACK/1.mp3';
+const audioaa = './SOUNDTRACK/2.mp3';
+
+function stopcreditsaudio() {
+    if (vlcProcess) {
+        vlcProcess.kill();
+        vlcProcess = null;
+    }
+    spawn('taskkill', ['/F', '/IM', 'cmdmp3.exe', '/T']);
+}
+
+function playcreditsaudio() {
+    // Toca a música dos créditos (2.mp3)
+    vlcProcess = player.play(audioaa, function(err){
+        if (err && !err.killed) console.error("Erro áudio créditos:", err);
+    });
 }
 
 // Variáveis de Tempo
@@ -416,7 +579,7 @@ async function accessLuxFiles(box) {
                         "{blink}Close the game and use the code at the start to change history.{/blink}{/center}"
                     );
                     screen.render();
-                    screen.key(['enter', 'escape'], () => process.exit(0));
+                    screen.key(['enter', 'escape'], () => credits());
                 });
             }, 2000);
         } else {
@@ -689,42 +852,37 @@ async function finalChoicePhase(box) {
 }
 async function ceoConfrontation() {
     if (!fs.existsSync('../ACHIEVEMENTS/CEO_CONFRONT.ACH')) {
-        showAchievementToast('DIRECTOR’S CUT')
-        fs.writeFileSync('../ACHIEVEMENTS/CEO_CONFRONT.ACH', 'COMPLETED')
+        showAchievementToast('DIRECTOR’S CUT');
+        fs.writeFileSync('../ACHIEVEMENTS/CEO_CONFRONT.ACH', 'COMPLETED');
     }
     const vbsPath = path.join(os.tmpdir(), 'ceo_chat.vbs');
     fs.writeFileSync(vbsPath, `
  Set objShell = CreateObject("WScript.Shell")
  res = MsgBox("LUX-4 CEO: You know everything now, don't you?", 36, "CORE_ACCESS_TERMINAL")
  If res = 7 Then
- ' User chose NO
  MsgBox "LUX-4 CEO: Hahaha... bad idea.", 16, "SYSTEM_ERROR"
- objShell.Run "shutdown /s /t 10 /c ""UNAUTHORIZED ACCESS DENIED. SYSTEM HALT.""", 0, True
+ objShell.Run "shutdown /s /t 60 /c ""UNAUTHORIZED ACCESS DENIED. SYSTEM HALT.""", 0, True
  Else
- ' User chose YES
  MsgBox "LUX-4 CEO: How? How did you find out?", 48, "SYSTEM_BREACH"
  MsgBox "LUX-4 CEO: You destroyed everything I built. Know that we hate you...", 16, "LUX-4_REVENGE"
- objShell.Run "shutdown /r /t 15 /c ""PURGING LUX-4 REMNANTS. REBOOTING SYSTEM...""", 0, True
  End If
- `, {
-        encoding: 'latin1'
-    });
+ `, { encoding: 'latin1' });
+
     exec(`cscript //nologo ${vbsPath}`, () => {
-        try {
-            fs.unlinkSync(vbsPath);
-        } catch (e) {}
-        filesToClean.forEach(f => {
-            if (fs.existsSync(f)) fs.unlinkSync(f);
-        });
+        try { fs.unlinkSync(vbsPath); } catch (e) {}
+        
         clearPuzzle();
         const finalTxtPath = path.join(os.homedir(), 'Desktop', 'FINAL_MESSAGE.txt');
         fs.writeFileSync(finalTxtPath, "You won, Operator. LUX-4 is gone, but the world is now in darkness.\nDo not return.\n- CEO");
         fs.writeFileSync('./TERMINALACCESS/FINAL.status', 'COMPLETED');
+
         if (!fs.existsSync('../ACHIEVEMENTS/THE_END.ACH')) {
-            showAchievementToast('LIGHT BRINGER')
-            fs.writeFileSync('../ACHIEVEMENTS/THE_END.ACH', 'COMPLETED')
+            showAchievementToast('LIGHT BRINGER');
+            fs.writeFileSync('../ACHIEVEMENTS/THE_END.ACH', 'COMPLETED');
         }
-        process.exit(0);
+
+        container.children.forEach(c => c.hide());
+        credits();
     });
 }
 async function officeChaosPhase() {
@@ -1347,8 +1505,13 @@ function startMainMenu() {
     screen.render();
 }
 screen.key(['escape', 'C-c'], () => {
-    clearPuzzle();
+    if (iscreditsOpen) {
+
+    } else {
+      clearPuzzle();
     process.exit(0);
+    }
+    
 });
 const isGameFinished = fs.existsSync('./TERMINALACCESS/FINAL.status');
 if (isGameFinished) {
@@ -1397,7 +1560,12 @@ process.on('exit', () => {
 
 // Se o usuário apertar ESC para sair
 screen.key(['escape', 'C-c'], () => {
-    saveFinalTime();
+    if (iscreditsOpen) {
+
+    } else {
+        saveFinalTime();
     clearPuzzle();
     process.exit(0);
+}
+    
 });
