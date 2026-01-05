@@ -9,6 +9,7 @@ const os = require('os');
 const player = require('play-sound')({
  player: './SOUNDTRACK/VLC/cmdmp3.exe'
 });
+let iscreditsOpen = false;
  const logocredits =
  "███        ███  ████████  ███  ███  █████████\n" +
  "███        ███  ███  ███  ███  ███     ███   \n" +
@@ -178,11 +179,15 @@ function showLoadToast() {
 }
 
 function credits() {
+    // 1. LIMPEZA TOTAL DE LISTENERS (Mata o ESC global do fim do arquivo)
+    screen.removeAllListeners('keypress');
+    
     if (audiostate === 'ON') {
         stopAudio();
     }
     
     iscreditsOpen = true;
+    let slideTimer = null; // Variável para controlar os Timeouts
     const currentYear = new Date().getFullYear();
 
     const bgOverlay = blessed.box({
@@ -193,6 +198,9 @@ function credits() {
         index: 100
     });
 
+    // Bloqueia o ESC durante os créditos
+    screen.key(['escape'], () => { /* Faz nada */ });
+
     const displayBox = blessed.box({
         parent: bgOverlay,
         top: 'center', left: 'center',
@@ -202,49 +210,20 @@ function credits() {
         style: { fg: 'white' }
     });
 
-    // --- MENSAGEM DE PULO (CINZA) ---
     const skipMsg = blessed.box({
         parent: bgOverlay,
-        bottom: 2,
-        left: 'center',
-        width: 'shrink',
-        height: 1,
+        bottom: 2, left: 'center',
+        width: 'shrink', height: 1,
         tags: true,
-        content: '{grey-fg}{bold}PRESS [ESC] TO SKIP CREDITS{/grey-fg}{/}',
-        style: { fg: '#555555' } // Cinza escuro
+        content: '{grey-fg}{bold}PRESS [ENTER] TO SKIP CREDITS{/grey-fg}{/}',
+        style: { fg: '#555555' }
     });
 
     const slides = [
         `{center}{bold}${logocredits}{/bold}\n\nA TERMINAL HORROR GAME{/center}`,
-
         `{center}{yellow-fg}AN ORIGINAL STORY BY{/yellow-fg}\n\n{bold}PALE LUNA DEVELOPER{/bold}{/center}`,
-        
-        `{center}{yellow-fg}DIRECTOR{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
-        
-        `{center}{yellow-fg}MAIN PROGRAMMER{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
-        
-        `{center}{yellow-fg}EVENT PROGRAMMER{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
-
-        `{center}{yellow-fg}GRAPHICS{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
-
-        `{center}{yellow-fg}LEVEL DESIGN{/yellow-fg}\n\n{bold}ISABELLA SANCHES{/bold}{/center}`,
-
-        `{center}{yellow-fg}STORY DESIGNER{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
-        
-        `{center}{yellow-fg}SOUND DESIGN{/yellow-fg}\n\n{bold}LUCAS EDUARDO\nISABELLA SANCHES{/bold}{/center}`,
-        
-        `{center}{yellow-fg}UI/UX ART & QUALITY ASSURANCE{/yellow-fg}\n\n{bold}LUIZ OTAVIO{/bold}{/center}`,
-        
-        `{center}{yellow-fg}ENDING THEME{/yellow-fg}\n\n{bold}SUBNAUTICA - ALEXUPLAY{/bold}{/center}`,
-
-        `{center}{yellow-fg}PUBLICITY{/yellow-fg}\n\n{bold}PALE LUNA DEVELOPER{/bold}{/center}`,
-        
-        `{center}{yellow-fg}BETA TESTER{/yellow-fg}\n\n{bold}LUCAS EDUARDO, ISABELLA SANCHES, LUIZ OTÁVIO and some friends{/bold}{/center}`,
-
-        `{center}{yellow-fg}PRODUCT COORDINATOR{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
-
+        `{center}{yellow-fg}DIRECTOR: LUCAS EDUARDO{/yellow-fg}`,
         `{center}{yellow-fg}THANKS FOR PLAYING{/yellow-fg}`,
-
         `{center}CREATED FOR THE FADE\n\n${currentYear} © ALL RIGHTS RESERVED{/center}`
     ];
 
@@ -273,6 +252,19 @@ function credits() {
         style: { border: { fg: 'red' }, focus: { bg: 'red', fg: 'white' } }
     });
 
+    // Função para finalizar os slides e mostrar botões
+    const finishCredits = () => {
+        iscreditsOpen = false;
+        if (slideTimer) clearTimeout(slideTimer); // PARA OS TIMERS
+        stopcreditsaudio();
+        
+        skipMsg.hide();
+        displayBox.setContent("{center}{bold}WHAT YOU GONNA DO?{/bold}{/center}");
+        optionsContainer.show();
+        btnTwitter.focus();
+        screen.render();
+    };
+
     function showNextSlide() {
         if (!iscreditsOpen) return;
 
@@ -280,44 +272,31 @@ function credits() {
             displayBox.setContent("");
             screen.render();
 
-            setTimeout(() => {
+            slideTimer = setTimeout(() => {
                 displayBox.setContent(slides[currentSlide]);
                 currentSlide++;
                 screen.render();
-                setTimeout(showNextSlide, 5500); 
+                slideTimer = setTimeout(showNextSlide, 5500); 
             }, 900);
         } else {
-            stopcreditsaudio(); 
-            skipMsg.hide(); // Esconde a msg de pular quando chega no fim
-            displayBox.setContent("{center}{bold}WHAT YOU GONNA DO?{/bold}{/center}");
-            optionsContainer.show();
-            btnTwitter.focus();
-            screen.render();
+            finishCredits();
         }
     }
 
     playcreditsaudio();
     showNextSlide();
 
-    const closeCredits = () => {
-        iscreditsOpen = false;
-        stopcreditsaudio();
-        bgOverlay.destroy();
-        
-        // Se o jogo acabou (FINAL.status existe), saímos do processo
-        if (fs.existsSync('./TERMINALACCESS/FINAL.status')) {
-            process.exit(0);
-        } else {
-            // Se veio do menu principal, apenas volta
-            mainList.focus();
-            if (audiostate === 'ON') playAudio();
-            screen.render();
-        }
-    };
+    // ENTER PARA PULAR (Agora chama a função que limpa tudo)
+    screen.onceKey(['enter'], () => {
+        finishCredits();
+    });
 
     btnTwitter.on('press', () => exec('start https://twitter.com/PlayLightGame'));
-    btnClose.on('press', closeCredits);
-    screen.onceKey(['escape'], closeCredits);
+    
+    btnClose.on('press', () => {
+        saveFinalTime();
+        process.exit(0);
+    });
 
     btnTwitter.key(['right', 'tab'], () => btnClose.focus());
     btnClose.key(['left', 'tab'], () => btnTwitter.focus());
@@ -1526,8 +1505,13 @@ function startMainMenu() {
     screen.render();
 }
 screen.key(['escape', 'C-c'], () => {
-    clearPuzzle();
+    if (iscreditsOpen) {
+
+    } else {
+      clearPuzzle();
     process.exit(0);
+    }
+    
 });
 const isGameFinished = fs.existsSync('./TERMINALACCESS/FINAL.status');
 if (isGameFinished) {
@@ -1576,7 +1560,12 @@ process.on('exit', () => {
 
 // Se o usuário apertar ESC para sair
 screen.key(['escape', 'C-c'], () => {
-    saveFinalTime();
+    if (iscreditsOpen) {
+
+    } else {
+        saveFinalTime();
     clearPuzzle();
     process.exit(0);
+}
+    
 });
