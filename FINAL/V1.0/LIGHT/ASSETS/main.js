@@ -10,8 +10,8 @@ const os = require('os');
 const player = require('play-sound')({
  player: '../AUDIO/PLAYER/cmdmp3.exe'
 });
-const audioFile = '../AUDIO/TRACKS/1.mp3';
-const audioaa = '../AUDIO/TRACKS/2.mp3';
+const audioFile = '../AUDIO/TRACKS/4.mp3';
+const audioaa = '../AUDIO/TRACKS/5.mp3';
 let bgmProcess = null;
 let effectProcess = null;
 const beepfile = '../AUDIO/EFFECTS/BEEP.wav'
@@ -28,7 +28,7 @@ const checkpointfile = '../AUDIO/EFFECTS/checkpoint.wav'
 const sucessofile = '../AUDIO/EFFECTS/win2.wav'
 const MEMORY1999 = '../AUDIO/EFFECTS/1999.WAV'
 const alarm = '../AUDIO/EFFECTS/alarm.mp3'
-const GOfile = '../AUDIO/EFFECTS/GAMEOVER.wav'
+const GOfile = '../AUDIO/EFFECTS/GAMEOVER.MP3'
 let iscreditsOpen = false;
  const logocredits =
  "███        ███  ████████  ███  ███  █████████\n" +
@@ -389,6 +389,7 @@ if (fs.existsSync('../CONFIG/DIFFICULTY.txt')) {
 }
 
 function credits() {
+    stopAudio()
     screen.unkey('enter');
 screen.unkey('escape');
     screen.removeAllListeners('keypress');
@@ -503,7 +504,7 @@ playcreditsaudio();
                 currentSlide++;
                 screen.render();
                 slideTimer = setTimeout(showNextSlide, 5500); 
-            }, 1000);
+            }, 1500);
         } else {
             finishCredits();
         }
@@ -1410,7 +1411,7 @@ async function passwordWorkPhase() {
             if (content === passwordValue) {
                 stopAudio()
                 setTimeout(() => {
-            playceo()
+            playwin()
             },200)
                 loginBox.setContent("{green-fg}ACCESS GRANTED. SECTOR 7.{/green-fg}");
                 setTimeout(() => {
@@ -1820,6 +1821,7 @@ process.exit();
         }
 
         if (text.includes('START NEW')) {
+            clearPuzzle()
             playBeep2();
             if (fs.existsSync(checkPath)) fs.unlinkSync(checkPath);
             
@@ -1903,11 +1905,18 @@ process.on('exit', () => {
 // Se o usuário apertar ESC para sair
 screen.key(['escape', 'C-c'], () => {
     if (iscreditsOpen) {
-
-    } else {
         saveFinalTime();
+    } else {
+    saveFinalTime();
     clearPuzzle();
     process.exit(0);
 }
     
+});
+
+process.on('SIGINT', () => {
+ saveFinalTime();
+});
+process.on('SIGHUP', () => {
+ saveFinalTime();
 });

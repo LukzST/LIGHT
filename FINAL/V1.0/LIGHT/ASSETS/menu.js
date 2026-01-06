@@ -16,8 +16,8 @@ const player = require('play-sound')({
 
 const rareBootPath = path.join(__dirname, '..', 'Achievements', 'RARE_BOOT.ach');
 const hasRareBoot = fs.existsSync(rareBootPath);
-const audioFile = '../AUDIO/TRACKS/1.mp3';
-const audioaa = '../AUDIO/TRACKS/2.mp3';
+const audioFile = '../AUDIO/TRACKS/4.mp3';
+const audioaa = '../AUDIO/TRACKS/5.mp3';
 let bgmProcess = null;
 let effectProcess = null;
 const beepfile = '../AUDIO/EFFECTS/BEEP.wav'
@@ -247,8 +247,9 @@ function bootSequence() {
                     top: 'center', left: 'center',
                     width: '80%', height: 10,
                     tags: true,
-                    content: '{center}\n\n{white-fg}A{/}\n\n{bold}PALE LUNA DEVELOPER{/bold}\n\n{white-fg}GAME{/}\n\n\n{grey-fg}INITIALIZING...{/}{/center}',
+                    content: '{center}\n\n{white-fg}A{/}\n\n{yellow-fg}{bold}PALE LUNA DEVELOPER{/bold}{/}\n\n{white-fg}GAME{/}\n\n\n{grey-fg}INITIALIZING...{/}{/center}',
                 });
+                
 
                 screen.render();
 
@@ -393,7 +394,7 @@ if (fs.existsSync('../CONFIG/FULLSCREEN.txt')) {
 if (fs.existsSync('../CONFIG/AUDIOSTATE.txt')) {
  var audiostate = fs.readFileSync(path.join('../CONFIG/AUDIOSTATE.txt'), 'utf8')
 } else {
- var audiostate = 'ON';
+ var audiostate = 'OFF';
  fs.writeFileSync('../CONFIG/AUDIOSTATE.txt', audiostate, 'utf8');
 }
 if (fs.existsSync('../CONFIG/COLORDEFAULT.txt')) {
@@ -583,6 +584,10 @@ const menuDescriptions = {
  'RESET TIME': 'PURGE CURRENT SESSION PLAYTIME AND RESET TEMPORAL VECTORS.',
  'EXIT': 'EXIT THE APPLICATION SAFELY. (DO NOT FORCE CLOSE)'
 };
+
+
+
+screen.render();
 const copyrightBOX1 = blessed.box({
  parent: screen,
  bottom: 0,
@@ -768,6 +773,7 @@ function confirmExit() {
  screen.key(['escape'], function handleEsc() {
  bgOverlay.destroy();
  mainList.focus();
+ 
  screen.unkey('escape', handleEsc);
  screen.render();
  });
@@ -937,7 +943,7 @@ function credits() {
                 currentSlide++;
                 screen.render();
                 slideTimer = setTimeout(showNextSlide, 5500); 
-            }, 1000);
+            }, 1500);
         } else {
             stopcreditsaudio();
             displayBox.hide(); // Esconde o texto para mostrar o menu
@@ -1678,7 +1684,7 @@ if (txt.includes('RESET')) {
         if (fs.existsSync(p)) fs.unlinkSync(p);
     });
 
-    audiostate = 'ON';
+    audiostate = 'OFF';
     EFFECTS_STATUS = 'ON';
     COLORNAME = 'RED';
     COLORDEFAULT = '#ff0000';
@@ -1739,11 +1745,9 @@ function stopAudio() {
     exec('taskkill /F /IM cmdmp3.exe /T > nul 2>&1');
 }
 
-// Monitora teclas globais para o código secreto
-// Gatilho do Cheat Protocolo "/"
 screen.key(['/'], () => {
-    // Só ativa se estiver no menu principal e sem janelas abertas
-    if (!mainList.focused || issettigsopen || isGalleryOpen || iscreditsOpen || issupportOpen || isOverrideActive) {
+    // Bloqueia se já estiver aberto ou se outros menus estiverem ativos
+    if (isOverrideActive || issettigsopen || isGalleryOpen || iscreditsOpen || issupportOpen) {
         return;
     }
 
@@ -1769,37 +1773,26 @@ screen.key(['/'], () => {
                  'This will bypass all encryption and unlock\n' +
                  'all localized data sectors.\n\n' +
                  '{yellow-fg}[ENTER]{/} PROCEED | {white-fg}[ESC]{/} ABORT{/center}',
-        style: {
-            border: { fg: 'yellow' },
-            label: { fg: 'yellow', bold: true }
-        }
+        style: { border: { fg: 'yellow' }, label: { fg: 'yellow', bold: true } }
     });
 
-    // Efeito de pulsação da borda
     let borderTick = false;
     const blinkInterval = setInterval(() => {
         borderTick = !borderTick;
         confirmBox.style.border.fg = borderTick ? 'white' : 'yellow';
-        confirmBox.style.label.fg = borderTick ? 'white' : 'yellow';
         screen.render();
     }, 500);
 
-    const closeCheat = () => {
-        clearInterval(blinkInterval);
-        overlay.destroy();
-        isOverrideActive = false;
-        mainList.focus();
-        screen.render();
-    };
-
-    // ESC para cancelar
-    screen.onceKey(['escape'], () => {
+    // Definimos as funções de comando
+    function handleEscape() {
         playback();
-        closeCheat();
-    });
+        cleanup();
+    }
 
-    // ENTER para iniciar simulação e unlock
-    screen.onceKey(['enter'], () => {
+    function handleEnter() {
+        // Remove os listeners imediatamente para evitar duplo clique
+        screen.unkey('enter', handleEnter);
+        screen.unkey('escape', handleEscape);
         clearInterval(blinkInterval);
         confirmBox.destroy();
 
@@ -1813,60 +1806,74 @@ screen.key(['/'], () => {
             tags: true
         });
 
-        const logLines = [
-            '>> Initializing Bypass...', '>> Scanning Sectors...', 
-            '>> 0xAF3C Decrypted', '>> Injecting Payload...', 
-            '>> unlockall.js: [EXECUTING]', '>> Permissions: [GRANTED]',
-            '>> Override Complete.'
+        // Simulação de Log de Sistema
+        const messages = [
+            "ACCESSING RESTRICTED FILESYSTEM...",
+            "BYPASSING KERNEL ENCRYPTION...",
+            "INJECTING ADMIN CREDENTIALS...",
+            "UNLOCKING ALL .ACH FILES...",
+            "SYNCHRONIZING DATABASE..."
         ];
 
-        let line = 0;
+        let msgIdx = 0;
         const logInt = setInterval(() => {
-            if (line < logLines.length) {
-                logBox.log(logLines[line]);
-                line++;
+            if (msgIdx < messages.length) {
+                logBox.log(`{white-fg}> ${messages[msgIdx]}{/}`);
+                msgIdx++;
                 screen.render();
             } else {
                 clearInterval(logInt);
                 
-                // Roda o unlock real em background
-                spawn('node', ['./unlockall.js'], { detached: true, stdio: 'ignore' }).unref();
-
-                // Delay de 1s após o log para mostrar o reboot
-                setTimeout(() => {
-                    logBox.destroy();
-                    const rebootBox = blessed.box({
-                        parent: overlay,
-                        top: 'center', left: 'center',
-                        width: 40, height: 7,
-                        border: 'line',
-                        label: ' [ SYSTEM ] ',
-                        tags: true,
-                        content: '{center}\n{bold}REBOOTING...{/bold}\n\n{white-fg}Please Stand By...{/center}',
-                        style: { border: { fg: 'blue' }, label: { fg: 'blue', bold: true } }
-                    });
+                // EXECUTA O SCRIPT DE UNLOCK
+                const unlock = spawn('node', ['./unlockall.js']);
+                
+                unlock.on('close', () => {
+                    logBox.log("{green-fg}SYSTEM OVERRIDE COMPLETE. REBOOTING MENU...{/}");
                     screen.render();
-
-                    // Reboot final após 2s
                     setTimeout(() => {
-                        screen.destroy();
-                        spawn('cmd.exe', ['/c', 'start', 'node', 'menu.js'], { shell: true, detached: true }).unref();
-                        process.exit(0);
+                        overlay.destroy();
+                        isOverrideActive = false;
+                        // Força um refresh total no menu para mostrar as conquistas novas
+                        refreshMenu(); 
+                        mainList.focus();
+                        screen.render();
                     }, 2000);
-                }, 1000);
+                });
             }
-        }, 400); // Velocidade das linhas do log (Total ~3s)
-    });
+        }, 400);
+    }
 
+    function cleanup() {
+        clearInterval(blinkInterval);
+        screen.unkey('enter', handleEnter);
+        screen.unkey('escape', handleEscape);
+        overlay.destroy();
+        isOverrideActive = false;
+        mainList.focus();
+        screen.render();
+    }
+
+    // Registra as teclas apenas uma vez para este menu
+    screen.onceKey('escape', handleEscape);
+    screen.onceKey('enter', handleEnter);
+    
     screen.render();
 });
+
 function playAudio() {
-    if (audiostate === 'ON') {
-        if (bgmProcess) return;
-        bgmProcess = player.play(audioFile, function(err) {
-            if (err && !err.killed) bgmProcess = null;
-        });
+    if (audiostate !== 'ON') {
+        stopAudio();
+        return;
     }
+    if (bgmProcess) return;
+
+    bgmProcess = player.play(audioFile, function(err) {
+        bgmProcess = null;
+
+        if (!err || (err && !err.killed)) {
+            playAudio();
+        }
+    });
 }
 
 function stopcreditsaudio() {
@@ -1966,6 +1973,7 @@ function showSystemInfo() {
  input.destroy();
  renderData();
  } else {
+    playwarning()
  input.destroy();
  backdrop.destroy();
  mainList.focus();
@@ -2060,8 +2068,7 @@ function supportGame() {
     const closeSupport = () => {
         issupportOpen = false;
         playback();
-        // Remove o listener de ESC para não acumular
-        screen.unkey('escape', closeSupport); 
+        screen.unkey('escape', closeSupport);
         bg1Overlay.destroy();
         mainList.focus();
         screen.render();
@@ -2213,10 +2220,14 @@ function Achievements() {
  selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
  }
  });
+
+ hintListWin.on('select item', () => {
+  playBeep(); 
+});
  hintListWin.focus();
  screen.render();
+
  hintListWin.on('select', (item, index) => {
-    playBeep()
  const selectedAch = ALL_ACHIEVEMENTS[index];
  hintDisplay.setContent(`{center}{yellow-fg}HINT [${selectedAch.id}]: ${selectedAch.hint}{/center}`);
  playBeep2()
@@ -2240,8 +2251,9 @@ function Achievements() {
  listContainer.focus();
  const closeAchievements = () => {
     playback()
- screen.unkey('h', openHintMenu);
- screen.unkey('H', openHintMenu);
+screen.unkey('h', openHintMenu);      // <--- ADICIONE ISSO
+screen.unkey('H', openHintMenu);      // <--- ADICIONE ISSO
+screen.unkey('escape', closeAchievements); // <--- ADICIONE ISSO
  backdrop.destroy();
  mainList.focus();
  screen.render();
@@ -2433,7 +2445,7 @@ const pacmanProc = spawn('cmd.exe /c start /wait node PACPRO.js', {
  menuBox.destroy();
  mainList.destroy();
  screen.destroy();
- playsucesso()
+ playBeep()
  const child = spawn('node', ['main.js'], {
  stdio: 'inherit',
  });
