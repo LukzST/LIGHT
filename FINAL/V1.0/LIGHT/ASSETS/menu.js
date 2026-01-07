@@ -1066,7 +1066,6 @@ function eraseData() {
                     eraser.on('close', () => {
                         // Reset de variáveis para o padrão
                         TIME_STATUS = 'ON';
-                        TOTAL_PLAYTIME = 0;
                         COLORNAME = 'RED';
                         COLORDEFAULT = '#ff0000';
                         
@@ -1117,7 +1116,7 @@ function erasePlaytime() {
         tags: true,
         // Exibimos o tempo atual no topo da lista como um cabeçalho visual
         items: [
-            `{center}{cyan-fg}CURRENT SESSION: ${formatTime(TOTAL_PLAYTIME)}{/}{/center}`,
+            `{center}{cyan-fg}CURRENT TIME: ${formatTime(TOTAL_PLAYTIME)}{/}{/center}`,
             `{center}───────────────────────────{/center}`,
             '{center}YES, RESET CLOCK{/center}', 
             '{center}NO, ABORT{/center}'

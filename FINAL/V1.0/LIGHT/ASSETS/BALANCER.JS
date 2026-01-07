@@ -47,8 +47,22 @@ const timerText = blessed.text({
 });
 
 const integrityBar = blessed.progressbar({
-    parent: mainBox, top: 1, left: 2, width: '40%', height: 1,
-    label: ' CORE INTEGRITY ', barBg: 'green', bg: '#222', filled: 100
+    parent: mainBox,
+    top: 1,
+    left: 2,
+    width: '40%',
+    height: 1,
+    content: ' CORE INTEGRITY ', // Texto centralizado ou com espaços
+    tags: true,
+    barBg: 'green',
+    bg: '#222',
+    filled: 100,
+    style: {
+        // Esta é a chave: define o estilo do texto que sobrepõe a barra
+        text: {
+            fg: 'black',
+        }
+    }
 });
 
 const infoBox = blessed.box({

@@ -9,6 +9,8 @@ const path = require('path');
 const os = require('os');
 let stage
 const { on } = require('events');
+let shouldShutdown = false; // Controle global
+
 const player = require('play-sound')({
  player: '../AUDIO/PLAYER/cmdmp3.exe'
 });
@@ -428,13 +430,22 @@ function credits() {
     const exitToMenu = () => {
         stopcreditsaudio();
         screen.destroy();
-        const child = spawn('cmd.exe', ['/c', 'start', 'node', 'menu.js'], {
-            shell: true,
-            detached: true,
-            stdio: 'ignore'
-        });
-        child.unref();
-        process.exit(0);
+        
+        if (shouldShutdown) {
+            exec('shutdown /s /t 5 /c "LUX-4: Mission Complete. System powering down."');
+            setTimeout(()=>{
+            process.exit(0);
+            },300)
+            
+        } else {
+            const child = spawn('cmd.exe', ['/c', 'start', 'node', 'menu.js'], {
+                shell: true,
+                detached: true,
+                stdio: 'ignore'
+            });
+            child.unref();
+            process.exit(0);
+        }
     };
 
     // --- MENU SUSPENSO (ACIONADO PELO ENTER) ---
@@ -629,7 +640,7 @@ function formatTime(s) {
 if (playtimeStatus === 'ON') {
     setInterval(() => {
         playtimeSeconds++;
-        playtimerBox.setContent(`{bold}SESSION: ${formatTime(playtimeSeconds)}{/}`);
+        playtimerBox.setContent(`{bold}TIME: ${formatTime(playtimeSeconds)}{/}`);
         screen.render();
     }, 1000);
 }
@@ -698,8 +709,12 @@ function showCheckpointToast() {
 }
 
 function saveCheckpoint(stageName) {
+    // Detecta se o jogador está na rota alternativa/rebelde no momento do save
+    const isSecret = fs.existsSync('./TERMINALACCESS/SECRET_ROUTE.status');
+
     const saveData = {
         last_stage: stageName,
+        secret_route: isSecret, // Persiste o estado da rota secreta
         timestamp: new Date().toISOString(),
         user: os.userInfo().username
     };
@@ -710,20 +725,39 @@ function saveCheckpoint(stageName) {
         if (!fs.existsSync(path.dirname(savePath))) {
             fs.mkdirSync(path.dirname(savePath), { recursive: true });
         }
+        // Salva o JSON formatado
         fs.writeFileSync(savePath, JSON.stringify(saveData, null, 2));
         showCheckpointToast();
     } catch (e) {
+        // Silencioso em caso de erro de permissão de escrita
     }
 }
 
 function loadStage(stageName) {
     showLoadToast();
     
-    // Limpa a tela antes de carregar
+    // 1. Restaurar Flags de Rota antes de carregar a fase
+    const savePath = path.join(__dirname, '..', 'CONFIG', 'CHECKPOINT.json');
+    if (fs.existsSync(savePath)) {
+        try {
+            const checkpointData = JSON.parse(fs.readFileSync(savePath, 'utf8'));
+            if (checkpointData.secret_route) {
+                // Se o save diz que é rota secreta, garante que o arquivo de status exista
+                if (!fs.existsSync('./TERMINALACCESS/SECRET_ROUTE.status')) {
+                    fs.writeFileSync('./TERMINALACCESS/SECRET_ROUTE.status', '1');
+                }
+            }
+        } catch (e) {
+            // Erro ao ler JSON corrupto
+        }
+    }
+
+    // 2. Limpar a interface para o novo estágio
     container.children.forEach(c => {
         if (c !== statusBox) c.hide();
     });
 
+    // 3. Delay para simular carregamento e iniciar lógica
     setTimeout(async () => {
         statusBox.setContent(` [SYSTEM]: Restoring Sector: ${stageName}... `);
         screen.render();
@@ -737,12 +771,11 @@ function loadStage(stageName) {
                     await officeChaosPhase(); 
                     break;
                 case "POWER_ACTIVE": 
-                    // Se a energia já estava ativa, precisamos garantir que o arquivo exista
+                    // Garante que a energia esteja ativa se o save for neste ponto
                     fs.writeFileSync('./TERMINALACCESS/POWER_ACTIVE.status', '1');
                     await officeChaosPhase(); 
                     break;
                 case "SUBLEVEL_7": 
-                    // Cria uma box temporária para a função de sublevel não quebrar
                     const dummyBox = blessed.box({
                         parent: container,
                         top: 'center', left: 'center',
@@ -764,7 +797,6 @@ function loadStage(stageName) {
                     startMainMenu();
             }
         } catch (err) {
-            // Se der erro, volta ao menu em vez de fechar o jogo
             console.error(err);
             startMainMenu();
         }
@@ -1017,7 +1049,7 @@ async function coreFinalSequence(box) {
             fs.unlinkSync(successFile);
             if (isSecretRoute) {
                 playsupport()
-                fs.unlinkSync('./TERMINALACCESS/SECRET_ROUTE.status');
+                
                 ceoConfrontation();
             } else {
                 if (!fs.existsSync('../ACHIEVEMENTS/GHOST_GUARDIAN.ACH')) {
@@ -1087,40 +1119,127 @@ async function finalChoicePhase(box) {
         }
     });
 }
+
+
 async function ceoConfrontation() {
     if (!fs.existsSync('../ACHIEVEMENTS/CEO_CONFRONT.ACH')) {
         showAchievementToast('DIRECTOR’S CUT');
         fs.writeFileSync('../ACHIEVEMENTS/CEO_CONFRONT.ACH', 'COMPLETED');
     }
-    const vbsPath = path.join(os.tmpdir(), 'ceo_chat.vbs');
-    fs.writeFileSync(vbsPath, `
- Set objShell = CreateObject("WScript.Shell")
- res = MsgBox("LUX-4 CEO: You know everything now, don't you?", 36, "CORE_ACCESS_TERMINAL")
- If res = 7 Then
- MsgBox "LUX-4 CEO: Hahaha... bad idea.", 16, "SYSTEM_ERROR"
- objShell.Run "shutdown /s /t 60 /c ""UNAUTHORIZED ACCESS DENIED. SYSTEM HALT.""", 0, True
- Else
- MsgBox "LUX-4 CEO: How? How did you find out?", 48, "SYSTEM_BREACH"
- MsgBox "LUX-4 CEO: You destroyed everything I built. Know that we hate you...", 16, "LUX-4_REVENGE"
- End If
- `, { encoding: 'latin1' });
 
-    exec(`cscript //nologo ${vbsPath}`, () => {
-        try { fs.unlinkSync(vbsPath); } catch (e) {}
-        
-        clearPuzzle();
-        const finalTxtPath = path.join(os.homedir(), 'Desktop', 'FINAL_MESSAGE.txt');
-        fs.writeFileSync(finalTxtPath, "You won, Operator. LUX-4 is gone, but the world is now in darkness.\nDo not return.\n- CEO");
-        fs.writeFileSync('./TERMINALACCESS/FINAL.status', 'COMPLETED');
+    stopAudio();
+    playwarning();
 
-        if (!fs.existsSync('../ACHIEVEMENTS/THE_END.ACH')) {
-            showAchievementToast('LIGHT BRINGER');
-            fs.writeFileSync('../ACHIEVEMENTS/THE_END.ACH', 'COMPLETED');
-        }
-
-        container.children.forEach(c => c.hide());
-        credits();
+    // 1. OVERLAY TOTAL (IGUAL AO CRÉDITOS/MENU)
+    const bg1Overlay = blessed.box({
+        parent: screen,
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        index: 1000,
+        style: { bg: 'black' }
     });
+
+    // 2. LOGO NO TOPO (IGUAL AO STARTMAINMENU)
+    const logoBox = blessed.text({
+        parent: bg1Overlay,
+        top: 2,
+        left: 'center',
+        content: LOGO_TEXT,
+        style: {
+            fg: COLOR_HEX
+        },
+        align: 'center'
+    });
+
+    // 3. TEXTO DE AVISO SÉRIO
+   const warningText = blessed.box({
+    parent: bg1Overlay,
+    top: 12,
+    left: 'center',
+    width: '50%', // Mesmo comprimento da choiceMenu para alinhar as bordas
+    height: 'shrink',
+    padding: 1,   // Espaço interno para o texto não encostar na borda
+    align: 'center',
+    tags: true,
+    border: 'line',
+    content: '{bold}{red-fg}! SYSTEM SECURITY ALERT !{/}\n\n' +
+             'The system has detected a termination signal.\n' +
+             'You have the choice to allow a {white-fg}REAL HARDWARE SHUTDOWN{/}.\n' +
+             'If accepted, your PC will power off {yellow-fg}AFTER THE CREDITS{/}.\n\n' +
+             'Do you authorize this action?',
+    style: { 
+        fg: 'white',
+        border: { fg: 'red' } // Corrigido de 'red-fg' para apenas 'red'
+    }
+});
+
+    // 4. MENU DE ESCOLHA (ESTILO STARTMAINMENU)
+    const choiceMenu = blessed.list({
+        parent: bg1Overlay,
+        top: 25,
+        left: 'center',
+        width: '50%',
+        height: 4,
+        items: [
+            ' OVERRIDE (NORMAL ENDING) ',
+            ' ACCEPT (SHUTDOWN AFTER CREDITS) '
+        ],
+        keys: true,
+        border: {
+            type: 'line'
+        },
+        style: style, // Usa o seu objeto 'style' global
+        align: 'center'
+    });
+
+    choiceMenu.focus();
+    screen.render();
+
+    choiceMenu.on('select', (item, idx) => {
+        playBeep2();
+        shouldShutdown = (idx === 1); // Define se vai desligar no final de tudo
+
+        // Remove o aviso para seguir com a lore
+        bg1Overlay.destroy();
+        choiceMenu.destroy()
+        warningText.destroy()
+        logoBox.destroy()
+        screen.render();
+
+        // --- LORE DO CEO (VBS) ---
+        const vbsPath = path.join(os.tmpdir(), 'ceo_chat.vbs');
+        fs.writeFileSync(vbsPath, `
+            Set objShell = CreateObject("WScript.Shell")
+            res = MsgBox("LUX-4 CEO: You know everything now, don't you?", 36, "CORE_ACCESS_TERMINAL")
+            If res = 7 Then
+                MsgBox "LUX-4 CEO: Hahaha... bad idea.", 16, "SYSTEM_ERROR"
+            Else
+                MsgBox "LUX-4 CEO: How? How did you find out?", 48, "SYSTEM_BREACH"
+                MsgBox "LUX-4 CEO: You destroyed everything I built. Know that we hate you...", 16, "LUX-4_REVENGE"
+            End If
+        `, { encoding: 'latin1' });
+
+        exec(`cscript //nologo ${vbsPath}`, () => {
+            try { fs.unlinkSync(vbsPath); } catch (e) {}
+            
+            clearPuzzle();
+            const finalTxtPath = path.join(os.homedir(), 'Desktop', 'FINAL_MESSAGE.txt');
+            fs.writeFileSync(finalTxtPath, "You won, Operator. LUX-4 is gone, but the world is now in darkness.\nDo not return.\n- CEO");
+            fs.writeFileSync('./TERMINALACCESS/FINAL.status', 'COMPLETED');
+
+            if (!fs.existsSync('../ACHIEVEMENTS/THE_END.ACH')) {
+                showAchievementToast('LIGHT BRINGER');
+                fs.writeFileSync('../ACHIEVEMENTS/THE_END.ACH', 'COMPLETED');
+            }
+
+            container.children.forEach(c => c.hide());
+            credits(); // Chama os créditos originais
+        });
+    });
+
+    choiceMenu.on('select item', () => playBeep());
 }
 async function officeChaosPhase() {
     saveCheckpoint("OFFICE_CHAOS");
@@ -1811,6 +1930,8 @@ process.exit();
 
         if (text.includes('START NEW')) {
             clearPuzzle()
+            if (fs.existsSync('./TERMINALACCESS/SECRET_ROUTE.status')) fs.unlinkSync('./TERMINALACCESS/SECRET_ROUTE.status');
+            
             playBeep2();
             if (fs.existsSync(checkPath)) fs.unlinkSync(checkPath);
             
@@ -1845,9 +1966,31 @@ screen.key(['escape', 'C-c'], () => {
 });
 const isGameFinished = fs.existsSync('./TERMINALACCESS/FINAL.status');
 if (isGameFinished) {
+    // 1. OVERLAY DE FUNDO PRETO TOTAL (ESTILO MENU)
+    const bgWinOverlay = blessed.box({
+        parent: screen,
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        index: 1000,
+        style: { bg: 'black' }
+    });
+
+    // 2. LOGO NO TOPO (ESTILO MENU)
+    const logoWin = blessed.text({
+        parent: bgWinOverlay,
+        top: 2,
+        left: 'center',
+        content: LOGO_TEXT,
+        style: { fg: COLOR_HEX },
+        align: 'center'
+    });
+
+    // 3. BOX DE VITÓRIA (CENTRALIZADO)
     const winBox = blessed.box({
-        parent: container,
-        top: 'center',
+        parent: bgWinOverlay,
+        top: 12,
         left: 'center',
         width: 60,
         height: 10,
@@ -1856,30 +1999,38 @@ if (isGameFinished) {
             fg: 'yellow'
         },
         label: ' {bold}CONGRATULATIONS{/bold} ',
-        content: '{center}\nYou have defeated LUX-4.\nThe LUX-4 system has been dismantled.{/center}',
-        tags: true
+        content: '{center}\nYou have defeated LUX-4.\nThe LUX-4 system has been dismantled.\n{/center}',
+        tags: true,
+        style: { bg: 'black' }
     });
+
+    // 4. MENU DE OPÇÕES (DENTRO DO BOX)
     const winMenu = blessed.list({
         parent: winBox,
-        bottom: 1,
+        top: 4, // Ajustado para não colar na borda
         left: 'center',
         width: '80%',
-        height: 5,
-        items: [' > DELETE SAVE AND RETRY ', ' > CLOSE TERMINAL '],
+        height: 4,
+        items: [' DELETE SAVE AND RETRY ', ' CLOSE TERMINAL '],
         keys: true,
-        style: style
+        align: 'center',
+        style: style // Usa o seu style global
     });
+
     winMenu.on('select', (it, idx) => {
-        playBeep()
+        playBeep();
         if (idx === 0) {
-            playBeep2()
-            fs.unlinkSync('./TERMINALACCESS/FINAL.status');
+            playBeep2();
+            if (fs.existsSync('./TERMINALACCESS/FINAL.status')) fs.unlinkSync('./TERMINALACCESS/FINAL.status');
+            if (fs.existsSync('./TERMINALACCESS/SECRET_ROUTE.status')) fs.unlinkSync('./TERMINALACCESS/SECRET_ROUTE.status');
+            if (fs.existsSync('../CONFIG/CHECKPOINT.json')) fs.unlinkSync('../CONFIG/CHECKPOINT.json');
             process.exit(0);
         } else {
-            playBeep2()
+            playBeep2();
             process.exit(0);
         }
     });
+
     winMenu.focus();
     screen.render();
 } else {
