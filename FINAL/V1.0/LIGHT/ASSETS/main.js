@@ -7,6 +7,8 @@ const {
 } = require('child_process');
 const path = require('path');
 const os = require('os');
+let stage
+const { on } = require('events');
 const player = require('play-sound')({
  player: '../AUDIO/PLAYER/cmdmp3.exe'
 });
@@ -314,11 +316,11 @@ function showLoadToast() {
         parent: screen,
         top: 'center',
         left: 'center',
-        width: 35,
-        height: 5,
+        width: 25,
+        height: 6,
         border: 'line',
         tags: true,
-        content: `{center}{green-fg}{bold}CHECKPOINT LOADED{/}{/center}`,
+        content: ` \n{center}{green-fg}{bold}CHECKPOINT LOADED\nSTAGE: {yellow-fg}${stage}{/}{/}{/center}\n `,
         style: { border: { fg: 'green' }, bg: 'black' }
     });
     toast.setIndex(1000);
@@ -389,21 +391,11 @@ if (fs.existsSync('../CONFIG/DIFFICULTY.txt')) {
 }
 
 function credits() {
-    stopAudio()
-    screen.unkey('enter');
-screen.unkey('escape');
-    screen.removeAllListeners('keypress');
-    
-    if (audiostate === 'ON') {
-        stopAudio();
-    }
-    setTimeout(() => {
-playcreditsaudio();
-    },200)
+    if (iscreditsOpen) return;
+    if (audiostate === 'ON') stopAudio();
     
     iscreditsOpen = true;
     let slideTimer = null;
-    let buttonsActive = false;
     const currentYear = new Date().getFullYear();
 
     const bgOverlay = blessed.box({
@@ -414,12 +406,10 @@ playcreditsaudio();
         index: 100
     });
 
-    screen.key(['escape'], () => { });
-
     const displayBox = blessed.box({
         parent: bgOverlay,
         top: 'center', left: 'center',
-        width: '80%', height: 10,
+        width: '80%', height: 12,
         tags: true,
         content: "",
         style: { fg: 'white' }
@@ -430,8 +420,67 @@ playcreditsaudio();
         bottom: 2, left: 'center',
         width: 'shrink', height: 1,
         tags: true,
-        content: '{grey-fg}{bold}PRESS [ENTER] TO SKIP CREDITS{/grey-fg}{/}',
+        content: '{grey-fg}{bold}PRESS [ENTER] FOR ACTIONS{/grey-fg}{/}',
         style: { fg: '#555555' }
+    });
+
+    // --- FUNÇÃO PARA SAIR DO JOGO ---
+    const exitToMenu = () => {
+        stopcreditsaudio();
+        screen.destroy();
+        const child = spawn('cmd.exe', ['/c', 'start', 'node', 'menu.js'], {
+            shell: true,
+            detached: true,
+            stdio: 'ignore'
+        });
+        child.unref();
+        process.exit(0);
+    };
+
+    // --- MENU SUSPENSO (ACIONADO PELO ENTER) ---
+    const fastMenu = blessed.list({
+        parent: bgOverlay,
+        bottom: 3,
+        left: 'center',
+        width: '40%',
+        height: 6,
+        label: ' QUICK ACTIONS ',
+        border: 'line',
+        tags: true,
+        hidden: true,
+        keys: true,
+        items: [
+            ' TWITTER (X) ',
+            ' EXIT TO MAIN MENU ',
+            ' CANCEL '
+        ],
+        style: {
+            border: { fg: COLORDEFAULT },
+            label: { fg: COLORDEFAULT, bold: true },
+            selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
+        },
+        index: 1000
+    });
+
+    // --- MENU FINAL (APARECE QUANDO OS SLIDES ACABAM) ---
+    const finalMenu = blessed.list({
+        parent: bgOverlay,
+        top: 'center',
+        left: 'center',
+        width: 40,
+        height: 8,
+        label: ' SESSION END ',
+        border: 'line',
+        tags: true,
+        hidden: true,
+        keys: true,
+        items: [' 1. REPLAY CREDITS ', ' 2. TWITTER (X) ', ' 3. EXIT TO MENU '],
+        style: {
+            border: { fg: COLORDEFAULT },
+            label: { fg: COLORDEFAULT, bold: true },
+            selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
+        },
+        index: 1000
     });
 
     const slides = [
@@ -444,8 +493,8 @@ playcreditsaudio();
         `{center}{yellow-fg}LEVEL DESIGN{/yellow-fg}\n\n{bold}ISABELLA SANCHES{/bold}{/center}`,
         `{center}{yellow-fg}STORY DESIGNER{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
         `{center}{yellow-fg}SOUND DESIGN{/yellow-fg}\n\n{bold}LUCAS EDUARDO\nISABELLA SANCHES{/bold}{/center}`,
-        `{center}{yellow-fg}UI/UX ART & QUALITY ASSURANCE{/yellow-fg}\n\n{bold}LUIZ OTAVIO{/bold}{/center}`,
-        `{center}{yellow-fg}ENDING THEME{/yellow-fg}\n\n{bold}SUBNAUTICA - ALEXUPLAY{/bold}{/center}`,
+        `{center}{yellow-fg}UI/UX ART & QUALITY ASSURANCE{/yellow-fg}\n\n{bold}LUIZ OTÁVIO{/bold}{/center}`,
+        `{center}{yellow-fg}ENDING THEME{/yellow-fg}\n\n{bold}THE LAST CHOICE - LIGHT OST{/bold}{/center}`,
         `{center}{yellow-fg}PUBLICITY{/yellow-fg}\n\n{bold}PALE LUNA DEVELOPER{/bold}{/center}`,
         `{center}{yellow-fg}BETA TESTER{/yellow-fg}\n\n{bold}LUCAS EDUARDO, ISABELLA SANCHES, LUIZ OTÁVIO and some friends{/bold}{/center}`,
         `{center}{yellow-fg}PRODUCT COORDINATOR{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
@@ -453,51 +502,14 @@ playcreditsaudio();
         `{center}CREATED FOR THE FADE\n\n${currentYear} © ALL RIGHTS RESERVED{/center}`
     ]; 
 
-    const finalMenu = blessed.list({
-        parent: bgOverlay,
-        top: 'center',
-        left: 'center',
-        width: 35,
-        height: 8,
-        border: 'line',
-        label: ' [ SESSION END ] ',
-        tags: true,
-        hidden: true,
-        keys: true,
-        items: [
-            '{center}TWITTER (X){/center}',
-            '{center}EXIT GAME{/center}'
-        ],
-        style: {
-            border: { fg: COLORDEFAULT },
-            label: { fg: COLORDEFAULT, bold: true },
-            selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
-        }
-    });
-
-    const finishCredits = () => {
-        iscreditsOpen = false;
-        if (slideTimer) clearTimeout(slideTimer);
-        stopcreditsaudio();
-        
-        skipMsg.hide();
-        displayBox.hide();
-        finalMenu.show();
-
-        setTimeout(() => {
-            buttonsActive = true;
-            finalMenu.focus();
-            screen.render();
-        }, 100);
-    };
+    let currentSlide = 0;
 
     function showNextSlide() {
-        if (!iscreditsOpen) return;
-
+        if (!iscreditsOpen || finalMenu.visible) return;
+            if (!iscreditsOpen) return;
         if (currentSlide < slides.length) {
             displayBox.setContent("");
             screen.render();
-
             slideTimer = setTimeout(() => {
                 if (!iscreditsOpen) return;
                 displayBox.setContent(slides[currentSlide]);
@@ -506,49 +518,79 @@ playcreditsaudio();
                 slideTimer = setTimeout(showNextSlide, 5500); 
             }, 1500);
         } else {
-            finishCredits();
+            stopcreditsaudio();
+            displayBox.hide();
+            skipMsg.hide();
+            finalMenu.show();
+            finalMenu.focus();
+            screen.render();
         }
     }
 
-    let currentSlide = 0;
-    
-    showNextSlide();
-
-    screen.onceKey(['enter'], () => {
-        if (iscreditsOpen) finishCredits();
+    // Listener de tecla ENTER para abrir o menu suspenso
+    screen.on('keypress', (ch, key) => {
+        if (key && key.name === 'enter' && iscreditsOpen && !finalMenu.visible && !fastMenu.visible) {
+            fastMenu.show();
+            fastMenu.focus();
+            screen.render();
+        }
     });
 
-    finalMenu.on('select item', () => {
-        if (buttonsActive) playBeep();
-    });
-
-    finalMenu.on('select', (item) => {
-        if (!buttonsActive) return;
+    // Ações do Menu Suspenso (Enter)
+    fastMenu.on('select', (item) => {
         const txt = item.getText();
-        if (txt.includes('TWITTER')) {
-            exec('start https://twitter.com/PlayLightGame');
-        }
-        if (txt.includes('EXIT')) {
-            saveFinalTime();
-            process.exit(0);
+        if (txt.includes('TWITTER')) exec('start https://twitter.com/PlayLightGame');
+        if (txt.includes('EXIT')) exitToMenu();
+        if (txt.includes('CANCEL')) {
+            fastMenu.hide();
+            screen.render();
         }
     });
 
+    // Ações do Menu Final (Fim automático)
+    finalMenu.on('select', (item) => {
+        const txt = item.getText();
+        if (txt.includes('REPLAY')) {
+            currentSlide = 0;
+            finalMenu.hide();
+            displayBox.show();
+            skipMsg.show();
+            playcreditsaudio();
+            showNextSlide();
+        }
+        if (txt.includes('TWITTER')) exec('start https://twitter.com/PlayLightGame');
+        if (txt.includes('EXIT')) exitToMenu();
+    });
+
+    // Sons de navegação
+    [fastMenu, finalMenu].forEach(m => {
+        m.on('select item', () => playBeep());
+    });
+
+    if (iscreditsOpen) playcreditsaudio();
+    showNextSlide();
     screen.render();
 }
 
-function stopcreditsaudio() {
-    if (vlcProcess) {
-        vlcProcess.kill();
-        vlcProcess = null;
+screen.key(['escape', 'C-c'], () => {
+    if (iscreditsOpen) {
+        return;
+    } else {
+        saveFinalTime();
+        clearPuzzle();
+        process.exit(0);
     }
-    spawn('taskkill', ['/F', '/IM', 'cmdmp3.exe', '/T']);
+});
+
+function stopcreditsaudio() {
+    exec('taskkill /F /IM cmdmp3.exe /T > nul 2>&1', (err) => {
+    });
 }
 
 function playcreditsaudio() {
-    // Toca a música dos créditos (2.mp3)
-    vlcProcess = player.play(audioaa, function(err){
-        if (err && !err.killed) console.error("Erro áudio créditos:", err);
+    player.play(audioaa, function(err){
+        if (err && iscreditsOpen) {
+        }
     });
 }
 
@@ -572,7 +614,7 @@ const playtimerBox = blessed.box({
     tags: true,
     hidden: playtimeStatus === 'OFF',
     style: {
-        fg: COLOR_HEX,
+        fg: '#555555',
         border: { fg: '#333333' }
     }
 });
@@ -762,6 +804,7 @@ async function typeWriter(box, text, delay = 30) {
     });
 }
 async function accessLuxFiles(box) {
+    stopAudio()
     box.setContent("");
     playBeep2()
     await typeWriter(box, "{green-fg}[SYSTEM]: Balance maintained. Neural link stable.{/green-fg}");
@@ -815,7 +858,16 @@ async function accessLuxFiles(box) {
                         "{blink}PRESS [ENTER] TO CONTINUE.{/blink}{/center}"
                     );
                     screen.render();
-                    screen.key(['enter', 'escape'], () => credits());
+                    
+                    screen.key(['enter', 'escape'], () => setTimeout(() => {
+                        stopAudio()
+
+                        setTimeout(() => {
+                        credits()
+                        },200)
+                        
+                    },300)
+                );
                 });
             }, 2000);
         } else {
@@ -914,6 +966,7 @@ playalarm()
         }
     });
 }
+
 async function coreFinalSequence(box) {
     box.setContent("");
     const achPath = path.join(__dirname, '..', 'ACHIEVEMENTS', 'PACPRO.ach');
@@ -948,71 +1001,6 @@ async function coreFinalSequence(box) {
     }));
     box.setContent("{center}CHAIR LOCKED. USER INTEGRATED.\n\nINITIALIZING BALANCER.js...{/center}");
     screen.render();
-    playceo()
-    const balancerProc = spawn('cmd.exe', ['/c', 'start', '/wait', 'node', 'BALANCER.js'], {
-        shell: false
-    });
-    balancerProc.on('exit', () => {
-        const successFile = './BALANCER_SUCCESS.status';
-        const isSecretRoute = fs.existsSync('./TERMINALACCESS/SECRET_ROUTE.status');
-        if (!fs.existsSync(successFile)) {
-            if (!fs.existsSync('../ACHIEVEMENTS/SHADOW_FALL.ACH')) {
-                showAchievementToast('CORE MELTDOWN')
-                fs.writeFileSync('../ACHIEVEMENTS/SHADOW_FALL.ACH', 'COMPLETED')
-            }
-        }
-        if (fs.existsSync(successFile)) {
-            fs.unlinkSync(successFile);
-            if (isSecretRoute) {
-                fs.unlinkSync('./TERMINALACCESS/SECRET_ROUTE.status');
-                ceoConfrontation();
-            } else {
-                if (!fs.existsSync('../ACHIEVEMENTS/GHOST_GUARDIAN.ACH')) {
-                    showAchievementToast('DIGITAL SHEPHEAD')
-                    fs.writeFileSync('../ACHIEVEMENTS/GHOST_GUARDIAN.ACH', 'COMPLETED')
-                }
-                accessLuxFiles(box);
-            }
-        } else {
-            execGameOver("The core exploded. The Fade consumed reality.");
-        }
-    });
-}
-async function coreFinalSequence(box) {
-    box.setContent("");
-    const achPath = path.join(__dirname, '..', 'ACHIEVEMENTS', 'PACPRO.ach');
-    const isElite = fs.existsSync(achPath);
-    if (isElite) {
-        playBeep2()
-        await typeWriter(box, "{yellow-fg}[ELITE DATA UNLOCKED]: PROJECT FADE - PRELUDE TO 1999.{/yellow-fg}");
-        await new Promise(res => screen.once('keypress', (ch, key) => {
-            if (key.name === 'enter') res();
-        }));
-        playBeep2()
-        await typeWriter(box, "{yellow-fg}[PRELUDE]: 'The city didn't lose power in 1999. It was consumed to fuel the first upload.'{/yellow-fg}");
-        await new Promise(res => screen.once('keypress', (ch, key) => {
-            if (key.name === 'enter') res();
-        }));
-        box.setContent("");
-    }
-    playBeep2()
-    await typeWriter(box, "[SYSTEM]: Administrative rights: DENIED. Manual core maintenance required.");
-    await new Promise(res => screen.once('keypress', (ch, key) => {
-        if (key.name === 'enter') res();
-    }));
-    playBeep2()
-    await typeWriter(box, "[NARRATOR]: Mechanical arms emerge from the ceiling, forcing you into the Control Chair.");
-    await new Promise(res => screen.once('keypress', (ch, key) => {
-        if (key.name === 'enter') res();
-    }));
-    playBeep2()
-    await typeWriter(box, "[SYSTEM]: Energy fluctuation detected. Initialize BALANCER.js to prevent blackout.");
-    await new Promise(res => screen.once('keypress', (ch, key) => {
-        if (key.name === 'enter') res();
-    }));
-    box.setContent("{center}CHAIR LOCKED. USER INTEGRATED.\n\nINITIALIZING BALANCER.js...{/center}");
-    screen.render();
-    playceo()
     const balancerProc = spawn('cmd.exe', ['/c', 'start', '/wait', 'node', 'BALANCER.js'], {
         shell: false
     });
@@ -1816,6 +1804,7 @@ process.exit();
             playBeep2();
             menu.hide();
             logoBox.hide();
+            stage = checkpointData.last_stage
             loadStage(checkpointData.last_stage);
             return;
         }
