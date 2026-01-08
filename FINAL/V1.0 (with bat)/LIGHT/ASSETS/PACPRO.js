@@ -1,19 +1,55 @@
 const blessed = require('blessed');
 const fs = require('fs');
 const path = require('path');
-
-// --- AUTO-CLEANUP ON STARTUP ---
-// Delete remnants of previous matches before starting the screen
+const { exec } = require('child_process');
+const player_audio = require('play-sound')({
+    player: '../AUDIO/PLAYER/cmdmp3.exe'
+});
 const achDir = path.join(__dirname, '..', 'ACHIEVEMENTS');
 const achFile = path.join(achDir, 'PACPRO.ach');
-
+const beepfile = '../AUDIO/EFFECTS/BEEP.wav';      
+const beepfile2 = '../AUDIO/EFFECTS/BEEP2.wav';    
+const winfile = '../AUDIO/EFFECTS/win.wav';        
+const BOOTfile = '../AUDIO/EFFECTS/LUX-4.wav';     
+const sucessofile = '../AUDIO/EFFECTS/win2.wav';   
+const CEOfile = '../AUDIO/TRACKS/CEO.mp3';         
+const GOfile = '../AUDIO/EFFECTS/GAMEOVER.MP3';
 if (fs.existsSync(achFile)) {
     try {
         fs.unlinkSync(achFile);
     } catch (e) {
-        // Silently fail if file is locked
     }
 }
+
+function execGameOver(reason) {
+    gameActive = false;
+    stopAudio();
+    setTimeout(() => {
+        playGameOverSound();
+        mainBox.hide();
+        const goBox = blessed.box({
+            parent: screen,
+            top: 'center', left: 'center', width: 'shrink', height: 'shrink',
+            padding: 2,
+            content: `{center}{red-fg}{bold}GAME OVER{/bold}{/red-fg}\n\n${reason}{/center}`,
+            tags: true,
+            border: { type: 'line', fg: 'red' },
+            style: { bold: true, bg: 'black' }
+        });
+        screen.render();
+        setTimeout(() => process.exit(0), 5000);
+    }, 200);
+}
+
+function stopAudio() { 
+    exec('taskkill /F /IM cmdmp3.exe /T > nul 2>&1'); 
+}
+function playBeep() { player_audio.play(beepfile); }
+function playBeep2() { player_audio.play(beepfile2); }
+function playWin() { player_audio.play(winfile); }
+function playBoot() { player_audio.play(BOOTfile); }
+function playSucessoFinal() { player_audio.play(sucessofile); }
+function playGameOverSound() { player_audio.play(GOfile); }
 
 const screen = blessed.screen({ smartCSR: true, title: 'PACPRO_ULTRA_SUBSYSTEM' });
 
@@ -87,8 +123,8 @@ function showGameOver() {
     clearInterval(gameInterval);
     const goMenu = blessed.list({
         parent: mainBox, top: 'center', left: 'center', width: 35, height: 8,
-        label: ' {red-fg}{bold} SYSTEM FAILURE {/bold}{/red-fg} ',
-        items: [' > RETRY SESSION ', ' > TERMINATE '],
+        label: ' {red-fg}{bold} GAME OVER {/bold}{/red-fg} ',
+        items: [' TRY AGAIN ', ' EXIT '],
         keys: true, border: { type: 'line', fg: 'red' }, tags: true, style: { selected: { bg: 'red', fg: 'white' } }
     });
     goMenu.on('select', (it, idx) => {
@@ -115,7 +151,7 @@ function moveGhosts() {
                 break;
             }
         }
-        if (g.x === player.x && g.y === player.y) showGameOver();
+        if (g.x === player.x && g.y === player.y) execGameOver('THE GHOSTS GOT YOU');
     });
 }
 
@@ -143,12 +179,14 @@ function render() {
 
 const menu = blessed.list({
     parent: mainBox, top: 'center', left: 'center', width: 35, height: 7,
-    label: ' {yellow-fg}PACPRO_OS{/yellow-fg} ', items: [' > INITIALIZE_SIMULATION ', ' > EXIT '],
+    label: ' {yellow-fg}PACPRO_OS{/yellow-fg} ', items: [' INITIALIZE_SIMULATION ', ' EXIT '],
     keys: true, border: { type: 'line', fg: 'yellow' }, tags: true, style: { selected: { bg: 'yellow', fg: 'black' } }
 });
 
 menu.on('select', (it, idx) => {
-    if (idx === 1) process.exit(0);
+    if (idx === 1) {
+        process.exit(0)
+    }
     menu.hide(); gameWindow.show(); sideHUD.show();
     initLevel(0);
 });
@@ -164,6 +202,7 @@ function checkWin() {
             if (!fs.existsSync(achDir)) fs.mkdirSync(achDir, { recursive: true });
             fs.writeFileSync(achFile, `USER: OPERATOR\nSTATUS: PACPRO_ELITE\nDATE: ${new Date().toLocaleString()}`);
             gameWindow.setContent("{center}\n\n{yellow-fg}{bold}CONGRATULATIONS!{/bold}{/yellow-fg}\nCORE DATA OVERWRITTEN\nLOG: PACPRO.ach{/center}");
+            
             screen.render();
             setTimeout(() => process.exit(0), 4000);
         }
@@ -171,9 +210,14 @@ function checkWin() {
     }
     return false;
 }
+menu.on('keypress', (ch, key) => {
+    if (key.name === 'up' || key.name === 'down') {
+        playBeep();
+    }
+});
 
 screen.on('keypress', (ch, key) => {
-    if (key.name === 'f') process.exit(0);
+    if (key.name === 'f') {stopAudio();process.exit(0);}
     if (ch === '4' && gameActive) {
         dotsRemaining = 0;
         checkWin();

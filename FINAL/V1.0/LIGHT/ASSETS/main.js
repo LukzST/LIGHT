@@ -9,7 +9,8 @@ const path = require('path');
 const os = require('os');
 let stage
 const { on } = require('events');
-let shouldShutdown = false; // Controle global
+const { escape } = require('querystring');
+let shouldShutdown = false;
 
 const player = require('play-sound')({
  player: '../AUDIO/PLAYER/cmdmp3.exe'
@@ -393,6 +394,8 @@ if (fs.existsSync('../CONFIG/DIFFICULTY.txt')) {
 }
 
 function credits() {
+    screen.unkey('enter');
+    screen.unkey('escape');
     if (iscreditsOpen) return;
     if (audiostate === 'ON') stopAudio();
     
@@ -425,8 +428,6 @@ function credits() {
         content: '{grey-fg}{bold}PRESS [ENTER] FOR ACTIONS{/grey-fg}{/}',
         style: { fg: '#555555' }
     });
-
-    // --- FUNÇÃO PARA SAIR DO JOGO ---
     const exitToMenu = () => {
         stopcreditsaudio();
         screen.destroy();
@@ -438,17 +439,10 @@ function credits() {
             },300)
             
         } else {
-            const child = spawn('cmd.exe', ['/c', 'start', 'node', 'menu.js'], {
-                shell: true,
-                detached: true,
-                stdio: 'ignore'
-            });
-            child.unref();
             process.exit(0);
         }
     };
 
-    // --- MENU SUSPENSO (ACIONADO PELO ENTER) ---
     const fastMenu = blessed.list({
         parent: bgOverlay,
         bottom: 3,
@@ -461,7 +455,7 @@ function credits() {
         hidden: true,
         keys: true,
         items: [
-            ' TWITTER (X) ',
+            ' INSTAGRAM ',
             ' EXIT TO MAIN MENU ',
             ' CANCEL '
         ],
@@ -473,7 +467,6 @@ function credits() {
         index: 1000
     });
 
-    // --- MENU FINAL (APARECE QUANDO OS SLIDES ACABAM) ---
     const finalMenu = blessed.list({
         parent: bgOverlay,
         top: 'center',
@@ -485,7 +478,7 @@ function credits() {
         tags: true,
         hidden: true,
         keys: true,
-        items: [' 1. REPLAY CREDITS ', ' 2. TWITTER (X) ', ' 3. EXIT TO MENU '],
+        items: [' REPLAY CREDITS ', ' INSTAGRAM ', ' EXIT TO MENU '],
         style: {
             border: { fg: COLORDEFAULT },
             label: { fg: COLORDEFAULT, bold: true },
@@ -504,13 +497,13 @@ function credits() {
         `{center}{yellow-fg}LEVEL DESIGN{/yellow-fg}\n\n{bold}ISABELLA SANCHES{/bold}{/center}`,
         `{center}{yellow-fg}STORY DESIGNER{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
         `{center}{yellow-fg}SOUND DESIGN{/yellow-fg}\n\n{bold}LUCAS EDUARDO\nISABELLA SANCHES{/bold}{/center}`,
-        `{center}{yellow-fg}UI/UX ART & QUALITY ASSURANCE{/yellow-fg}\n\n{bold}LUIZ OTÁVIO{/bold}{/center}`,
+        `{center}{yellow-fg}QUALITY ASSURANCE{/yellow-fg}\n\n{bold}LUIZ OTÁVIO{/bold}{/center}`,
         `{center}{yellow-fg}ENDING THEME{/yellow-fg}\n\n{bold}THE LAST CHOICE - LIGHT OST{/bold}{/center}`,
         `{center}{yellow-fg}PUBLICITY{/yellow-fg}\n\n{bold}PALE LUNA DEVELOPER{/bold}{/center}`,
-        `{center}{yellow-fg}BETA TESTER{/yellow-fg}\n\n{bold}LUCAS EDUARDO, ISABELLA SANCHES, LUIZ OTÁVIO and some friends{/bold}{/center}`,
+        `{center}{yellow-fg}BETA TESTERS{/yellow-fg}\n\n{bold}LUCAS EDUARDO, ISABELLA SANCHES, LUIZ OTÁVIO and some friends{/bold}{/center}`,
         `{center}{yellow-fg}PRODUCT COORDINATOR{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
         `{center}{yellow-fg}THANKS FOR PLAYING{/yellow-fg}`,
-        `{center}CREATED FOR THE FADE\n\n${currentYear} © ALL RIGHTS RESERVED{/center}`
+        `{center}CREATED BY PALE LUNA DEVELOPER\n\n${currentYear} © ALL RIGHTS RESERVED{/center}`
     ]; 
 
     let currentSlide = 0;
@@ -527,7 +520,7 @@ function credits() {
                 currentSlide++;
                 screen.render();
                 slideTimer = setTimeout(showNextSlide, 5500); 
-            }, 1500);
+            }, 1600);
         } else {
             stopcreditsaudio();
             displayBox.hide();
@@ -538,19 +531,20 @@ function credits() {
         }
     }
 
-    // Listener de tecla ENTER para abrir o menu suspenso
-    screen.on('keypress', (ch, key) => {
-        if (key && key.name === 'enter' && iscreditsOpen && !finalMenu.visible && !fastMenu.visible) {
+screen.on('keypress', (ch, key) => {
+    if (key && key.name === 'enter') {
+        if (iscreditsOpen && !finalMenu.visible && !fastMenu.visible) {
             fastMenu.show();
             fastMenu.focus();
             screen.render();
+            return;
         }
-    });
+    }
+});
 
-    // Ações do Menu Suspenso (Enter)
     fastMenu.on('select', (item) => {
         const txt = item.getText();
-        if (txt.includes('TWITTER')) exec('start https://twitter.com/PlayLightGame');
+        if (txt.includes('INSTAGRAM')) exec('start https://instagram.com/PlayLightGame');
         if (txt.includes('EXIT')) exitToMenu();
         if (txt.includes('CANCEL')) {
             fastMenu.hide();
@@ -558,7 +552,6 @@ function credits() {
         }
     });
 
-    // Ações do Menu Final (Fim automático)
     finalMenu.on('select', (item) => {
         const txt = item.getText();
         if (txt.includes('REPLAY')) {
@@ -569,11 +562,10 @@ function credits() {
             playcreditsaudio();
             showNextSlide();
         }
-        if (txt.includes('TWITTER')) exec('start https://twitter.com/PlayLightGame');
+        if (txt.includes('INSTAGRAM')) exec('start https://instagram.com/PlayLightGame');
         if (txt.includes('EXIT')) exitToMenu();
     });
 
-    // Sons de navegação
     [fastMenu, finalMenu].forEach(m => {
         m.on('select item', () => playBeep());
     });
@@ -605,7 +597,6 @@ function playcreditsaudio() {
     });
 }
 
-// Variáveis de Tempo
 let playtimeSeconds = 0;
 let playtimeStatus = 'OFF';
 
@@ -709,12 +700,11 @@ function showCheckpointToast() {
 }
 
 function saveCheckpoint(stageName) {
-    // Detecta se o jogador está na rota alternativa/rebelde no momento do save
     const isSecret = fs.existsSync('./TERMINALACCESS/SECRET_ROUTE.status');
 
     const saveData = {
         last_stage: stageName,
-        secret_route: isSecret, // Persiste o estado da rota secreta
+        secret_route: isSecret,
         timestamp: new Date().toISOString(),
         user: os.userInfo().username
     };
@@ -725,39 +715,32 @@ function saveCheckpoint(stageName) {
         if (!fs.existsSync(path.dirname(savePath))) {
             fs.mkdirSync(path.dirname(savePath), { recursive: true });
         }
-        // Salva o JSON formatado
         fs.writeFileSync(savePath, JSON.stringify(saveData, null, 2));
         showCheckpointToast();
     } catch (e) {
-        // Silencioso em caso de erro de permissão de escrita
     }
 }
 
 function loadStage(stageName) {
     showLoadToast();
     
-    // 1. Restaurar Flags de Rota antes de carregar a fase
     const savePath = path.join(__dirname, '..', 'CONFIG', 'CHECKPOINT.json');
     if (fs.existsSync(savePath)) {
         try {
             const checkpointData = JSON.parse(fs.readFileSync(savePath, 'utf8'));
             if (checkpointData.secret_route) {
-                // Se o save diz que é rota secreta, garante que o arquivo de status exista
                 if (!fs.existsSync('./TERMINALACCESS/SECRET_ROUTE.status')) {
                     fs.writeFileSync('./TERMINALACCESS/SECRET_ROUTE.status', '1');
                 }
             }
         } catch (e) {
-            // Erro ao ler JSON corrupto
         }
     }
 
-    // 2. Limpar a interface para o novo estágio
     container.children.forEach(c => {
         if (c !== statusBox) c.hide();
     });
 
-    // 3. Delay para simular carregamento e iniciar lógica
     setTimeout(async () => {
         statusBox.setContent(` [SYSTEM]: Restoring Sector: ${stageName}... `);
         screen.render();
@@ -771,7 +754,6 @@ function loadStage(stageName) {
                     await officeChaosPhase(); 
                     break;
                 case "POWER_ACTIVE": 
-                    // Garante que a energia esteja ativa se o save for neste ponto
                     fs.writeFileSync('./TERMINALACCESS/POWER_ACTIVE.status', '1');
                     await officeChaosPhase(); 
                     break;
@@ -1130,7 +1112,6 @@ async function ceoConfrontation() {
     stopAudio();
     playwarning();
 
-    // 1. OVERLAY TOTAL (IGUAL AO CRÉDITOS/MENU)
     const bg1Overlay = blessed.box({
         parent: screen,
         top: 0,
@@ -1141,7 +1122,6 @@ async function ceoConfrontation() {
         style: { bg: 'black' }
     });
 
-    // 2. LOGO NO TOPO (IGUAL AO STARTMAINMENU)
     const logoBox = blessed.text({
         parent: bg1Overlay,
         top: 2,
@@ -1153,14 +1133,13 @@ async function ceoConfrontation() {
         align: 'center'
     });
 
-    // 3. TEXTO DE AVISO SÉRIO
    const warningText = blessed.box({
     parent: bg1Overlay,
     top: 12,
     left: 'center',
-    width: '50%', // Mesmo comprimento da choiceMenu para alinhar as bordas
+    width: '50%', 
     height: 'shrink',
-    padding: 1,   // Espaço interno para o texto não encostar na borda
+    padding: 1,  
     align: 'center',
     tags: true,
     border: 'line',
@@ -1171,11 +1150,11 @@ async function ceoConfrontation() {
              'Do you authorize this action?',
     style: { 
         fg: 'white',
-        border: { fg: 'red' } // Corrigido de 'red-fg' para apenas 'red'
+        border: { fg: 'red' } 
     }
 });
 
-    // 4. MENU DE ESCOLHA (ESTILO STARTMAINMENU)
+    
     const choiceMenu = blessed.list({
         parent: bg1Overlay,
         top: 25,
@@ -1190,7 +1169,7 @@ async function ceoConfrontation() {
         border: {
             type: 'line'
         },
-        style: style, // Usa o seu objeto 'style' global
+        style: style, 
         align: 'center'
     });
 
@@ -1199,16 +1178,14 @@ async function ceoConfrontation() {
 
     choiceMenu.on('select', (item, idx) => {
         playBeep2();
-        shouldShutdown = (idx === 1); // Define se vai desligar no final de tudo
+        shouldShutdown = (idx === 1); 
 
-        // Remove o aviso para seguir com a lore
         bg1Overlay.destroy();
         choiceMenu.destroy()
         warningText.destroy()
         logoBox.destroy()
         screen.render();
 
-        // --- LORE DO CEO (VBS) ---
         const vbsPath = path.join(os.tmpdir(), 'ceo_chat.vbs');
         fs.writeFileSync(vbsPath, `
             Set objShell = CreateObject("WScript.Shell")
@@ -1235,7 +1212,7 @@ async function ceoConfrontation() {
             }
 
             container.children.forEach(c => c.hide());
-            credits(); // Chama os créditos originais
+            credits();
         });
     });
 
@@ -1470,7 +1447,7 @@ async function arrivalAtSublevel(box) {
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
-    box.setContent(""); // Limpa para a próxima ou use box.content += "\n"
+    box.setContent("");
     playBeep2()
     await typeWriter(box, "[SYSTEM]: ARRIVAL: SUBLEVEL 7 - RESEARCH AND DEVELOPMENT.");
     await new Promise(res => screen.once('keypress', (ch, key) => {
@@ -1694,7 +1671,7 @@ async function startGameplay(initialTime) {
         align: 'center'
     });
     const timerInterval = setInterval(() => {
-        timeRemaining--; // Tempo agora corre sem parar nunca
+        timeRemaining--;
         timerBox.setContent(`TIME: ${timeRemaining}s`);
         if (timeRemaining <= 3) {
             timerBox.style.fg = 'red';
@@ -1868,7 +1845,6 @@ function startMainMenu() {
         align: 'center'
     });
 
-    // --- LÓGICA DE VERIFICAÇÃO DE CHECKPOINT ---
     const checkPath = path.join(__dirname, '..', 'CONFIG', 'CHECKPOINT.json');
     let hasCheckpoint = fs.existsSync(checkPath);
     let checkpointData = null;
@@ -1880,7 +1856,6 @@ function startMainMenu() {
         }
     }
 
-    // Define os itens dinamicamente
     let menuItems = [' START NEW SURVEY '];
     if (hasCheckpoint) {
         menuItems.push(' CONTINUE MISSION ');
@@ -1892,7 +1867,7 @@ function startMainMenu() {
         top: 15,
         left: 'center',
         width: '40%',
-        height: hasCheckpoint ? 8 : 6, // Ajusta altura se tiver mais itens
+        height: hasCheckpoint ? 8 : 6,
         items: menuItems,
         keys: true,
         border: {
@@ -1908,10 +1883,6 @@ function startMainMenu() {
 
         function closeft() {
             playback();
-           const child = spawn('cmd.exe', ['/c', 'start', '/wait', 'node', 'menu.js'], {
-                shell: false,
-                detached: true
-            });
             setTimeout(() => {
 process.exit();
             },200)
@@ -1949,7 +1920,7 @@ process.exit();
     });
 
     menu.on('select item', () => {
-    playBeep(); // <--- Som de "tic" ao subir/descer no menu
+    playBeep(); 
 });
 
     menu.focus();
@@ -1966,7 +1937,6 @@ screen.key(['escape', 'C-c'], () => {
 });
 const isGameFinished = fs.existsSync('./TERMINALACCESS/FINAL.status');
 if (isGameFinished) {
-    // 1. OVERLAY DE FUNDO PRETO TOTAL (ESTILO MENU)
     const bgWinOverlay = blessed.box({
         parent: screen,
         top: 0,
@@ -1977,7 +1947,6 @@ if (isGameFinished) {
         style: { bg: 'black' }
     });
 
-    // 2. LOGO NO TOPO (ESTILO MENU)
     const logoWin = blessed.text({
         parent: bgWinOverlay,
         top: 2,
@@ -1987,7 +1956,6 @@ if (isGameFinished) {
         align: 'center'
     });
 
-    // 3. BOX DE VITÓRIA (CENTRALIZADO)
     const winBox = blessed.box({
         parent: bgWinOverlay,
         top: 12,
@@ -2004,17 +1972,16 @@ if (isGameFinished) {
         style: { bg: 'black' }
     });
 
-    // 4. MENU DE OPÇÕES (DENTRO DO BOX)
     const winMenu = blessed.list({
         parent: winBox,
-        top: 4, // Ajustado para não colar na borda
+        top: 4, 
         left: 'center',
         width: '80%',
         height: 4,
         items: [' DELETE SAVE AND RETRY ', ' CLOSE TERMINAL '],
         keys: true,
         align: 'center',
-        style: style // Usa o seu style global
+        style: style 
     });
 
     winMenu.on('select', (it, idx) => {
@@ -2042,8 +2009,7 @@ process.on('exit', () => {
     saveFinalTime();
 });
 
-// Se o usuário apertar ESC para sair
-screen.key(['escape', 'C-c'], () => {
+screen.key(['escape', 'q', 'Q', 'C-c'], () => {
     if (iscreditsOpen) {
         saveFinalTime();
     } else {

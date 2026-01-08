@@ -43,7 +43,6 @@ function showAchievementToast(id) {
         }
     });
 
-    // --- GARANTE O TOPO ABSOLUTO ---
     toast.setIndex(100); 
     
     screen.render();
@@ -54,11 +53,9 @@ function showAchievementToast(id) {
     }, 5000);
 }
 
-// Monitora a pasta por novos arquivos .ach
 function watchAchievements() {
     const achDir = path.join(__dirname, '..', 'ACHIEVEMENTS');
     
-    // Garante que a pasta existe para não dar erro no watch
     if (!fs.existsSync(achDir)) {
         fs.mkdirSync(achDir, { recursive: true });
     }
@@ -67,7 +64,6 @@ function watchAchievements() {
         if (eventType === 'rename' && filename && filename.endsWith('.ach')) {
             const filePath = path.join(achDir, filename);
             
-            // Se o arquivo foi criado (e não deletado)
             if (fs.existsSync(filePath)) {
                 const achId = filename.replace('.ach', '');
                 showAchievementToast(achId);
@@ -76,7 +72,6 @@ function watchAchievements() {
     });
 }
 
-// Inicia o monitoramento
 
 
 async function typeWriter(box, text, delay = 30) {
@@ -139,7 +134,6 @@ The souls in the grid are stable batteries.
 
 logBox.setContent(leakText);
 
-// --- SAVE ACTION ---
 screen.key(['s'], () => {
         if (!fs.existsSync('../ACHIEVEMENTS/LEAK_SAVED.ACH')) {
                 showAchievementToast('WHISTLEBLOWER')
@@ -148,7 +142,6 @@ screen.key(['s'], () => {
 
     const desktop = path.join(os.homedir(), 'Desktop', 'LUX_CONFIDENTIAL_LEAK.txt');
     
-    // Formatting the plain text for the .txt file
     const fileContent = `LUX-4 INTERNAL AUDIT - PROJECT FADE (1999)
 --------------------------------------------------
 The Fade was a calculated release of necro-static. 
@@ -161,16 +154,12 @@ Goal: Market digital dependency as the only survival.
     
     try {
         fs.writeFileSync(desktop, fileContent);
-        
-        // Visual feedback inside the terminal
         logBox.setContent(leakText + "\n\n{yellow-fg}DATA EXPORTED TO DESKTOP. DISCONNECT TO PROCEED.{/yellow-fg}");
         screen.render();
     } catch (e) {
-        // Silent fail
     }
 });
 
-// --- EXIT ACTION ---
 screen.key(['escape', 'q', 'C-c'], () => {
     process.exit(0);
 });

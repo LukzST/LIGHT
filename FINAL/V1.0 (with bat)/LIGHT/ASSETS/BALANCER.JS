@@ -2,13 +2,12 @@ const blessed = require('blessed');
 const fs = require('fs');
 const { exec } = require('child_process');
 
-// --- CONFIGURAÇÃO DE ÁUDIO (APENAS EFEITOS) ---
-const beepfile = '../AUDIO/EFFECTS/BEEP.wav';      // Movimento (A/D)
-const beepfile2 = '../AUDIO/EFFECTS/BEEP2.wav';    // Digitou no Hack / Acerto
-const winfile = '../AUDIO/EFFECTS/win.wav';        // Estabilizou (Bar Sync)
-const BOOTfile = '../AUDIO/EFFECTS/LUX-4.wav';     // Início
-const sucessofile = '../AUDIO/EFFECTS/win2.wav';   // Vitória Final
-const GOfile = '../AUDIO/EFFECTS/GAMEOVER.MP3';    // Erro / Game Over
+const beepfile = '../AUDIO/EFFECTS/BEEP.wav';      
+const beepfile2 = '../AUDIO/EFFECTS/BEEP2.wav';    
+const winfile = '../AUDIO/EFFECTS/win.wav';        
+const BOOTfile = '../AUDIO/EFFECTS/LUX-4.wav';     
+const sucessofile = '../AUDIO/EFFECTS/win2.wav';   
+const GOfile = '../AUDIO/EFFECTS/GAMEOVER.MP3';    
 
 const player = require('play-sound')({
     player: '../AUDIO/PLAYER/cmdmp3.exe'
@@ -20,7 +19,6 @@ const screen = blessed.screen({
     style: { bg: 'black' }
 });
 
-// --- SYSTEM STATE ---
 let timeLeft = 30;
 let modeTimer = 5;
 let gameActive = false; 
@@ -32,7 +30,7 @@ let pulseVal = 0;
 let pulseTargetPos = 75;
 let hackChar = '';
 
-// --- UI COMPONENTS ---
+
 const mainBox = blessed.box({
     parent: screen,
     top: 'center', left: 'center', width: '95%', height: '90%',
@@ -47,8 +45,22 @@ const timerText = blessed.text({
 });
 
 const integrityBar = blessed.progressbar({
-    parent: mainBox, top: 1, left: 2, width: '40%', height: 1,
-    label: ' CORE INTEGRITY ', barBg: 'green', bg: '#222', filled: 100
+    parent: mainBox,
+    top: 1,
+    left: 2,
+    width: '40%',
+    height: 1,
+    content: ' CORE INTEGRITY ', 
+    tags: true,
+    barBg: 'green',
+    bg: '#222',
+    filled: 100,
+    style: {
+        
+        text: {
+            fg: 'black',
+        }
+    }
 });
 
 const infoBox = blessed.box({
@@ -77,7 +89,6 @@ const hackDisplay = blessed.box({
     border: { type: 'line', fg: 'magenta' }, hidden: true, align: 'center', valign: 'middle', tags: true
 });
 
-// --- FUNÇÕES DE ÁUDIO ---
 function stopAudio() { exec('taskkill /F /IM cmdmp3.exe /T > nul 2>&1'); }
 function playBeep() { player.play(beepfile); }
 function playBeep2() { player.play(beepfile2); }
@@ -86,7 +97,6 @@ function playBoot() { player.play(BOOTfile); }
 function playSucessoFinal() { player.play(sucessofile); }
 function playGameOverSound() { player.play(GOfile); }
 
-// --- LOGIC ---
 function execGameOver(reason) {
     gameActive = false;
     stopAudio();

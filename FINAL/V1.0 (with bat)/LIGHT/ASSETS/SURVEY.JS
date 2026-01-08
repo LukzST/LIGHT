@@ -3,18 +3,15 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 const path = require('path');
 
-// Variáveis de Estado
 let perfil = { sozinho: false, semPreocupacao: false };
 let etapaAtual = 0;
 
-// Configuração da Tela
 const screen = blessed.screen({
     smartCSR: true,
     title: 'LUX-4 SURVEY SYSTEM',
     fullUnicode: true
 });
 
-// Caixa Principal de Texto (Terminal)
 const terminal = blessed.box({
     parent: screen,
     top: 'center',
@@ -37,7 +34,6 @@ const terminal = blessed.box({
     }
 });
 
-// Campo de Entrada
 const input = blessed.textbox({
     parent: screen,
     bottom: 2,
@@ -53,7 +49,6 @@ const input = blessed.textbox({
     inputOnFocus: true
 });
 
-// Função para simular digitação no Blessed (CORRIGIDA)
 async function digitar(texto, delay = 30) {
     const prefixo = terminal.getContent() ? terminal.getContent() + "\n" : "";
     
@@ -63,7 +58,7 @@ async function digitar(texto, delay = 30) {
         const interval = setInterval(() => {
             acumulado += texto[i];
             terminal.setContent(prefixo + acumulado);
-            terminal.setScrollPerc(100); // Força o scroll para baixo
+            terminal.setScrollPerc(100); 
             screen.render();
             i++;
             if (i === texto.length) {
@@ -106,25 +101,22 @@ async function revelarTheFade() {
     screen.onceKey(['enter'], () => process.exit());
 }
 
-// Lógica Principal do Fluxo
 async function processarResposta(res) {
     let rawRes = res.toLowerCase().trim();
     input.clearValue();
-    
-    // Evita inputs vazios em etapas críticas
     if (etapaAtual > 0 && !rawRes) {
         input.focus();
         return;
     }
 
     switch(etapaAtual) {
-        case 0: // IS ANYONE THERE?
+        case 0: 
             etapaAtual = 1;
             await digitar(`\n> ${res}\n`);
             await digitar("ARE YOU ALONE?");
             break;
 
-        case 1: // ARE YOU ALONE?
+        case 1: 
             if (!["yes", "sim", "no", "nao", "não"].includes(rawRes)) {
                 return falhaTotal("INVALID RESPONSE.");
             }
@@ -134,7 +126,7 @@ async function processarResposta(res) {
             await digitar("WOULD ANYONE MISS YOU IF YOU... DISAPPEARED?");
             break;
 
-        case 2: // WOULD ANYONE MISS YOU?
+        case 2: 
             if (!["yes", "sim", "no", "nao", "não"].includes(rawRes)) {
                 return falhaTotal("INCONSISTENT INPUT.");
             }
@@ -144,7 +136,7 @@ async function processarResposta(res) {
             await digitar("DO YOU KNOW WHO YOU ARE?");
             break;
 
-        case 3: // DO YOU KNOW WHO YOU ARE?
+        case 3: 
             await digitar(`\n> ${res}\n`);
             if (rawRes === "yes" || rawRes === "sim") {
                 etapaAtual = 4;
@@ -162,7 +154,7 @@ async function processarResposta(res) {
             }
             break;
 
-        case 4: // NAME REGISTRATION
+        case 4: 
             if (rawRes === "operator_07") {
                 etapaAtual = 5;
                 await digitar("\nRECOGNIZED. MEMORY SENSOR ACTIVE.");
@@ -173,7 +165,7 @@ async function processarResposta(res) {
             }
             break;
 
-        case 5: // CODE VERIFICATION
+        case 5: 
             if (rawRes === "4624") {
                 input.hide();
                 terminal.style.fg = 'cyan';
@@ -194,12 +186,10 @@ async function processarResposta(res) {
     screen.render();
 }
 
-// Inicialização
 input.on('submit', (value) => {
     processarResposta(value);
 });
 
-// Força o foco no input se o usuário clicar fora
 screen.on('click', () => input.focus());
 
 screen.key(['C-c'], () => process.exit());

@@ -2,11 +2,10 @@ const blessed = require('blessed');
 const fs = require('fs');
 const { exec } = require('child_process');
 
-// --- CAMINHOS DE ÁUDIO ---
-const beepfile = '../AUDIO/EFFECTS/BEEP.wav';      // Seleção (Navegação)
-const beepfile2 = '../AUDIO/EFFECTS/BEEP2.wav';    // Apertei em cima
-const winfile = '../AUDIO/EFFECTS/win.wav';        // Sucesso
-const warningfile = '../AUDIO/EFFECTS/warning.wav';// Falha
+const beepfile = '../AUDIO/EFFECTS/BEEP.wav';      
+const beepfile2 = '../AUDIO/EFFECTS/BEEP2.wav';    
+const winfile = '../AUDIO/EFFECTS/win.wav';        
+const warningfile = '../AUDIO/EFFECTS/warning.wav';
 const freshfile = '../AUDIO/EFFECTS/FRESH.wav';
 const CEOfile = '../AUDIO/TRACKS/CEO.mp3';
 const BOOTfile = '../AUDIO/EFFECTS/LUX-4.wav';
@@ -18,7 +17,6 @@ const player = require('play-sound')({
     player: '../AUDIO/PLAYER/cmdmp3.exe'
 });
 
-// --- ESTADO E DADOS ---
 let energia = 85, sanidade = 100, saude = 100, passoAtual = 0;
 let audiostate = 'ON';
 let bgmProcess = null;
@@ -33,10 +31,9 @@ const protocolosBase = [
 
 let itensEmbaralhados = [...protocolosBase];
 
-// --- UI COMPONENTS ---
+
 const screen = blessed.screen({ smartCSR: true, title: 'POWER MANAGEMENT CONSOLE - SECTOR 4' });
 
-// Container principal para facilitar o hide() no Game Over
 const container = blessed.box({
     parent: screen,
     width: '100%',
@@ -70,7 +67,6 @@ const menuBox = blessed.list({
     }
 });
 
-// --- ARTWORK ---
 const ART_CHECK = `{green-fg}{bold}
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣿⣿⠆⠀
@@ -104,7 +100,6 @@ const ART_X = `{red-fg}{bold}
 ⠀⠀⠀⣴⣿⣿⣿⡿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢿⣿⣿⣿⣿⣦⠀⠀
 ⠀⠀⠀⠉⠉⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠉⠉⠀⠀{/}`;
 
-// --- FUNÇÕES DE ÁUDIO ---
 function stopAudio() { exec('taskkill /F /IM cmdmp3.exe /T > nul 2>&1'); }
 function playBeep() { player.play(beepfile); }
 function playBeep2() { player.play(beepfile2); }
@@ -115,13 +110,12 @@ function playsucesso() { player.play(sucessofile); }
 function playGameOverSound() { player.play(GOfile); }
 function playAlarm() { player.play(alarm); }
 
-// --- GAME OVER BOX ---
+
 function execGameOver(reason) {
     stopAudio();
     setTimeout(() => {
         playGameOverSound();
         
-        // Esconde todos os elementos do container
         container.children.forEach(c => c.hide());
         
         const goBox = blessed.box({
@@ -145,7 +139,6 @@ function execGameOver(reason) {
 
         screen.render();
         
-        // Remove arquivo de status se existir
         if (fs.existsSync('./TERMINALACCESS/POWER_ACTIVE.status')) {
             fs.unlinkSync('./TERMINALACCESS/POWER_ACTIVE.status');
         }
@@ -154,7 +147,6 @@ function execGameOver(reason) {
     }, 200);
 }
 
-// --- FUNÇÕES DE LÓGICA ---
 function shuffleProtocols() {
     itensEmbaralhados = [...protocolosBase].sort(() => Math.random() - 0.5);
     menuBox.setItems(itensEmbaralhados.map(i => i.text));
@@ -240,7 +232,6 @@ function startFinalAuth() {
     screen.render();
 }
 
-// --- EVENTOS ---
 menuBox.on('keypress', (ch, key) => {
     if (key.name === 'up' || key.name === 'down') {
         playBeep();
@@ -268,7 +259,6 @@ menuBox.on('select', (item, index) => {
         showFeedback(ART_CHECK, false);
         logBox.add(`{green-fg}[OK]: STEP_${passoAtual} VERIFIED.{/}`);
     } else {
-        // Se errar a sequência, perde bastante status
         playGameOverSound();
         showFeedback(ART_X, true);
         logBox.add("{red-fg}[FAILURE]: GRID RESET.{/}");
@@ -286,7 +276,6 @@ screen.key(['escape', 'C-c'], () => {
     process.exit(0);
 });
 
-// --- BOOT ---
 updateStatus();
 shuffleProtocols();
 menuBox.focus();

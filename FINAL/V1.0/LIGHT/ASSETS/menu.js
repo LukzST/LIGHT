@@ -4,6 +4,8 @@ const { spawn } = require('child_process');
 const { exec } = require('child_process');
 const fs = require('fs');
 let isBooting = true;
+let isBooting2 = true;
+let isERASE = false
 let blockMenuInput = false;
 let isOverrideActive = false;
 const path = require('path');
@@ -13,7 +15,11 @@ let dots = 0;
 const player = require('play-sound')({
  player: '../AUDIO/PLAYER/cmdmp3.exe'
 });
+const achDir = '../Achievements'; 
 
+if (!fs.existsSync(achDir)) {
+    fs.mkdirSync(achDir, { recursive: true });
+}
 const rareBootPath = path.join(__dirname, '..', 'Achievements', 'RARE_BOOT.ach');
 const hasRareBoot = fs.existsSync(rareBootPath);
 const audioFile = '../AUDIO/TRACKS/4.mp3';
@@ -32,10 +38,10 @@ const startfile = '../AUDIO/EFFECTS/start.wav'
 const checkpointfile = '../AUDIO/EFFECTS/checkpoint.wav'
 const sucessofile = '../AUDIO/EFFECTS/win2.wav'
 const key = 'lux1999files'
-let hintDisplay = null; // Adicione isso perto das suas outras globais
+let hintDisplay = null;
 let hintListWin = null
-let colorCycles = 0; // Global
- let muteCount = 0; // Global
+let colorCycles = 0;
+ let muteCount = 0;
  let glitchCount = 0;
 let infoAccessCount = 0;
 let achScreenCount = 0;
@@ -75,6 +81,74 @@ const ALL_ACHIEVEMENTS = [
  { id: 'HARD_RESET', name: 'FRESH START', desc: 'Use the Reset to Defaults option in Settings.', hint: 'Wipe the slate clean. Forget the errors of the past.' },
  { id: 'RARE_BOOT', name: 'SYSTEM ANOMALY', desc: 'Triggered the rare LUX-4 initialization sequence.', hint: 'The system has a small chance to reveal its true face upon boot.' },
  ];
+
+
+const LOCK_FILE = path.join(os.tmpdir(), 'lux4_game.lock');
+
+const releaseLock = () => {
+    if (fs.existsSync(LOCK_FILE)) {
+        try { fs.unlinkSync(LOCK_FILE); } catch (e) {}
+    }
+};
+
+if (fs.existsSync(LOCK_FILE)) {
+    let oldPid;
+    try {
+        oldPid = parseInt(fs.readFileSync(LOCK_FILE, 'utf8'));
+    } catch (e) {}
+
+    let isRunning = false;
+    if (oldPid) {
+        try {
+            process.kill(oldPid, 0);
+            isRunning = true;
+        } catch (e) {
+            isRunning = false;
+        }
+    }
+
+    if (isRunning) {
+        const screenLock = blessed.screen({ smartCSR: true });
+        const lockBox = blessed.box({
+            parent: screenLock,
+            top: 'center', left: 'center',
+            width: 60, height: 9,
+            border: 'line',
+            label: ' [ SYSTEM ALERT ] ',
+            tags: true,
+            content: 
+                '\n' +
+                '{center}{red-fg}{bold}ACCESS DENIED{/bold}{/red-fg}{/center}\n' +
+                '{center}──────────────────────────────────────────────────{/center}\n' +
+                '{center}It was detected that the game is already open.{/center}\n' +
+                '{center}Close the other instance before trying again.{/center}\n\n' +
+                '{center}{red-fg}{bold}HAHA NOPE{/bold}{/red-fg}{/center}',
+            style: { border: { fg: 'red' }, label: { fg: 'red', bold: true }, bg: 'black' }
+        });
+
+        screenLock.render();
+        setTimeout(() => process.exit(0), 3500);
+        return;
+    } else {
+
+        releaseLock();
+    }
+}
+
+
+fs.writeFileSync(LOCK_FILE, process.pid.toString());
+
+
+process.on('exit', releaseLock);
+process.on('SIGINT', releaseLock);
+process.on('SIGTERM', releaseLock);
+process.on('SIGHUP', releaseLock); 
+process.on('uncaughtException', (err) => {
+    releaseLock();
+    process.exit(1);
+});
+
+
 const ACHIEVEMENT_NAMES = {
  'PACPRO': 'ELITE OPERATOR',
  'THE_END': 'LIGHT BRINGER',
@@ -114,7 +188,7 @@ const achPath = path.join(__dirname, '..', 'Achievements', 'PACPRO.ach');
 
     
 function showAchievementToast(id) {
-    playwin()
+    
  const name = ACHIEVEMENT_NAMES[id] || id;
  const offset = 2 + (activeToasts * 6);
 
@@ -135,6 +209,7 @@ function showAchievementToast(id) {
  });
  activeToasts++;
  screen.render();
+ playwin()
  setTimeout(() => {
  activeToasts--;
  toast.destroy();
@@ -182,6 +257,7 @@ function initNormalMenu() {
  screen.append(logoBox);
  screen.append(menuBox);
  startLogoAnimation();
+ isBooting2 = false
  mainList.focus();
  screen.render();
 }
@@ -219,7 +295,7 @@ function bootSequence() {
         const controlsBox = blessed.box({
             parent: bootContainer,
             top: 'center', left: 'center',
-            width: 50, height: 14, // Aumentado para caber tudo
+            width: 50, height: 14,
             border: 'line',
             label: ' [ SYSTEM CONTROLS ] ',
             tags: true,
@@ -253,7 +329,6 @@ function bootSequence() {
 
                 screen.render();
 
-                // Mostra a marca por 2.5 segundos e depois entra no menu automaticamente
                 setTimeout(() => {
                     if (EFFECTS_STATUS === 'ON') playstart();
                     bootContainer.destroy();
@@ -273,14 +348,14 @@ function bootSequence() {
 }
 
 function startupSequence() {
-    isconquistaActive = false; // Começa limpo
+    isconquistaActive = false;
     let currentBootIsRare = hasRareBoot || (Math.random() <= 0.10);
 
     if (currentBootIsRare) {
         let isFirstTimeWinning = !hasRareBoot;
 
         if (isFirstTimeWinning) {
-            isconquistaActive = true; // Trava o menu principal
+            isconquistaActive = true;
             showAchievementToast('RARE_BOOT');
             fs.writeFileSync(rareBootPath, 'COMPLETED');
             setTimeout(() => {
@@ -314,12 +389,10 @@ function startupSequence() {
         }, 80);
 
         if (isFirstTimeWinning) {
-            // Guarda refs globais para o overlay limpar depois
             global.bootGlitchInt = glitchInterval;
             global.bootEggBox = easterEggBox;
             global.wasFocusedBoot = wasFocused;
         } else {
-            // Boot raro padrão (para quem já tem a conquista)
             setTimeout(() => {
                 clearInterval(glitchInterval);
                 easterEggBox.destroy();
@@ -333,7 +406,6 @@ function startupSequence() {
     }
 }
 
-// Função auxiliar para limpar a tela e focar o menu
 function finalizeBoot(wasFocused) {
     isconquistaActive = false
     menuBox.show();
@@ -573,7 +645,7 @@ const descriptionBox = blessed.box({
 const menuDescriptions = {
  'START MISSION': 'START THE PRIMARY OPERATIONAL PROTOCOL.',
  'PACPRO SUBSYSTEM': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
- 'PACPRO SUBSYSTEM (NEW)': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.', // Descrição solicitada
+ 'PACPRO SUBSYSTEM (NEW)': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
  'ACHIEVEMENTS': 'SEE YOUR ACHIEVEMENTS',
  'CHECKPOINTS': 'SEE YOUR CHECKPOINTS',
  'SETTINGS': 'AUDIO, COLOR, USER AND FULL SCREEN CONFIGURATION.',
@@ -581,7 +653,7 @@ const menuDescriptions = {
  'SYSTEM INFO': 'VIEW SYSTEM AND TERMINAL INFORMATION.',
  'CREDITS': 'INFORMATION ABOUT THE DEVELOPMENT TEAM.',
  'SUPPORT': 'HELP THE DEVELOPMENT OF LIGHT GAME.',
- 'RESET TIME': 'PURGE CURRENT SESSION PLAYTIME AND RESET TEMPORAL VECTORS.',
+ 'RESET TIME': 'ERASE ALL PLAYTIME SETTINGS.',
  'EXIT': 'EXIT THE APPLICATION SAFELY. (DO NOT FORCE CLOSE)'
 };
 
@@ -613,7 +685,7 @@ function showAchievementPopup(achId) {
  border: 'line',
  label: ' [ ACHIEVEMENT UNLOCKED ] ',
  tags: true,
- index: 1000, // Garante que fique no topo de tudo
+ index: 1000,
  content: `{center}\n{yellow-fg}{bold}${ach.name}{/}\n\n${ach.desc}\n\nPRESS ENTER TO DISMISS{/}`,
  style: {
  border: { fg: 'yellow' },
@@ -808,10 +880,8 @@ function showRareBootUnlockedOverlay() {
 
     screen.render();
 
-    // Pequeno delay para registrar o input (evita pegar o enter do boot original)
     setTimeout(() => {
         screen.onceKey(['enter'], () => {
-            // ATIVA BLOQUEIO DE SEGURANÇA CONTRA VAZAMENTO
             blockMenuInput = true;
 
             if (global.bootGlitchInt) clearInterval(global.bootGlitchInt);
@@ -822,7 +892,6 @@ function showRareBootUnlockedOverlay() {
             
             isconquistaActive = false; 
 
-            // Libera o input do menu apenas após 500ms
             setTimeout(() => {
                 blockMenuInput = false;
             }, 500);
@@ -879,18 +948,16 @@ function credits() {
         `{center}{yellow-fg}LEVEL DESIGN{/yellow-fg}\n\n{bold}ISABELLA SANCHES{/bold}{/center}`,
         `{center}{yellow-fg}STORY DESIGNER{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
         `{center}{yellow-fg}SOUND DESIGN{/yellow-fg}\n\n{bold}LUCAS EDUARDO\nISABELLA SANCHES{/bold}{/center}`,
-        `{center}{yellow-fg}UI/UX ART & QUALITY ASSURANCE{/yellow-fg}\n\n{bold}LUIZ OTÁVIO{/bold}{/center}`,
+        `{center}{yellow-fg}QUALITY ASSURANCE{/yellow-fg}\n\n{bold}LUIZ OTÁVIO{/bold}{/center}`,
         `{center}{yellow-fg}ENDING THEME{/yellow-fg}\n\n{bold}THE LAST CHOICE - LIGHT OST{/bold}{/center}`,
         `{center}{yellow-fg}PUBLICITY{/yellow-fg}\n\n{bold}PALE LUNA DEVELOPER{/bold}{/center}`,
-        `{center}{yellow-fg}BETA TESTER{/yellow-fg}\n\n{bold}LUCAS EDUARDO, ISABELLA SANCHES, LUIZ OTÁVIO and some friends{/bold}{/center}`,
+        `{center}{yellow-fg}BETA TESTERS{/yellow-fg}\n\n{bold}LUCAS EDUARDO, ISABELLA SANCHES, LUIZ OTÁVIO and some friends{/bold}{/center}`,
         `{center}{yellow-fg}PRODUCT COORDINATOR{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
         `{center}{yellow-fg}THANKS FOR PLAYING{/yellow-fg}`,
-        `{center}CREATED FOR THE FADE\n\n${currentYear} © ALL RIGHTS RESERVED{/center}`
+        `{center}CREATED BY PALE LUNA DEVELOPER\n\n${currentYear} © ALL RIGHTS RESERVED{/center}`
     ]; 
 
     let currentSlide = 0;
-
-    // A TELA FINAL AGORA É UMA LISTA PROFISSIONAL
     const finalMenu = blessed.list({
         parent: bgOverlay,
         top: 'center',
@@ -903,7 +970,7 @@ function credits() {
         hidden: true,
         keys: true,
         items: [
-            '{center}TWITTER (X){/center}',
+            '{center}INSTAGRAM{/center}',
             '{center}CLOSE{/center}'
         ],
         style: {
@@ -917,7 +984,6 @@ function credits() {
         iscreditsOpen = false;
         buttonsActive = false;
         if (slideTimer) clearTimeout(slideTimer);
-        screen.removeListener('keypress', blockEnter);
         stopcreditsaudio();
         bgOverlay.destroy();
         mainList.focus();
@@ -943,10 +1009,10 @@ function credits() {
                 currentSlide++;
                 screen.render();
                 slideTimer = setTimeout(showNextSlide, 5500); 
-            }, 1500);
+            }, 1600);
         } else {
             stopcreditsaudio();
-            displayBox.hide(); // Esconde o texto para mostrar o menu
+            displayBox.hide();
             skipMsg.hide();
             finalMenu.show();
             setTimeout(() => {
@@ -967,13 +1033,20 @@ function credits() {
     finalMenu.on('select', (item) => {
         if (!buttonsActive) return;
         const txt = item.getText();
-        if (txt.includes('TWITTER')) exec('start https://twitter.com/PlayLightGame');
-        if (txt.includes('CLOSE')) closeCredits();
+        if (txt.includes('INSTAGRAM')) {
+            playBeep2()
+            exec('start https://instagram.com/PlayLightGame');
+        }
+        if (txt.includes('CLOSE')) {
+            playBeep2()
+            closeCredits();
+        }
     });
 
     screen.render();
 }
 function eraseData() {
+    isERASE = true
     playwarning();
     const bg1Overlay = blessed.box({
         parent: screen,
@@ -995,7 +1068,7 @@ function eraseData() {
         label: ' [ ERASE DATA ] ',
         keys: true,
         items: [' YES ', ' NO '],
-        selected: 1, // Inicia no NO por segurança
+        selected: 1, 
         style: {
             border: { fg: COLORDEFAULT },
             selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
@@ -1059,21 +1132,18 @@ function eraseData() {
                 logBox.setContent(`{center}\n\n\n{bold}DATA PURGE COMPLETE{/}{/center}`);
                 screen.render();
                 
-                // Pausa de 1.5s antes de chamar o script (como no seu original)
                 setTimeout(() => {
                     const eraser = spawn('node', ['./EraseData.js'], { stdio: 'inherit' });
                     
                     eraser.on('close', () => {
-                        // Reset de variáveis para o padrão
                         TIME_STATUS = 'ON';
                         COLORNAME = 'RED';
                         COLORDEFAULT = '#ff0000';
                         
                         bg1Overlay.destroy();
                         
-                        // Reconstrói o menu com a ordem correta (Checkpoints, etc)
                         refreshMenu();
-                        
+                        isERASE = false
                         mainList.focus();
                         screen.render();
                     });
@@ -1085,7 +1155,7 @@ function eraseData() {
 
 function erasePlaytime() {
     playwarning()
-    // 1. Lógica para formatar o tempo para exibição
+    isERASE = true
     function formatTime(s) {
         const h = Math.floor(s / 3600);
         const m = Math.floor((s % 3600) / 60);
@@ -1103,18 +1173,16 @@ function erasePlaytime() {
         index: 100
     });
 
-    // Criamos a janela um pouco maior para caber a informação do tempo
     const eraseWin = blessed.list({
         parent: bg1Overlay,
         top: 'center',
         left: 'center',
         width: 45,
-        height: 12, // Aumentado para comportar o texto do tempo
+        height: 12,
         border: 'line',
         label: ' [ TEMPORAL RESET ] ',
         keys: true,
         tags: true,
-        // Exibimos o tempo atual no topo da lista como um cabeçalho visual
         items: [
             `{center}{cyan-fg}CURRENT TIME: ${formatTime(TOTAL_PLAYTIME)}{/}{/center}`,
             `{center}───────────────────────────{/center}`,
@@ -1145,7 +1213,6 @@ function erasePlaytime() {
     eraseWin.on('select', (item) => {
         const txt = item.getText();
         
-        // Se for o cabeçalho, ignorar
         if (txt.includes('SESSION') || txt.includes('──')) return;
 
         if (txt.includes('NO')) {
@@ -1211,6 +1278,7 @@ function erasePlaytime() {
                     setTimeout(() => {
                         bg1Overlay.destroy();
                         refreshMenu();
+                        isERASE = false
                         mainList.focus();
                         screen.render();
                         descriptionBox.setContent('{yellow-fg}TIME DATA HAS BEEN PURGED SUCCESSFULLY.{/}');
@@ -1270,7 +1338,6 @@ function showCheckpointGallery(parentWin) {
         const row = Math.floor(i / cardsPerRow);
         const col = i % cardsPerRow;
         
-        // Regra idêntica às conquistas: Verde se atingido, Branco/Cinza se bloqueado
         const isReached = currentIndex >= i;
 
         blessed.box({
@@ -1280,7 +1347,6 @@ function showCheckpointGallery(parentWin) {
             width: cardWidth, height: cardHeight,
             border: 'line', tags: true,
             style: { 
-                // Segue o estilo do Achievements(): green se tem, white se não tem
                 border: { fg: isReached ? 'green' : 'white' } 
             },
             content: isReached 
@@ -1322,7 +1388,7 @@ function showSettings() {
  height: '100%',
  style: {
  bg: 'black',
- transparent: false // Define como false para esconder o que está atrás
+ transparent: false
  }
  });
 
@@ -1437,7 +1503,7 @@ const supportBox = blessed.box({
  parent: bg1Overlay,
  top: 'center',
  left: 'center',
- width: 60, // Aumentado levemente para evitar quebra de linha
+ width: 60,
  height: 12,
  border: 'line',
  label: ' [ SYSTEM ] ',
@@ -1454,7 +1520,7 @@ const supportBox = blessed.box({
  `\n\n{center}[ESC] TO RETURN{/center}`
  ].join('\n');
  supportBox.setContent(supportContent);
- screen.render(); // Renderizar aqui garante a animação fluida
+ screen.render(); 
 function closeSupport() {
  supportBox.detach();
  bg1Overlay.detach();
@@ -1532,7 +1598,7 @@ screen.render();
  height: '100%',
  style: {
  bg: 'black',
- transparent: false // Define como false para esconder o que está atrás
+ transparent: false 
  }
  });
  const input = blessed.textbox({
@@ -1745,13 +1811,12 @@ function stopAudio() {
 }
 
 screen.key(['/'], () => {
-    // Bloqueia se já estiver aberto ou se outros menus estiverem ativos
-    if (isOverrideActive || issettigsopen || isGalleryOpen || iscreditsOpen || issupportOpen) {
+    if (isOverrideActive || issettigsopen || isGalleryOpen || iscreditsOpen || issupportOpen || isBooting || isBooting2 || isERASE) {
         return;
     }
 
     isOverrideActive = true;
-    playwarning();
+    if (typeof playsupport === 'function') playsupport();
 
     const overlay = blessed.box({
         parent: screen,
@@ -1770,92 +1835,178 @@ screen.key(['/'], () => {
         tags: true,
         content: '{center}\n{bold}ADMINISTRATIVE UNLOCK DETECTED{/bold}\n\n' +
                  'This will bypass all encryption and unlock\n' +
-                 'all localized data sectors.\n\n' +
+                 'selected localized data sectors.\n\n' +
                  '{yellow-fg}[ENTER]{/} PROCEED | {white-fg}[ESC]{/} ABORT{/center}',
         style: { border: { fg: 'yellow' }, label: { fg: 'yellow', bold: true } }
     });
 
     let borderTick = false;
     const blinkInterval = setInterval(() => {
-        borderTick = !borderTick;
-        confirmBox.style.border.fg = borderTick ? 'white' : 'yellow';
-        screen.render();
+        if (confirmBox && confirmBox.screen) {
+            borderTick = !borderTick;
+            confirmBox.style.border.fg = borderTick ? 'white' : 'yellow';
+            screen.render();
+        }
     }, 500);
-
-    // Definimos as funções de comando
-    function handleEscape() {
-        playback();
-        cleanup();
-    }
-
-    function handleEnter() {
-        // Remove os listeners imediatamente para evitar duplo clique
-        screen.unkey('enter', handleEnter);
-        screen.unkey('escape', handleEscape);
-        clearInterval(blinkInterval);
-        confirmBox.destroy();
-
-        const logBox = blessed.log({
-            parent: overlay,
-            top: 'center', left: 'center',
-            width: '80%', height: '80%',
-            border: 'line',
-            label: ' [ EXECUTING PROTOCOL ] ',
-            style: { border: { fg: 'red' }, fg: 'red' },
-            tags: true
-        });
-
-        // Simulação de Log de Sistema
-        const messages = [
-            "ACCESSING RESTRICTED FILESYSTEM...",
-            "BYPASSING KERNEL ENCRYPTION...",
-            "INJECTING ADMIN CREDENTIALS...",
-            "UNLOCKING ALL .ACH FILES...",
-            "SYNCHRONIZING DATABASE..."
-        ];
-
-        let msgIdx = 0;
-        const logInt = setInterval(() => {
-            if (msgIdx < messages.length) {
-                logBox.log(`{white-fg}> ${messages[msgIdx]}{/}`);
-                msgIdx++;
-                screen.render();
-            } else {
-                clearInterval(logInt);
-                
-                // EXECUTA O SCRIPT DE UNLOCK
-                const unlock = spawn('node', ['./unlockall.js']);
-                
-                unlock.on('close', () => {
-                    logBox.log("{green-fg}SYSTEM OVERRIDE COMPLETE. REBOOTING MENU...{/}");
-                    screen.render();
-                    setTimeout(() => {
-                        overlay.destroy();
-                        isOverrideActive = false;
-                        // Força um refresh total no menu para mostrar as conquistas novas
-                        refreshMenu(); 
-                        mainList.focus();
-                        screen.render();
-                    }, 2000);
-                });
-            }
-        }, 400);
-    }
 
     function cleanup() {
         clearInterval(blinkInterval);
         screen.unkey('enter', handleEnter);
         screen.unkey('escape', handleEscape);
-        overlay.destroy();
+        if (overlay) overlay.destroy();
         isOverrideActive = false;
-        mainList.focus();
+        if (typeof mainList !== 'undefined') mainList.focus();
         screen.render();
     }
 
-    // Registra as teclas apenas uma vez para este menu
+    function handleEscape() {
+        if (typeof playback === 'function') playback();
+        cleanup();
+    }
+
+    function handleEnter() {
+        screen.unkey('enter', handleEnter);
+        screen.unkey('escape', handleEscape);
+        clearInterval(blinkInterval);
+        confirmBox.destroy();
+        const achievementsList = (typeof ALL_ACHIEVEMENTS !== 'undefined') ? ALL_ACHIEVEMENTS : [];
+        let selectedStatus = achievementsList.map(() => false);
+
+        const listContainer = blessed.box({
+            parent: overlay,
+            top: 'center', left: 'center',
+            width: 70, height: 18,
+            border: 'line',
+            tags: true,
+            label: ' [ SELECT DATA SECTORS ] ',
+            style: { border: { fg: 'yellow' }, label: { fg: 'yellow', bold: true } }
+        });
+
+        const achList = blessed.list({
+            parent: listContainer,
+            top: 1, left: 1, right: 1, bottom: 3,
+            keys: true,
+            mouse: true,
+            tags: true,
+            scrollbar: { ch: ' ', track: { bg: 'cyan' }, style: { inverse: true } },
+            style: {
+                item: { fg: 'white' },
+                selected: { fg: 'black', bg: 'yellow' }
+            },
+            items: achievementsList.map(a => `[ ] ${a.id}`)
+        });
+
+        blessed.text({
+            parent: listContainer,
+            bottom: 1, left: 'center', width: '90%',
+            content: '{yellow-fg}[SPACE]{/} Toggle | {yellow-fg}[ENTER]{/} Execute Protocol | {yellow-fg}[P]{/} Select All',
+            tags: true
+        });
+
+        const updateList = () => {
+            const currentPos = achList.selected;
+            achList.setItems(achievementsList.map((a, i) => {
+                return selectedStatus[i] ? `{green-fg}[X] ${a.id}{/}` : `[ ] ${a.id}`;
+            }));
+            achList.select(currentPos);
+            screen.render();
+        };
+
+        achList.on('keypress', (ch, key) => {
+
+            if (key.name === 'p') {
+                const areAllSelected = selectedStatus.every(status => status === true);
+                selectedStatus = selectedStatus.map(() => !areAllSelected);
+                
+                if (typeof play_sound === 'function') play_sound('SELECT.wav');
+                updateList();
+            }
+
+            if (key.name === 'space') {
+                selectedStatus[achList.selected] = !selectedStatus[achList.selected];
+                if (typeof play_sound === 'function') play_sound('SELECT.wav');
+                updateList();
+            }
+        });
+
+        achList.focus();
+        screen.render();
+
+        achList.on('select', () => {
+            const selectedIds = achievementsList
+                .filter((_, i) => selectedStatus[i])
+                .map(a => a.id);
+
+            if (selectedIds.length === 0) {
+                cleanup();
+                return;
+            }
+
+            listContainer.destroy();
+
+            const logBox = blessed.log({
+                parent: overlay,
+                top: 'center', left: 'center',
+                width: '85%', height: '85%',
+                border: 'line',
+                label: ' [ EXECUTING PROTOCOL ] ',
+                style: { border: { fg: 'red' }, fg: 'red' },
+                tags: true
+            });
+
+            if (typeof playfresh === 'function') playfresh();
+
+            const messages = [
+                "ACCESSING RESTRICTED FILESYSTEM...",
+                "BYPASSING KERNEL ENCRYPTION...",
+                "INJECTING ADMIN CREDENTIALS...",
+                `WRITING ${selectedIds.length} LOCAL SECTORS...`,
+                "SYNCHRONIZING DATABASE..."
+            ];
+
+            let msgIdx = 0;
+            const logInt = setInterval(() => {
+                try {
+                    if (msgIdx < messages.length) {
+                        logBox.log(`{white-fg}> ${messages[msgIdx]}{/}`);
+                        msgIdx++;
+                        screen.render();
+                    } else {
+                        clearInterval(logInt);
+                        
+                        selectedIds.forEach(id => {
+                            try {
+                                const fileAch = path.join(achDir, `${id}.ach`);
+                                fs.writeFileSync(fileAch, 'COMPLETED', 'utf8');
+                                logBox.log(`{green-fg}[OK] SECTOR ${id} SYNCHRONIZED{/}`);
+                            } catch (err) {
+                                logBox.log(`{red-fg}[ERR] ${id}: ${err.message}{/}`);
+                            }
+                        });
+
+                        logBox.log("\n{green-fg}SYSTEM OVERRIDE COMPLETE. REBOOTING...{/}");
+                        screen.render();
+                        
+                        setTimeout(() => {
+                            try {
+                                overlay.destroy();
+                                isOverrideActive = false;
+                                if (typeof refreshMenu === 'function') refreshMenu(); 
+                                if (typeof mainList !== 'undefined') mainList.focus();
+                                screen.render();
+                            } catch (e) { process.exit(0); }
+                        }, 2500);
+                    }
+                } catch (fatal) {
+                    clearInterval(logInt);
+                    process.exit(1);
+                }
+            }, 400);
+        });
+    }
+
     screen.onceKey('escape', handleEscape);
     screen.onceKey('enter', handleEnter);
-    
     screen.render();
 });
 
@@ -1937,7 +2088,7 @@ function showSystemInfo() {
  ` {bold}PC-USER:{/bold}      ${userName.toUpperCase()}`,
  ` {bold}TERMINAL:{/bold}     ${terminalName}`,
  ` {bold}ACHIEVEMENTS:{/bold} ${achievements}`,
- ` {bold}ENCRYPTION KEY:{/}   ${key}\n`, // Agora visível permanentemente após unlock
+ ` {bold}ENCRYPTION KEY:{/}   ${key}\n`,
  ` [ESC] TO RETURN`
  ].join('\n');
  infoBox.setContent(text);
@@ -1967,7 +2118,7 @@ function showSystemInfo() {
  const achPath = path.join(__dirname, '..', 'Achievements', 'OVERRIDE.ach');
  if (!fs.existsSync(achPath)) {
  fs.writeFileSync(achPath, 'COMPLETED');
- showAchievementToast('OVERRIDE'); // DISPARA AQUI
+ showAchievementToast('OVERRIDE'); 
  }
  input.destroy();
  renderData();
@@ -2073,7 +2224,6 @@ function supportGame() {
         screen.render();
     };
 
-    // Define o ESC para fechar esta janela especificamente
     screen.onceKey(['escape'], closeSupport);
 
     supportOptions.focus();
@@ -2250,9 +2400,9 @@ function Achievements() {
  listContainer.focus();
  const closeAchievements = () => {
     playback()
-screen.unkey('h', openHintMenu);      // <--- ADICIONE ISSO
-screen.unkey('H', openHintMenu);      // <--- ADICIONE ISSO
-screen.unkey('escape', closeAchievements); // <--- ADICIONE ISSO
+screen.unkey('h', openHintMenu);  
+screen.unkey('H', openHintMenu);     
+screen.unkey('escape', closeAchievements); 
  backdrop.destroy();
  mainList.focus();
  screen.render();
@@ -2261,7 +2411,7 @@ screen.unkey('escape', closeAchievements); // <--- ADICIONE ISSO
  screen.render();
 }
 screen.on('keypress', (ch, key) => {
- const k = key.full.toLowerCase();
+const k = (ch || key.full || "").toLowerCase();
  if (k === 'm') {
  if (audiostate === 'ON') {
  audiostate = 'OFF';
@@ -2276,7 +2426,7 @@ screen.on('keypress', (ch, key) => {
  const achPath = path.join(__dirname, '..', 'Achievements', 'AUDIOPHOBIC.ach');
  if (!fs.existsSync(achPath)) {
  fs.writeFileSync(achPath, 'COMPLETED');
- showAchievementToast('AUDIOPHOBIC'); // O teu Toast aqui
+ showAchievementToast('AUDIOPHOBIC');
  }
  }
 }
@@ -2287,13 +2437,17 @@ screen.on('keypress', (ch, key) => {
  showSystemInfo();
  updateStatus();
  }
+
+ if (k === 'q') {
+        return confirmExit(); 
+    }
  if (k === 'c') {
   if (isGalleryOpen) return;
   if (issettigsopen) return;
   if (iscreditsOpen) return;
   if (issupportOpen) return;
 colorCycles++;
-if (colorCycles >= 15) { // 3 cores * 5 ciclos = 15 pressões
+if (colorCycles >= 15) {
  const achPath = path.join(__dirname, '..', 'Achievements', 'COLOR_MASTER.ach');
  if (!fs.existsSync(achPath)) {
  fs.writeFileSync(achPath, 'COMPLETED');
@@ -2318,7 +2472,7 @@ if (colorCycles >= 15) { // 3 cores * 5 ciclos = 15 pressões
  }
 });
  mainList.style.selected.bg = COLORDEFAULT;
- updateStatus(); // Atualiza cores e texto interno da box
+ updateStatus();
  }
  if (k === 'g') {
  GLITCH = (GLITCH === 'ON') ? 'OFF' : 'ON';
@@ -2340,7 +2494,7 @@ const leftSidebar = blessed.box({
  left: 0,
  width: 25,
  height: 18,
- hidden: SIDEBAR === 'OFF',// Altura somada das duas caixas + espaçamento
+ hidden: SIDEBAR === 'OFF',
  style: { bg: 'transparent' }
 });
 const hotkeysBar = blessed.box({
@@ -2357,7 +2511,7 @@ const hotkeysBar = blessed.box({
 });
 const statusBox = blessed.box({
  parent: leftSidebar,
- top: 9, // Começa exatamente onde a hotkeysBar termina
+ top: 9,
  left: 0,
  width: '65%',
  height: 7,
@@ -2410,13 +2564,14 @@ const pacmanProc = spawn('cmd.exe /c start /wait node PACPRO.js', {
  }
  screen.render();
  setTimeout(() => {
- screen.destroy();
- spawn('cmd.exe', ['/c', 'start', 'node', 'menu.js'], {
- shell: true,
- detached: true
- }).unref();
- process.exit(0);
- }, 3000); // 3 segundos para o jogador ler o resultado no menu
+        menuBox.style.border.fg = '#555555'; 
+        menuBox.setContent(''); 
+        menuBox.append(mainList);
+        updateStatus(); 
+        refreshMenu(); 
+        mainList.focus();
+        screen.render();
+    }, 3000);
  });
  }, 1500);
  return;
@@ -2425,8 +2580,8 @@ const pacmanProc = spawn('cmd.exe /c start /wait node PACPRO.js', {
  if (text.includes('SETTINGS')) {playBeep2(); return showSettings();}
  if (text.includes('SYSTEM INFO')) {playwarning(); return showSystemInfo();}
  if (text.includes('ERASE DATA')) {playwarning(); return eraseData();}
- if (text.includes('CREDITS')) { return credits() ; } // Implementar depois
- if (text.includes('SUPPORT')) { return supportGame() ; } // Implementar depois
+ if (text.includes('CREDITS')) { return credits() ; } 
+ if (text.includes('SUPPORT')) { return supportGame() ; }
  if (text.includes('ACHIEVEMENTS')) { return Achievements(); }
  if (text.includes('CHECKPOINTS')) {  playBeep2();return showCheckpointGallery(); }
  if (text.includes('START MISSION')) {
@@ -2451,13 +2606,13 @@ const pacmanProc = spawn('cmd.exe /c start /wait node PACPRO.js', {
  child.on('exit', () => {
  process.exit();
  });
- }, 3000); // Tempo da animação
+ }, 3000); 
  }
  if (text.includes('RESET TIME')) {
   return erasePlaytime();
 }
 });
-screen.key(['q', 'C-c'], () => confirmExit());
+screen.key(['C-c'], () => confirmExit());
 bootSequence();
 process.on('SIGINT', () => {
  confirmExit();
