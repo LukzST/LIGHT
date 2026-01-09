@@ -186,7 +186,7 @@ const achPath = path.join(__dirname, '..', 'Achievements', 'PACPRO.ach');
     const isNewPac = hasPacAch && !fs.existsSync(pacSeenPath);
 
 
-    function showUpdateStatus() {
+   function showUpdateStatus() {
     playwarning();
     const bgOverlay = blessed.box({
         parent: screen,
@@ -199,7 +199,7 @@ const achPath = path.join(__dirname, '..', 'Achievements', 'PACPRO.ach');
     const statusWin = blessed.box({
         parent: bgOverlay,
         top: 'center', left: 'center',
-        width: 50, height: 10,
+        width: 60, height: 12,
         border: 'line',
         tags: true,
         content: '{center}\nCONNECTING TO REPOSITORY...{/center}',
@@ -208,14 +208,19 @@ const achPath = path.join(__dirname, '..', 'Achievements', 'PACPRO.ach');
 
     screen.render();
 
-    checkUpdates((hasUpdate, version) => {
+    checkUpdates(async (hasUpdate, version) => {
         if (hasUpdate === null) {
-            statusWin.setContent('{center}\n{red-fg}CONNECTION FAILURE{/red-fg}\n\nUnable to reach GitHub API.\nCheck your internet connection.\n\n[ESC] RETURN{/center}');
+            statusWin.setContent('{center}\n{red-fg}CONNECTION FAILURE{/red-fg}\n\n[ESC] RETURN{/center}');
         } else if (hasUpdate) {
             statusWin.style.border.fg = 'magenta';
-            statusWin.setContent(`{center}\n{magenta-fg}UPDATE FOUND: ${version}{/magenta-fg}\n\nYour version: ${CURRENT_VERSION}\nVisit: github.com/lukzst/LIGHT\n\n[ESC] RETURN{/center}`);
+            statusWin.setContent(`{center}\n{magenta-fg}NEW VERSION AVAILABLE: ${version}{/magenta-fg}\n\n{white-fg}Press [ENTER] to start Auto-Installation{/}\n{white-fg}Press [ESC] to skip{/center}`);
+            
+            screen.onceKey(['enter'], () => {
+                playfresh();
+                downloadAndInstall(version, statusWin);
+            });
         } else {
-            statusWin.setContent(`{center}\n{green-fg}SYSTEM UP TO DATE{/green-fg}\n\nVersion ${CURRENT_VERSION} is the latest.\nNo action required.\n\n[ESC] RETURN{/center}`);
+            statusWin.setContent(`{center}\n{green-fg}SYSTEM UP TO DATE{/green-fg}\n\nVersion ${CURRENT_VERSION} is latest.\n\n[ESC] RETURN{/center}`);
         }
         screen.render();
     });
@@ -748,6 +753,48 @@ const copyrightBOX1 = blessed.box({
  bold: true,
  },
 });
+
+async function downloadAndInstall(version, statusWin) {
+    const https = require('https');
+    
+    // Configuração do caminho no repositório baseado na sua descrição
+    // FINAL/(versao)/LIGHT/(root)
+    const repoPath = `FINAL/${version}/LIGHT`;
+    const baseRawUrl = `https://raw.githubusercontent.com/lukzst/LIGHT/main/${repoPath}`;
+    
+    // Lista manual ou dinâmica de arquivos críticos para baixar. 
+    // Para ser 100% automático, o ideal é baixar um ZIP, mas no Node puro faremos assim:
+    const filesToUpdate = ['index.js', 'main.js', 'PACPRO.js']; // Adicione todos os arquivos necessários
+
+    let downloaded = 0;
+    
+    for (const file of filesToUpdate) {
+        const fileUrl = `${baseRawUrl}/${file}`;
+        const destPath = path.join(__dirname, '..', file); // Root files em ../
+        
+        statusWin.setContent(`{center}\n{yellow-fg}UPDATING SECTORS...{/}\n\nDownloading: ${file}\n[${'█'.repeat(downloaded)}${'░'.repeat(filesToUpdate.length - downloaded)}]{/center}`);
+        screen.render();
+
+        await new Promise((resolve, reject) => {
+            https.get(fileUrl, (res) => {
+                if (res.statusCode !== 200) return reject();
+                const fileStream = fs.createWriteStream(destPath);
+                res.pipe(fileStream);
+                fileStream.on('finish', () => {
+                    fileStream.close();
+                    downloaded++;
+                    resolve();
+                });
+            }).on('error', reject);
+        });
+    }
+
+    statusWin.style.border.fg = 'green';
+    statusWin.setContent(`{center}\n{green-fg}SYSTEM RECONSTRUCTED{/green-fg}\n\nVersion ${version} installed successfully.\n\n{blink}RESTART APPLICATION TO APPLY{/center}`);
+    screen.render();
+    playsucesso();
+}
+
 function showAchievementPopup(achId) {
  const ach = ALL_ACHIEVEMENTS.find(a => a.id === achId);
  if (!ach) return;
