@@ -186,7 +186,48 @@ const achPath = path.join(__dirname, '..', 'Achievements', 'PACPRO.ach');
     const isNewPac = hasPacAch && !fs.existsSync(pacSeenPath);
 
 
-    
+    function showUpdateStatus() {
+    playwarning();
+    const bgOverlay = blessed.box({
+        parent: screen,
+        top: 0, left: 0,
+        width: '100%', height: '100%',
+        style: { bg: 'black' },
+        index: 200
+    });
+
+    const statusWin = blessed.box({
+        parent: bgOverlay,
+        top: 'center', left: 'center',
+        width: 50, height: 10,
+        border: 'line',
+        tags: true,
+        content: '{center}\nCONNECTING TO REPOSITORY...{/center}',
+        style: { border: { fg: COLORDEFAULT } }
+    });
+
+    screen.render();
+
+    checkUpdates((hasUpdate, version) => {
+        if (hasUpdate === null) {
+            statusWin.setContent('{center}\n{red-fg}CONNECTION FAILURE{/red-fg}\n\nUnable to reach GitHub API.\nCheck your internet connection.\n\n[ESC] RETURN{/center}');
+        } else if (hasUpdate) {
+            statusWin.style.border.fg = 'magenta';
+            statusWin.setContent(`{center}\n{magenta-fg}UPDATE FOUND: ${version}{/magenta-fg}\n\nYour version: ${CURRENT_VERSION}\nVisit: github.com/lukzst/LIGHT\n\n[ESC] RETURN{/center}`);
+        } else {
+            statusWin.setContent(`{center}\n{green-fg}SYSTEM UP TO DATE{/green-fg}\n\nVersion ${CURRENT_VERSION} is the latest.\nNo action required.\n\n[ESC] RETURN{/center}`);
+        }
+        screen.render();
+    });
+
+    screen.onceKey(['escape'], () => {
+        playback();
+        bgOverlay.destroy();
+        mainList.focus();
+        screen.render();
+    });
+}
+
 function showAchievementToast(id) {
     
  const name = ACHIEVEMENT_NAMES[id] || id;
@@ -509,6 +550,38 @@ const screen = blessed.screen({
  title: 'LIGHT',
  fullUnicode: true
 });
+
+const CURRENT_VERSION = "V1.0";
+
+function checkUpdates(callback) {
+    const https = require('https');
+    const options = {
+        hostname: 'api.github.com',
+        path: '/repos/lukzst/LIGHT/contents/FINAL',
+        headers: { 'User-Agent': 'LIGHT-Game-Updater' }
+    };
+
+    https.get(options, (res) => {
+        let data = '';
+        res.on('data', (chunk) => data += chunk);
+        res.on('end', () => {
+            try {
+                const json = JSON.parse(data);
+                const versions = json
+                    .filter(file => file.type === 'dir' && file.name.startsWith('V'))
+                    .map(file => file.name)
+                    .sort();
+
+                const latestVersion = versions[versions.length - 1];
+                if (latestVersion && latestVersion !== CURRENT_VERSION) {
+                    callback(true, latestVersion);
+                } else {
+                    callback(false, latestVersion);
+                }
+            } catch (e) { callback(null); }
+        });
+    }).on('error', () => callback(null));
+}
 function refreshMenu() {
     const checkPacPath = path.join(__dirname, '..', 'Achievements', 'PACPRO.ach');
     const hasPac = fs.existsSync(checkPacPath);
@@ -528,6 +601,7 @@ function refreshMenu() {
     items.push('{center}ACHIEVEMENTS{/center}');
     items.push('{center}CHECKPOINTS{/center}');
     items.push('{center}SETTINGS{/center}');
+    items.push('{center}CHECK FOR UPDATES{/center}');
 
 
     if (TIME_STATUS === 'ON') {
@@ -647,6 +721,7 @@ const menuDescriptions = {
  'PACPRO SUBSYSTEM': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
  'PACPRO SUBSYSTEM (NEW)': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
  'ACHIEVEMENTS': 'SEE YOUR ACHIEVEMENTS',
+ 'CHECK FOR UPDATES': 'QUERY THE REMOTE REPOSITORY FOR NEW VERSION DATA.',
  'CHECKPOINTS': 'SEE YOUR CHECKPOINTS',
  'SETTINGS': 'AUDIO, COLOR, USER AND FULL SCREEN CONFIGURATION.',
  'ERASE DATA': 'ERASE ALL LOCAL USER DATA AND SETTINGS.',
@@ -2576,6 +2651,9 @@ const pacmanProc = spawn('cmd.exe /c start /wait node PACPRO.js', {
  }, 1500);
  return;
 }
+if (text.includes('CHECK FOR UPDATES')) {
+        return showUpdateStatus();
+    }
  if (text.includes('EXIT')) {return confirmExit();}
  if (text.includes('SETTINGS')) {playBeep2(); return showSettings();}
  if (text.includes('SYSTEM INFO')) {playwarning(); return showSystemInfo();}
