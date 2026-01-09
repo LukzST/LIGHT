@@ -185,8 +185,92 @@ const achPath = path.join(__dirname, '..', 'Achievements', 'PACPRO.ach');
     const pacSeenPath = '../CONFIG/PACPRO_SEEN.txt';
     const isNewPac = hasPacAch && !fs.existsSync(pacSeenPath);
 
+    async function downloadAndInstall(version, statusWin) {
+    const https = require('https');
+    
+    // A URL correta para pegar a árvore recursiva de um diretório específico via API
+    // Usamos o endpoint de 'trees' do Git para garantir o mapeamento total
+    const treeOptions = {
+        hostname: 'api.github.com',
+        path: `/repos/lukzst/LIGHT/git/trees/main?recursive=1`, // Pega a árvore de todo o repo
+        headers: { 'User-Agent': 'LIGHT-Updater' }
+    };
 
-   function showUpdateStatus() {
+    statusWin.setContent('{center}\n{yellow-fg}SCANNING REPOSITORY MAP...{/}\nPreparing full system overwrite.{/center}');
+    screen.render();
+
+    try {
+        const responseData = await new Promise((resolve, reject) => {
+            https.get(treeOptions, (res) => {
+                let body = '';
+                res.on('data', d => body += d);
+                res.on('end', () => resolve(JSON.parse(body)));
+            }).on('error', reject);
+        });
+
+        // O GitHub retorna os dados dentro de .tree
+        if (!responseData.tree || !Array.isArray(responseData.tree)) {
+            throw new Error("Invalid API response format");
+        }
+
+        // Filtramos para pegar apenas arquivos dentro de FINAL/(versao)/LIGHT/
+        // E ignoramos CONFIG e Achievements
+        const targetPrefix = `FINAL/${version}/LIGHT/`;
+        const files = responseData.tree.filter(item => 
+            item.type === 'blob' && 
+            item.path.startsWith(targetPrefix) &&
+            !item.path.includes('/CONFIG/') && 
+            !item.path.includes('/Achievements/')
+        );
+
+        let downloaded = 0;
+
+        for (const fileMetadata of files) {
+            // Limpa o caminho para salvar na pasta pai do menu (../)
+            const relativePath = fileMetadata.path.replace(targetPrefix, '');
+            const destPath = path.join(__dirname, '..', relativePath);
+            
+            // URL para download do arquivo bruto (raw)
+            const fileUrl = `https://raw.githubusercontent.com/lukzst/LIGHT/main/${fileMetadata.path}`;
+
+            const destDir = path.dirname(destPath);
+            if (!fs.existsSync(destDir)) {
+                fs.mkdirSync(destDir, { recursive: true });
+            }
+
+            statusWin.setContent(`{center}\n{yellow-fg}OVERWRITING SYSTEM DATA{/}\n\nFile: ${relativePath}\nProgress: ${downloaded + 1}/${files.length}{/center}`);
+            screen.render();
+
+            await new Promise((resolve, reject) => {
+                https.get(fileUrl, (res) => {
+                    if (res.statusCode !== 200) return reject(new Error(`HTTP ${res.statusCode}`));
+                    const stream = fs.createWriteStream(destPath);
+                    res.pipe(stream);
+                    stream.on('finish', () => {
+                        stream.close();
+                        downloaded++;
+                        resolve();
+                    });
+                }).on('error', reject);
+            });
+        }
+
+        statusWin.style.border.fg = 'green';
+        statusWin.setContent(`{center}\n{green-fg}TOTAL RECONSTRUCTION COMPLETE{/}\n\nAll game files updated.\nConfig and Achievements preserved.\n\n{blink}PRESS [ENTER] TO REBOOT SYSTEM{/center}`);
+        screen.render();
+        playsucesso();
+
+        screen.onceKey(['enter'], () => process.exit(0));
+
+    } catch (err) {
+        statusWin.style.border.fg = 'red';
+        statusWin.setContent(`{center}\n{red-fg}INTEGRITY ERROR{/}\n\n${err.message}\n\nUpdate failed. System may be unstable.{/center}`);
+        screen.render();
+    }
+}
+
+   // Note o "async" antes de function
+async function showUpdateStatus() {
     playwarning();
     const bgOverlay = blessed.box({
         parent: screen,
@@ -208,27 +292,32 @@ const achPath = path.join(__dirname, '..', 'Achievements', 'PACPRO.ach');
 
     screen.render();
 
+    // Chamada da verificação
     checkUpdates(async (hasUpdate, version) => {
         if (hasUpdate === null) {
-            statusWin.setContent('{center}\n{red-fg}CONNECTION FAILURE{/red-fg}\n\n[ESC] RETURN{/center}');
+            statusWin.setContent('{center}\n{red-fg}NETWORK ERROR{/red-fg}{/center}');
+            screen.render();
         } else if (hasUpdate) {
             statusWin.style.border.fg = 'magenta';
-            statusWin.setContent(`{center}\n{magenta-fg}NEW VERSION AVAILABLE: ${version}{/magenta-fg}\n\n{white-fg}Press [ENTER] to start Auto-Installation{/}\n{white-fg}Press [ESC] to skip{/center}`);
-            
-            screen.onceKey(['enter'], () => {
+            statusWin.setContent(`{center}\n{magenta-fg}NEW BUILD DETECTED: ${version}{/magenta-fg}\n\nWarning: This will overwrite ALL game files.\nSaves and Configs will be kept.\n\n{white-fg}[ENTER] START UPDATE | [ESC] CANCEL{/center}`);
+            screen.render();
+
+            screen.onceKey(['enter'], async () => {
                 playfresh();
-                downloadAndInstall(version, statusWin);
+                blockMenuInput = true; // Impede que o usuário mexa no menu durante o download
+                await downloadAndInstall(version, statusWin);
             });
         } else {
-            statusWin.setContent(`{center}\n{green-fg}SYSTEM UP TO DATE{/green-fg}\n\nVersion ${CURRENT_VERSION} is latest.\n\n[ESC] RETURN{/center}`);
+            statusWin.setContent(`{center}\n{green-fg}SYSTEM UP TO DATE{/green-fg}\n\nNo new data in FINAL/${version}{/center}`);
+            screen.render();
         }
-        screen.render();
     });
 
-    screen.onceKey(['escape'], () => {
+    screen.key(['escape'], function escUpdate() {
         playback();
         bgOverlay.destroy();
         mainList.focus();
+        screen.unkey('escape', escUpdate);
         screen.render();
     });
 }
@@ -754,46 +843,6 @@ const copyrightBOX1 = blessed.box({
  },
 });
 
-async function downloadAndInstall(version, statusWin) {
-    const https = require('https');
-    
-    // Configuração do caminho no repositório baseado na sua descrição
-    // FINAL/(versao)/LIGHT/(root)
-    const repoPath = `FINAL/${version}/LIGHT`;
-    const baseRawUrl = `https://raw.githubusercontent.com/lukzst/LIGHT/main/${repoPath}`;
-    
-    // Lista manual ou dinâmica de arquivos críticos para baixar. 
-    // Para ser 100% automático, o ideal é baixar um ZIP, mas no Node puro faremos assim:
-    const filesToUpdate = ['index.js', 'main.js', 'PACPRO.js']; // Adicione todos os arquivos necessários
-
-    let downloaded = 0;
-    
-    for (const file of filesToUpdate) {
-        const fileUrl = `${baseRawUrl}/${file}`;
-        const destPath = path.join(__dirname, '..', file); // Root files em ../
-        
-        statusWin.setContent(`{center}\n{yellow-fg}UPDATING SECTORS...{/}\n\nDownloading: ${file}\n[${'█'.repeat(downloaded)}${'░'.repeat(filesToUpdate.length - downloaded)}]{/center}`);
-        screen.render();
-
-        await new Promise((resolve, reject) => {
-            https.get(fileUrl, (res) => {
-                if (res.statusCode !== 200) return reject();
-                const fileStream = fs.createWriteStream(destPath);
-                res.pipe(fileStream);
-                fileStream.on('finish', () => {
-                    fileStream.close();
-                    downloaded++;
-                    resolve();
-                });
-            }).on('error', reject);
-        });
-    }
-
-    statusWin.style.border.fg = 'green';
-    statusWin.setContent(`{center}\n{green-fg}SYSTEM RECONSTRUCTED{/green-fg}\n\nVersion ${version} installed successfully.\n\n{blink}RESTART APPLICATION TO APPLY{/center}`);
-    screen.render();
-    playsucesso();
-}
 
 function showAchievementPopup(achId) {
  const ach = ALL_ACHIEVEMENTS.find(a => a.id === achId);
