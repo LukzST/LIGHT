@@ -1,4 +1,4 @@
-const CURRENT_VERSION = "V1.0";
+const CURRENT_VERSION = "V2.0";
 const blessed = require('blessed');
 const os = require('os');
 const { spawn } = require('child_process');
@@ -835,7 +835,7 @@ const copyrightBOX1 = blessed.box({
  right: '0',
  width: 'shrink',
  height: 1,
- content: ' V1.0 ',
+ content: ' V2.0 ',
  tags: true,
  style: {
  fg: color,
