@@ -1,4 +1,4 @@
-const CURRENT_VERSION = "V2.0";
+const CURRENT_VERSION = "V1.0";
 const blessed = require('blessed');
 const os = require('os');
 const { spawn } = require('child_process');
@@ -110,7 +110,7 @@ function checkUpdates(callback) {
 async function downloadAndInstall(version, statusWin) {
     const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
     const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' -Headers @{'User-Agent'='LIGHT-Updater'}).tree | ConvertTo-Json -Compress"`;
-
+    
     statusWin.setContent('{center}\n{yellow-fg}MAPPING REPOSITORY...{/}\nEstablishing secure link via PowerShell.{/center}');
     screen.render();
 
@@ -152,22 +152,26 @@ async function downloadAndInstall(version, statusWin) {
                     await new Promise((res) => { exec(dlCmd, () => { downloaded++; res(); }); });
                 }
 
-                statusWin.setContent(`{center}\n{yellow-fg}OVERWRITING SYSTEM...{/}\n\n[${bar}] ${percentage}%\n\n{grey-fg}RECONSTRUCTING KERNEL...{/grey-fg}{/center}`);
+                statusWin.setContent(
+    `{center}\n{yellow-fg}INSTALLING NEW UPDATE...{/}\n\n` +
+    `Version: ${version}\n\n` +
+    `[${bar}] ${percentage}%\n\n` +
+    `{white-fg}Please wait, do not close the game...{/white-fg}{/center}`
+);
                 screen.render();
                 await new Promise(r => setTimeout(r, 400));
             }
 
             statusWin.style.border.fg = 'green';
-            statusWin.setContent(`{center}\n{green-fg}SYSTEM OVERWRITE SUCCESS{/green-fg}\n\nVersion ${version} installed.\n\n{blink}PRESS [ENTER] TO REBOOT{/center}`);
+statusWin.setContent(`{center}\n{green-fg}UPDATE INSTALLED SUCCESSFULLY!{/green-fg}\n\nVersion ${version} is now ready.\n\n{blink}PRESS [ENTER] TO RESTART THE GAME{/center}`);
             screen.render();
             playsucesso();
             
-            // Unkey de segurança final
             screen.onceKey(['enter'], () => process.exit(0));
 
         } catch (err) {
             statusWin.style.border.fg = 'red';
-            statusWin.setContent(`{center}\n{red-fg}INTEGRITY ERROR{/}\n\n${err.message}{/center}`);
+statusWin.setContent(`{center}\n{red-fg}FAILED TO INSTALL UPDATE{/red-fg}\n\n${err.message}\n\nPlease try again later.{/center}`);
             screen.render();
             blockMenuInput = false;
         }
@@ -175,7 +179,7 @@ async function downloadAndInstall(version, statusWin) {
 }
 
 async function showUpdateStatus() {
-    if (isUpdateInterfaceActive) return; // Se já estiver aberto, ignora chamadas duplicadas
+    if (isUpdateInterfaceActive) return;
     isUpdateInterfaceActive = true;
     
     playwarning();
@@ -196,18 +200,17 @@ async function showUpdateStatus() {
         width: 60, height: 12,
         border: 'line',
         tags: true,
-        content: '{center}\nCONNECTING TO REMOTE REPOSITORY...{/center}',
+        content: '{center}\nCONNECTING TO LIGHT REPOSITORY...{/center}',
         style: { border: { fg: COLORDEFAULT }, label: { fg: COLORDEFAULT, bold: true } }
     });
 
     screen.render();
 
-    // Handler único para o Enter
     const onEnterUpdate = async () => {
         if (!canAcceptInput) return;
-        screen.unkey('enter', onEnterUpdate); // Remove o listener imediatamente
+        screen.unkey('enter', onEnterUpdate);
         canAcceptInput = false;
-        playfresh();
+        playBeep2();
         await downloadAndInstall(global.latestVersionFound, statusWin);
     };
 
@@ -215,31 +218,32 @@ async function showUpdateStatus() {
         if (hasUpdate === null) {
             statusWin.setContent('{center}\n{red-fg}NETWORK ERROR{/red-fg}\n\nCheck connection.{/center}');
         } else if (hasUpdate) {
-            global.latestVersionFound = version; // Armazena globalmente para o handler usar
+            global.latestVersionFound = version;
             statusWin.style.border.fg = 'magenta';
             statusWin.setContent(
                 `{center}\n{magenta-fg}UPDATE DETECTED: ${version}{/magenta-fg}\n\n` +
-                `Warning: Overwriting system binaries.\n\n` +
+                `NOTE: this update may take a few minutes to complete.\n` +
+                `ESTIMATED UPDATE TIME: {yellow-fg}10 MINUTES{/yellow-fg}.\n\n` +
                 `{white-fg}[ENTER] START UPDATE | [ESC] ABORT{/center}`
             );
             
             setTimeout(() => { 
                 canAcceptInput = true; 
-                screen.key(['enter'], onEnterUpdate); // Registra o listener APENAS se houver update
+                screen.key(['enter'], onEnterUpdate);
             }, 500);
 
         } else {
-            statusWin.setContent(`{center}\n{green-fg}SYSTEM UP TO DATE{/green-fg}\n\nVersion ${CURRENT_VERSION} is current.{/center}`);
+            statusWin.setContent(`{center}\n{green-fg}LIGHT IS UP TO DATE{/green-fg}\n\nVersion ${CURRENT_VERSION} is current.{/center}`);
         }
         screen.render();
     });
 
     screen.key(['escape'], function escUpdate() {
-        if (blockMenuInput && statusWin.getContent().includes('█')) return; // Bloqueia ESC durante download
+        if (blockMenuInput && statusWin.getContent().includes('█')) return;
         
         playback();
         screen.unkey('escape', escUpdate);
-        screen.unkey('enter', onEnterUpdate); // Limpa o handler se o usuário desistir
+        screen.unkey('enter', onEnterUpdate);
         
         bgOverlay.destroy();
         isUpdateInterfaceActive = false;
@@ -694,6 +698,7 @@ function refreshMenu() {
 
     items.push('{center}ACHIEVEMENTS{/center}');
     items.push('{center}CHECKPOINTS{/center}');
+    items.push('{center}UPDATES{/center}');
     items.push('{center}SETTINGS{/center}');
 
 
@@ -704,7 +709,6 @@ function refreshMenu() {
     items = items.concat([
         '{center}ERASE DATA{/center}',
         '{center}SYSTEM INFO{/center}',
-        '{center}CHECK FOR UPDATES{/center}',
         '{center}CREDITS{/center}',
         '{center}SUPPORT{/center}',
         '{center}EXIT{/center}'
@@ -815,7 +819,7 @@ const menuDescriptions = {
  'PACPRO SUBSYSTEM': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
  'PACPRO SUBSYSTEM (NEW)': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
  'ACHIEVEMENTS': 'SEE YOUR ACHIEVEMENTS',
- 'CHECK FOR UPDATES': 'QUERY THE REMOTE REPOSITORY FOR NEW VERSION DATA.',
+ 'UPDATES': 'QUERY THE REMOTE REPOSITORY FOR NEW VERSION DATA.',
  'CHECKPOINTS': 'SEE YOUR CHECKPOINTS',
  'SETTINGS': 'AUDIO, COLOR, USER AND FULL SCREEN CONFIGURATION.',
  'ERASE DATA': 'ERASE ALL LOCAL USER DATA AND SETTINGS.',
@@ -835,7 +839,7 @@ const copyrightBOX1 = blessed.box({
  right: '0',
  width: 'shrink',
  height: 1,
- content: ' V2.0 ',
+ content: ' V1.0 ',
  tags: true,
  style: {
  fg: color,
@@ -2745,18 +2749,12 @@ const pacmanProc = spawn('cmd.exe /c start /wait node PACPRO.js', {
  }, 1500);
  return;
 }
-if (text.includes('CHECK FOR UPDATES')) {
-    // 1. Bloqueia inputs globais do menu para evitar spam
+if (text.includes('UPDATES')) {
     blockMenuInput = true; 
-    
-    // 2. Remove temporariamente o listener de Enter do menu para garantir
-    // (Isso evita que o evento suba para a tela de update no mesmo frame)
     const currentItems = mainList.items;
     
-    // 3. Chama a função de update
     showUpdateStatus();
 
-    // 4. Libera o menu interno após um curto delay (opcional, para segurança)
     setTimeout(() => {
         blockMenuInput = false;
     }, 500);
