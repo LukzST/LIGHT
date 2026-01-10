@@ -4,29 +4,29 @@
 ![Version](https://img.shields.io/badge/VERSION-1.0.0-gold)
 ![OS](https://img.shields.io/badge/OS-TERMINAL_SUBSYSTEM-red)
 
-> **AVISO DO SISTEMA:** O acesso aos dados do incidente LUX-4 é restrito. 
-> Qualquer tentativa de descriptografia sem autorização resultará em erro fatal de kernel.
+> **SYSTEM WARNING:** Access to LUX-4 incident data is restricted. 
+> Any unauthorized decryption attempt will result in a fatal kernel error.
 
 ---
 
-## 📝 Descrição
-**LIGHT** é uma experiência de terror psicológico focada em narrativa e interação via terminal. Você opera um subsistema de comunicação de 1999 tentando recuperar fragmentos de dados de uma estação isolada. 
+## 📝 Description
+**LIGHT** is a psychological horror experience focused on narrative and terminal-based interaction. You operate a 1999 communication subsystem attempting to recover data fragments from an isolated station.
 
-O silêncio do terminal é sua única companhia. A luz é sua única esperança.
+The silence of the terminal is your only companion. The light is your only hope.
 
-## 🕹️ Funcionalidades
-* **Interface Terminal Autêntica:** Construído inteiramente em Node.js usando a biblioteca `blessed`.
-* **Sistema de Conquistas (.ach):** Desbloqueios persistentes que modificam a estrutura do sistema.
-* **Áudio Imersivo:** Sons de sistema processados via PowerShell/aplay para uma experiência analógica.
-* **Protocolo de Override:** Comandos ocultos para usuários avançados.
-* **Auto-Update:** Sistema integrado de sincronização de versão via protocolo HTTPS.
+## 🕹️ Features
+* **Authentic Terminal Interface:** Built entirely in Node.js using the `blessed` library.
+* **Achievement System (.ach):** Persistent unlocks that modify the system structure.
+* **Immersive Audio:** System sounds processed via PowerShell/aplay for an analog experience.
+* **Override Protocol:** Hidden commands for advanced users.
+* **Auto-Update:** Integrated version synchronization system via HTTPS protocol.
 
-## 🛠️ Instalação
+## 🛠️ Installation
 
-### Pré-requisitos
-* [Node.js](https://nodejs.org/) (Versão 16 ou superior recomendada)
+### Prerequisites
+* [Node.js](https://nodejs.org/) (Version 16 or higher recommended)
 
-### Protocolo de Inicialização
-1. Clone o repositório:
+### Boot Protocol
+1. Clone the repository:
    ```bash
-   git clone [https://github.com/seu-usuario/light.git](https://github.com/seu-usuario/light.git)
+   git clone [https://github.com/your-user/light.git](https://github.com/your-user/light.git)
