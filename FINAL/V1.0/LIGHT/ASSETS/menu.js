@@ -220,7 +220,6 @@ async function showUpdateStatus() {
     } else if (hasUpdate) {
         global.latestVersionFound = version;
         
-        // --- NOVO: Cálculo de estimativa baseada na contagem de arquivos ---
         const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
         const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' -Headers @{'User-Agent'='LIGHT-Updater'}).tree | ConvertTo-Json -Compress"`;
 
@@ -234,7 +233,6 @@ async function showUpdateStatus() {
                     item.type === 'blob' && item.path.startsWith(targetPrefix)
                 ).length;
 
-                // Estimativa: 1.5 segundos por arquivo (latência média do PowerShell iwr)
                 const totalSeconds = Math.round(fileCount * 1.5);
                 const mins = Math.floor(totalSeconds / 60);
                 const secs = totalSeconds % 60;
@@ -257,7 +255,7 @@ async function showUpdateStatus() {
         }, 500);
 
     } else {
-        statusWin.setContent(`{center}\n{green-fg}LIGHT IS UP TO DATE{/green-fg}\n\nVersion ${CURRENT_VERSION} is current.{/center}`);
+        statusWin.setContent(`{center}\n{green-fg}LIGHT IS UP TO DATE{/green-fg}\n\n${CURRENT_VERSION} is current.{/center}\n\n\n\n\n{center}{bold}{grey-fg}PRESS [ESC] TO CLOSE{/grey-fg}{/bold}{/center}`);
     }
     screen.render();
 });
