@@ -27,6 +27,9 @@ The silence of the terminal is your only companion. The light is your only hope.
 * [Node.js](https://nodejs.org/) (Version 16 or higher recommended)
 * [Windows 10](https://www.microsoft.com/pt-br/software-download/windows10) (Version 20h2 or higher)
 
+## ⬇️ Download
+* [Available only on Itch.io](https://palelunadev.itch.io/light)
+
 ### Boot Protocol
 1. Clone the repository:
    ```bash
