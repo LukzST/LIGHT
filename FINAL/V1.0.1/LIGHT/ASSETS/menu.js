@@ -996,6 +996,7 @@ function showResetOptions() {
         playback()
         bgOverlay.destroy();
         settingsWin.focus();
+        screen.unkey('escape', 'enter')
         screen.render();
     });
 }
@@ -1425,11 +1426,7 @@ function eraseData() {
         if (txt.includes('NO')) {
             playback();
             bg1Overlay.destroy();
-            if (issettigsopen && settingsWin) {
-        settingsWin.focus();
-    } else {
-        mainList.focus();
-    }
+            settingsWin.focus();
             screen.render();
             return;
         }
@@ -1489,11 +1486,7 @@ function eraseData() {
                         
                         refreshMenu();
                         isERASE = false
-                        if (issettigsopen && settingsWin) {
                             settingsWin.focus();
-                        } else {
-                            mainList.focus();
-                        }
                         screen.render();
                     });
                 }, 1500); 
