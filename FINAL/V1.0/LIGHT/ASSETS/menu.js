@@ -121,61 +121,46 @@ async function downloadAndInstall(version, statusWin) {
         }
 
         try {
-    const tree = JSON.parse(stdout);
-    const targetPrefix = `FINAL/${version}/LIGHT/`;
-    const files = tree.filter(item => 
-        item.type === 'blob' && 
-        item.path.startsWith(targetPrefix) &&
-        !item.path.includes('/CONFIG/') && 
-        !item.path.includes('/Achievements/')
-    );
+            const tree = JSON.parse(stdout);
+            const targetPrefix = `FINAL/${version}/LIGHT/`;
+            const files = tree.filter(item => 
+                item.type === 'blob' && 
+                item.path.startsWith(targetPrefix) &&
+                !item.path.includes('/CONFIG/') && 
+                !item.path.includes('/Achievements/')
+            );
 
-    if (files.length === 0) throw new Error("Data sectors empty.");
+            if (files.length === 0) throw new Error("Data sectors empty.");
 
-    blockMenuInput = true;
-    let downloaded = 0;
-    const totalFiles = files.length;
-    const startTime = Date.now(); // Marca o início para o cálculo
+            blockMenuInput = true;
+            let downloaded = 0;
+            const totalSteps = 30;
 
-    for (let i = 0; i < totalFiles; i++) {
-        const fileMetadata = files[i];
-        const relPath = fileMetadata.path.replace(targetPrefix, '');
-        const destPath = path.join(__dirname, '..', relPath);
-        const fileUrl = `https://raw.githubusercontent.com/lukzst/LIGHT/main/${fileMetadata.path}`;
+            for (let i = 1; i <= totalSteps; i++) {
+                const bar = "█".repeat(i) + "░".repeat(totalSteps - i);
+                const percentage = Math.round((i / totalSteps) * 100);
+                
+                const filesPerStep = Math.ceil(files.length / totalSteps);
+                for(let j = 0; j < filesPerStep && downloaded < files.length; j++) {
+                    const fileMetadata = files[downloaded];
+                    const relPath = fileMetadata.path.replace(targetPrefix, '');
+                    const destPath = path.join(__dirname, '..', relPath);
+                    const fileUrl = `https://raw.githubusercontent.com/lukzst/LIGHT/main/${fileMetadata.path}`;
 
-        if (!fs.existsSync(path.dirname(destPath))) fs.mkdirSync(path.dirname(destPath), { recursive: true });
-        
-        const dlCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iwr -Uri '${fileUrl}' -OutFile '${destPath}'"`;
-        
-        await new Promise((res) => { exec(dlCmd, () => { downloaded++; res(); }); });
+                    if (!fs.existsSync(path.dirname(destPath))) fs.mkdirSync(path.dirname(destPath), { recursive: true });
+                    const dlCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iwr -Uri '${fileUrl}' -OutFile '${destPath}'"`;
+                    await new Promise((res) => { exec(dlCmd, () => { downloaded++; res(); }); });
+                }
 
-        // --- CÁLCULO DE TEMPO REAL ---
-        const elapsedMs = Date.now() - startTime;
-        const avgTimePerFile = elapsedMs / downloaded;
-        const remainingFiles = totalFiles - downloaded;
-        const remainingMs = remainingFiles * avgTimePerFile;
-
-        // Formatação simples (Minutos : Segundos)
-        const remMin = Math.floor(remainingMs / 60000);
-        const remSec = Math.floor((remainingMs % 60000) / 1000);
-        const timeStr = `${remMin}m ${remSec}s`;
-
-        // Atualização da Barra de Progresso
-        const totalSteps = 30;
-        const progressIdx = Math.round((downloaded / totalFiles) * totalSteps);
-        const bar = "█".repeat(progressIdx) + "░".repeat(totalSteps - progressIdx);
-        const percentage = Math.round((downloaded / totalFiles) * 100);
-
-        statusWin.setContent(
-            `{center}\n{yellow-fg}INSTALLING NEW UPDATE...{/}\n\n` +
-            `Version: ${version}\n` +
-            `Files: ${downloaded}/${totalFiles}\n\n` +
-            `[${bar}] ${percentage}%\n\n` +
-            `ESTIMATED REMAINING: {cyan-fg}${timeStr}{/}\n` +
-            `{white-fg}Please wait, do not close the game...{/white-fg}{/center}`
-        );
-        screen.render();
-    }
+                statusWin.setContent(
+    `{center}\n{yellow-fg}INSTALLING NEW UPDATE...{/}\n\n` +
+    `Version: ${version}\n\n` +
+    `[${bar}] ${percentage}%\n\n` +
+    `{white-fg}Please wait, do not close the game...{/white-fg}{/center}`
+);
+                screen.render();
+                await new Promise(r => setTimeout(r, 400));
+            }
 
             statusWin.style.border.fg = 'green';
 statusWin.setContent(`{center}\n{green-fg}UPDATE INSTALLED SUCCESSFULLY!{/green-fg}\n\nVersion ${version} is now ready.\n\n{blink}PRESS [ENTER] TO RESTART THE GAME{/center}`);
@@ -230,28 +215,52 @@ async function showUpdateStatus() {
     };
 
     checkUpdates(async (hasUpdate, version) => {
-        if (hasUpdate === null) {
-            statusWin.setContent('{center}\n{red-fg}NETWORK ERROR{/red-fg}\n\nCheck connection.{/center}');
-        } else if (hasUpdate) {
-            global.latestVersionFound = version;
+    if (hasUpdate === null) {
+        statusWin.setContent('{center}\n{red-fg}NETWORK ERROR{/red-fg}\n\nCheck connection.{/center}');
+    } else if (hasUpdate) {
+        global.latestVersionFound = version;
+        
+        // --- NOVO: Cálculo de estimativa baseada na contagem de arquivos ---
+        const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
+        const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' -Headers @{'User-Agent'='LIGHT-Updater'}).tree | ConvertTo-Json -Compress"`;
+
+        exec(getTreeCmd, {maxBuffer: 1024 * 1024 * 10}, (error, stdout) => {
+            let estimatedTime = "CALCULATING...";
+            
+            if (!error) {
+                const tree = JSON.parse(stdout);
+                const targetPrefix = `FINAL/${version}/LIGHT/`;
+                const fileCount = tree.filter(item => 
+                    item.type === 'blob' && item.path.startsWith(targetPrefix)
+                ).length;
+
+                // Estimativa: 1.5 segundos por arquivo (latência média do PowerShell iwr)
+                const totalSeconds = Math.round(fileCount * 1.5);
+                const mins = Math.floor(totalSeconds / 60);
+                const secs = totalSeconds % 60;
+                estimatedTime = mins > 0 ? `${mins} MIN ${secs} SEC` : `${secs} SECONDS`;
+            }
+
             statusWin.style.border.fg = 'magenta';
             statusWin.setContent(
                 `{center}\n{magenta-fg}UPDATE DETECTED: ${version}{/magenta-fg}\n\n` +
                 `NOTE: this update may take a few minutes to complete.\n` +
-                `ESTIMATED UPDATE TIME: {yellow-fg}10 MINUTES{/yellow-fg}.\n\n` +
+                `ESTIMATED UPDATE TIME: {yellow-fg}${estimatedTime}{/yellow-fg}.\n\n` +
                 `{white-fg}[ENTER] START UPDATE | [ESC] ABORT{/center}`
             );
-            
-            setTimeout(() => { 
-                canAcceptInput = true; 
-                screen.key(['enter'], onEnterUpdate);
-            }, 500);
+            screen.render();
+        });
+        
+        setTimeout(() => { 
+            canAcceptInput = true; 
+            screen.key(['enter'], onEnterUpdate);
+        }, 500);
 
-        } else {
-            statusWin.setContent(`{center}\n{green-fg}LIGHT IS UP TO DATE{/green-fg}\n\nVersion ${CURRENT_VERSION} is current.{/center}`);
-        }
-        screen.render();
-    });
+    } else {
+        statusWin.setContent(`{center}\n{green-fg}LIGHT IS UP TO DATE{/green-fg}\n\nVersion ${CURRENT_VERSION} is current.{/center}`);
+    }
+    screen.render();
+});
 
     screen.key(['escape'], function escUpdate() {
         if (blockMenuInput && statusWin.getContent().includes('█')) return;
