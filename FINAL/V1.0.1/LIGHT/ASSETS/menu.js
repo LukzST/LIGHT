@@ -900,7 +900,7 @@ function showResetOptions() {
     screen.render();
 
     resetWin.on('select item', () => {
-        playBeep(); // Toca o som ao mover as setas
+        playBeep(); 
     });
 
     resetWin.on('select', (item) => {
@@ -908,15 +908,14 @@ function showResetOptions() {
         if (txt.includes('DATA')) {
             bgOverlay.destroy();
             screen.unkey('escape')
-            eraseData(); // Chama sua função original
+            eraseData();
         } 
         else if (txt.includes('TIME')) {
             bgOverlay.destroy();
             screen.unkey('escape')
-            erasePlaytime(); // Chama sua função original
+            erasePlaytime();
         }
         else if (txt.includes('CONFIGS')) {
-            // Executa a lógica de reset de configs que já existe no seu código
             bgOverlay.destroy();
             const pathAch = path.join(__dirname, '..', 'Achievements', 'HARD_RESET.ach');
     if (!fs.existsSync(pathAch)) {
@@ -1001,14 +1000,13 @@ function showResetOptions() {
     });
 }
 
-// Função auxiliar para o Reset Configs (extraída do seu botão RESET original)
+
 function resetToDefaultsAction() {
     const configs = ['AUDIOSTATE.txt', 'EFFECTS_STATE.txt', 'COLORNAME.txt', 'COLORDEFAULT.txt', 'USER.txt', 'FULLSCREEN.txt', 'DIFFICULTY.txt', 'GLITCH.txt', 'TIME.txt', 'SIDEBAR.txt'];
     configs.forEach(cfg => {
         const p = path.join('../CONFIG/', cfg);
         if (fs.existsSync(p)) fs.unlinkSync(p);
     });
-    // Aqui você pode disparar o playfresh() e o refreshMenu()
     if (EFFECTS_STATUS === 'ON') playfresh();
 }
 
@@ -1418,7 +1416,7 @@ function eraseData() {
     screen.render();
 
     eraseWin.on('select item', () => {
-        playBeep(); // Toca o som ao mover as setas
+        playBeep();
     });
 
     eraseWin.on('select', (item) => {
@@ -1550,7 +1548,7 @@ function erasePlaytime() {
     eraseWin._lastIdx = 2;
     
     eraseWin.on('select item', () => {
-        playBeep(); // Toca o som ao mover as setas
+        playBeep();
     });
 
     eraseWin.on('select item', (item, index) => {
@@ -1826,7 +1824,7 @@ settingsWin = blessed.list({
 
  if (txt.includes('SYSTEM RESETS')) {
     playBeep2();
-    return showResetOptions(); // Abre o novo menu com as 3 opções
+    return showResetOptions();
 }
 
 
