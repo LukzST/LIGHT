@@ -164,7 +164,7 @@ async function downloadAndInstall(version, statusWin) {
             }
 
             statusWin.style.border.fg = 'green';
-statusWin.setContent(`{center}\n{green-fg}UPDATE INSTALLED SUCCESSFULLY!{/green-fg}\n\nVersion ${version} is now ready.\n\n{blink}PRESS [ENTER] TO RESTART THE GAME{/center}`);
+statusWin.setContent(`{center}\n{green-fg}UPDATE INSTALLED SUCCESSFULLY!{/green-fg}\n\nVersion: ${version.replace('V', '')} is now ready.\n\n{blink}PRESS [ENTER] TO RESTART THE GAME{/center}`);
             screen.render();
             playsucesso();
             
@@ -257,7 +257,7 @@ async function showUpdateStatus() {
         }, 500);
 
     } else {
-        statusWin.setContent(`{center}\n{green-fg}LIGHT IS UP TO DATE{/green-fg}\n\n${CURRENT_VERSION} is current.{/center}\n\n\n\n\n{center}{bold}{grey-fg}PRESS [ESC] TO CLOSE{/grey-fg}{/bold}{/center}`);
+        statusWin.setContent(`{center}\n{green-fg}LIGHT IS UP TO DATE{/green-fg}\n\n'Version ${CURRENT_VERSION.replace('V', '')} is current.{/center}\n\n\n\n\n{center}{bold}{grey-fg}PRESS [ESC] TO CLOSE{/grey-fg}{/bold}{/center}`);
     }
     screen.render();
 });
