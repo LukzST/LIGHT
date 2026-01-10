@@ -155,7 +155,7 @@ async function downloadAndInstall(version, statusWin) {
 
                 statusWin.setContent(
     `{center}\n{yellow-fg}INSTALLING NEW UPDATE...{/}\n\n` +
-    `Version: ${version}\n\n` +
+    `Version: ${version.replace('V', '')}\n\n` +
     `[${bar}] ${percentage}%\n\n` +
     `{white-fg}Please wait, do not close the game...{/white-fg}{/center}`
 );
