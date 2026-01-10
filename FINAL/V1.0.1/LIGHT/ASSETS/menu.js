@@ -164,7 +164,7 @@ async function downloadAndInstall(version, statusWin) {
             }
 
             statusWin.style.border.fg = 'green';
-statusWin.setContent(`{center}\n{green-fg}UPDATE INSTALLED SUCCESSFULLY!{/green-fg}\n\nVersion: ${version.replace('V', '')} is now ready.\n\n{blink}PRESS [ENTER] TO RESTART THE GAME{/center}`);
+statusWin.setContent(`{center}\n{green-fg}UPDATE INSTALLED SUCCESSFULLY!{/green-fg}\n\nVersion ${version.replace('V', '')} is now ready.\n\n{blink}PRESS [ENTER] TO RESTART THE GAME{/center}`);
             screen.render();
             playsucesso();
             
@@ -257,7 +257,7 @@ async function showUpdateStatus() {
         }, 500);
 
     } else {
-        statusWin.setContent(`{center}\n{green-fg}LIGHT IS UP TO DATE{/green-fg}\n\n'Version ${CURRENT_VERSION.replace('V', '')} is current.{/center}\n\n\n\n\n{center}{bold}{grey-fg}PRESS [ESC] TO CLOSE{/grey-fg}{/bold}{/center}`);
+        statusWin.setContent(`{center}\n{green-fg}LIGHT IS UP TO DATE{/green-fg}\n\nVersion ${CURRENT_VERSION.replace('V', '')} is current.{/center}\n\n\n\n\n{center}{bold}{grey-fg}PRESS [ESC] TO CLOSE{/grey-fg}{/bold}{/center}`);
     }
     screen.render();
 });
@@ -734,6 +734,7 @@ function refreshMenu() {
         '{center}ERASE DATA{/center}',
         '{center}SYSTEM INFO{/center}',
         '{center}CREDITS{/center}',
+        '{center}FEEDBACK{/center}',
         '{center}SUPPORT{/center}',
         '{center}EXIT{/center}'
     ]);
@@ -844,6 +845,7 @@ const menuDescriptions = {
  'PACPRO SUBSYSTEM (NEW)': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
  'ACHIEVEMENTS': 'SEE YOUR ACHIEVEMENTS',
  'UPDATES': 'CHECK FOR UPDATES.',
+ 'FEEDBACK': 'SEND US A FEEDBACK ABOUT LIGHT',
  'CHECKPOINTS': 'SEE YOUR CHECKPOINTS',
  'SETTINGS': 'AUDIO, COLOR, USER AND FULL SCREEN CONFIGURATION.',
  'ERASE DATA': 'ERASE ALL LOCAL USER DATA AND SETTINGS.',
@@ -2448,6 +2450,117 @@ function supportGame() {
 
     screen.render();
 }
+
+function feedback() {
+    issupportOpen = true;
+    playsupport();
+    
+    const bg1Overlay = blessed.box({
+        parent: screen,
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        index: 100,
+        style: { bg: 'black' }
+    });
+
+    const supportBox = blessed.box({
+        parent: bg1Overlay,
+        top: 'center',
+        left: 'center',
+        width: 60,
+        height: 18,
+        border: 'line',
+        label: ' [ FEEDBACK ] ',
+        tags: true,
+        style: {
+            border: { fg: COLORDEFAULT },
+            label: { fg: COLORDEFAULT, bold: true }
+        }
+    });
+
+    // Correção de Inglês: "helps improve" em vez de "allows for"
+    const infoText = [
+        `\n{bold}THANK YOU FOR YOUR FEEDBACK!{/bold}`,
+        `Your input helps us improve the system.`,
+        `Select an option below to proceed:`
+    ].join('\n');
+
+    blessed.box({
+        parent: supportBox,
+        top: 1,
+        left: 'center',
+        width: '90%',
+        height: 6,
+        tags: true,
+        content: `{center}${infoText}{/center}`
+    });
+
+    const supportOptions = blessed.list({
+        parent: supportBox,
+        bottom: 1,
+        left: 'center',
+        width: '80%',
+        height: 7,
+        keys: true,
+        tags: true,
+        mouse: true,
+        border: 'line',
+        items: [
+            '{center}Email Us{/center}',
+            '{center}Post on X (Twitter){/center}',
+            '{center}Close Window{/center}'
+        ],
+        style: {
+            border: { fg: '#333333' },
+            selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
+        }
+    });
+
+    const closeSupport = () => {
+        issupportOpen = false;
+        playback();
+        screen.unkey('escape', closeSupport);
+        bg1Overlay.destroy();
+        mainList.focus();
+        screen.render();
+    };
+
+    screen.onceKey(['escape'], closeSupport);
+    supportOptions.focus();
+
+    supportOptions.on('select item', () => {
+        playBeep();
+    });
+
+    supportOptions.on('select', (item) => {
+        const text = item.getText();
+        
+        // Versão limpa para usar no corpo das mensagens (Ex: 1.0 em vez de V1.0)
+        const cleanVersion = version.replace('V', '');
+
+        if (text.includes('Email')) {
+            const subject = encodeURIComponent(`Feedback: LIGHT - Version ${cleanVersion}`);
+            const body = encodeURIComponent(`\n\n--- System Info ---\nVersion: ${cleanVersion}`);
+            exec(`start mailto:contatosadberry@gmail.com?subject=${subject}&body=${body}`);
+            playBeep2();
+        }
+        else if (text.includes('X (Twitter)')) {
+            // Adicionado @playlightgame no tweet
+            const tweetText = encodeURIComponent(`I'm playing LIGHT Version ${cleanVersion}! A unique terminal horror experience by @playlightgame. Check it out: https://palelunadev.itch.io/light`);
+            exec(`start https://twitter.com/intent/tweet?text=${tweetText}`);
+            playBeep2();
+        }
+        else if (text.includes('Close')) {
+            closeSupport();
+        }
+        screen.render();
+    });
+
+    screen.render();
+}
+
 function Achievements() {
  achScreenCount++;
  playBeep2()
@@ -2785,6 +2898,7 @@ if (text.includes('UPDATES')) {
     
     return;
 }
+ if (text.includes('FEEDBACK')) {return feedback();}
  if (text.includes('EXIT')) {return confirmExit();}
  if (text.includes('SETTINGS')) {playBeep2(); return showSettings();}
  if (text.includes('SYSTEM INFO')) {playwarning(); return showSystemInfo();}
