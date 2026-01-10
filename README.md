@@ -30,4 +30,4 @@ The silence of the terminal is your only companion. The light is your only hope.
 ### Boot Protocol
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/your-user/light.git](https://github.com/your-user/light.git)
+   git clone [https://github.com/LukzST/light.git](https://github.com/LukzST/light.git)
