@@ -25,7 +25,7 @@ The silence of the terminal is your only companion. The light is your only hope.
 
 ### Prerequisites
 * [Node.js](https://nodejs.org/) (Version 16 or higher recommended)
-* [Windows 10 or Windows 11](https://www.microsoft.com/pt-br/software-download/windows10) (Version 20h2 or higher)
+* [Windows 10](https://www.microsoft.com/pt-br/software-download/windows10) (Version 20h2 or higher)
 
 ### Boot Protocol
 1. Clone the repository:
