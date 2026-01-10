@@ -257,7 +257,7 @@ async function showUpdateStatus() {
         }, 500);
 
     } else {
-        statusWin.setContent(`{center}\n{green-fg}LIGHT IS UP TO DATE{/green-fg}\n\n'Version ${CURRENT_VERSION.replace('V', '')} is current.{/center}\n\n\n\n\n{center}{bold}{grey-fg}PRESS [ESC] TO CLOSE{/grey-fg}{/bold}{/center}`);
+        statusWin.setContent(`{center}\n{green-fg}LIGHT IS UP TO DATE{/green-fg}\n\nVersion ${CURRENT_VERSION.replace('V', '')} is current.{/center}\n\n\n\n\n{center}{bold}{grey-fg}PRESS [ESC] TO CLOSE{/grey-fg}{/bold}{/center}`);
     }
     screen.render();
 });
@@ -726,13 +726,8 @@ function refreshMenu() {
     items.push('{center}SETTINGS{/center}');
 
 
-    if (TIME_STATUS === 'ON') {
-        items.push('{center}{cyan-fg}RESET TIME{/cyan-fg}{/center}');
-    }
-
     items = items.concat([
-        '{center}ERASE DATA{/center}',
-        '{center}SYSTEM INFO{/center}',
+        '{center}SYSTEM{/center}',
         '{center}CREDITS{/center}',
         '{center}SUPPORT{/center}',
         '{center}EXIT{/center}'
@@ -870,6 +865,153 @@ const copyrightBOX1 = blessed.box({
  bold: true,
  },
 });
+
+
+function showResetOptions() {
+    const bgOverlay = blessed.box({
+        parent: screen,
+        top: 0, left: 0,
+        width: '100%', height: '100%',
+        style: { bg: 'black' },
+        index: 200
+    });
+
+    const resetWin = blessed.list({
+        parent: bgOverlay,
+        top: 'center', left: 'center',
+        width: 40, height: 10,
+        border: 'line',
+        label: ' [ SYSTEM RESET ] ',
+        keys: true,
+        tags: true,
+        items: [
+            ' RESET DATA (HARD)',
+            ' RESET PLAYTIME',
+            ' RESET CONFIGS',
+            ' BACK'
+        ],
+        style: {
+            border: { fg: 'red' },
+            selected: { bg: 'red', fg: 'white', bold: true }
+        }
+    });
+
+    resetWin.focus();
+    screen.render();
+
+    resetWin.on('select item', () => {
+        playBeep(); // Toca o som ao mover as setas
+    });
+
+    resetWin.on('select', (item) => {
+        const txt = item.getText();
+        if (txt.includes('DATA')) {
+            bgOverlay.destroy();
+            screen.unkey('escape')
+            eraseData(); // Chama sua função original
+        } 
+        else if (txt.includes('TIME')) {
+            bgOverlay.destroy();
+            screen.unkey('escape')
+            erasePlaytime(); // Chama sua função original
+        }
+        else if (txt.includes('CONFIGS')) {
+            // Executa a lógica de reset de configs que já existe no seu código
+            bgOverlay.destroy();
+            const pathAch = path.join(__dirname, '..', 'Achievements', 'HARD_RESET.ach');
+    if (!fs.existsSync(pathAch)) {
+        fs.writeFileSync(pathAch, 'COMPLETED');
+        showAchievementToast('HARD_RESET');
+    }
+
+    const configs = [
+        'AUDIOSTATE.txt', 'EFFECTS_STATE.txt', 'COLORNAME.txt', 
+        'COLORDEFAULT.txt', 'USER.txt', 'FULLSCREEN.txt', 
+        'DIFFICULTY.txt', 'GLITCH.txt', 'TIME.txt', 'SIDEBAR.txt'
+    ];
+    configs.forEach(cfg => {
+        const p = path.join('../CONFIG/', cfg);
+        if (fs.existsSync(p)) fs.unlinkSync(p);
+    });
+
+    audiostate = 'OFF';
+    EFFECTS_STATUS = 'ON';
+    COLORNAME = 'RED';
+    COLORDEFAULT = '#ff0000';
+    USERNAMEP = 'OPERATOR 07';
+    FULLSCREEN = 'OFF';
+    DIFFICULTY = 'NORMAL';
+    GLITCH = 'ON';
+    SIDEBAR = 'OFF';
+    TIME_STATUS = 'ON';
+
+    fs.writeFileSync('../CONFIG/TIME.txt', `${TIME_STATUS}\n${TOTAL_PLAYTIME}`, 'utf8');
+    fs.writeFileSync('../CONFIG/FULLSCREEN.txt', FULLSCREEN, 'utf8');
+    fs.writeFileSync('../CONFIG/AUDIOSTATE.txt', audiostate, 'utf8');
+    fs.writeFileSync('../CONFIG/EFFECTS_STATE.txt', EFFECTS_STATUS, 'utf8');
+    fs.writeFileSync('../CONFIG/COLORNAME.txt', COLORNAME, 'utf8');
+    fs.writeFileSync('../CONFIG/COLORDEFAULT.txt', COLORDEFAULT, 'utf8');
+    fs.writeFileSync('../CONFIG/USER.txt', USERNAMEP, 'utf8');
+    fs.writeFileSync('../CONFIG/GLITCH.txt', GLITCH, 'utf8');
+    fs.writeFileSync('../CONFIG/SIDEBAR.txt', SIDEBAR, 'utf8');
+
+    settingsWin.setItem(0, ' MENU AUDIO: [' + audiostate + ']');
+    settingsWin.setItem(1, ' SOUND EFFECTS: [' + EFFECTS_STATUS + ']');
+    settingsWin.setItem(2, ' COLOR: [' + COLORNAME + ']');
+    settingsWin.setItem(3, ' GLITCH LOGO: [' + GLITCH + ']');
+    settingsWin.setItem(4, ' USERNAME: [' + USERNAMEP + ']');
+    settingsWin.setItem(5, ' FULL SCREEN: [' + FULLSCREEN + ']');
+    settingsWin.setItem(6, ' SIDEBAR: [' + SIDEBAR + ']');
+    settingsWin.setItem(7, ' PLAYTIME HUD: [' + TIME_STATUS + ']');
+
+    logoBox.style.fg = COLORDEFAULT;
+    mainList.style.selected.bg = COLORDEFAULT;
+    settingsWin.style.border.fg = COLORDEFAULT;
+    settingsWin.style.selected.bg = COLORDEFAULT;
+    hotkeysBar.style.border.fg = COLORDEFAULT;
+    statusBox.style.border.fg = COLORDEFAULT;
+
+    if (audiostate === 'ON') {
+        playAudio();
+    } else {
+        stopAudio();
+    }
+
+    leftSidebar.hide(); 
+    updateStatus();
+    settingsWin.focus();
+    screen.render();
+    
+    if (EFFECTS_STATUS === 'ON') playfresh();
+            settingsWin.focus();
+        }
+        else {
+            playback()
+            bgOverlay.destroy();
+            settingsWin.focus();
+        }
+        screen.render();
+    });
+
+    screen.key(['escape'], () => {
+        playback()
+        bgOverlay.destroy();
+        settingsWin.focus();
+        screen.render();
+    });
+}
+
+// Função auxiliar para o Reset Configs (extraída do seu botão RESET original)
+function resetToDefaultsAction() {
+    const configs = ['AUDIOSTATE.txt', 'EFFECTS_STATE.txt', 'COLORNAME.txt', 'COLORDEFAULT.txt', 'USER.txt', 'FULLSCREEN.txt', 'DIFFICULTY.txt', 'GLITCH.txt', 'TIME.txt', 'SIDEBAR.txt'];
+    configs.forEach(cfg => {
+        const p = path.join('../CONFIG/', cfg);
+        if (fs.existsSync(p)) fs.unlinkSync(p);
+    });
+    // Aqui você pode disparar o playfresh() e o refreshMenu()
+    if (EFFECTS_STATUS === 'ON') playfresh();
+}
+
 function showAchievementPopup(achId) {
  const ach = ALL_ACHIEVEMENTS.find(a => a.id === achId);
  if (!ach) return;
@@ -1275,13 +1417,21 @@ function eraseData() {
     eraseWin.focus();
     screen.render();
 
+    eraseWin.on('select item', () => {
+        playBeep(); // Toca o som ao mover as setas
+    });
+
     eraseWin.on('select', (item) => {
         const txt = item.getText();
 
         if (txt.includes('NO')) {
             playback();
             bg1Overlay.destroy();
-            mainList.focus();
+            if (issettigsopen && settingsWin) {
+        settingsWin.focus();
+    } else {
+        mainList.focus();
+    }
             screen.render();
             return;
         }
@@ -1341,7 +1491,11 @@ function eraseData() {
                         
                         refreshMenu();
                         isERASE = false
-                        mainList.focus();
+                        if (issettigsopen && settingsWin) {
+                            settingsWin.focus();
+                        } else {
+                            mainList.focus();
+                        }
                         screen.render();
                     });
                 }, 1500); 
@@ -1394,6 +1548,10 @@ function erasePlaytime() {
     });
     eraseWin.select(2); 
     eraseWin._lastIdx = 2;
+    
+    eraseWin.on('select item', () => {
+        playBeep(); // Toca o som ao mover as setas
+    });
 
     eraseWin.on('select item', (item, index) => {
         if (index < 2) {
@@ -1415,7 +1573,11 @@ function erasePlaytime() {
         if (txt.includes('NO')) {
             playback()
             bg1Overlay.destroy();
-            mainList.focus();
+            if (issettigsopen && settingsWin) {
+            settingsWin.focus();
+        } else {
+        mainList.focus();
+    }
             screen.render();
             return;
         }
@@ -1476,7 +1638,11 @@ function erasePlaytime() {
                         bg1Overlay.destroy();
                         refreshMenu();
                         isERASE = false
-                        mainList.focus();
+                        if (issettigsopen && settingsWin) {
+                                settingsWin.focus();
+                            } else {
+                                mainList.focus();
+                            }
                         screen.render();
                         descriptionBox.setContent('{yellow-fg}TIME DATA HAS BEEN PURGED SUCCESSFULLY.{/}');
                     }, 1500);
@@ -1618,7 +1784,7 @@ settingsWin = blessed.list({
  ' SIDEBAR: [' + SIDEBAR + ']',
  ' PLAYTIME HUD: [' + TIME_STATUS + ']',
  '{white-fg}─────────────────────────────────────────{/white-fg}',
- ' RESET TO DEFAULTS ',
+ ' SYSTEM RESETS ',
  ' BACK TO MENU '
  ],
  selected: 0,
@@ -1657,6 +1823,11 @@ settingsWin = blessed.list({
  screen.render();
  return;
  }
+
+ if (txt.includes('SYSTEM RESETS')) {
+    playBeep2();
+    return showResetOptions(); // Abre o novo menu com as 3 opções
+}
 
 
  if (txt.includes('PLAYTIME HUD')) {
@@ -2787,7 +2958,7 @@ if (text.includes('UPDATES')) {
 }
  if (text.includes('EXIT')) {return confirmExit();}
  if (text.includes('SETTINGS')) {playBeep2(); return showSettings();}
- if (text.includes('SYSTEM INFO')) {playwarning(); return showSystemInfo();}
+ if (text.includes('SYSTEM')) {playwarning(); return showSystemInfo();}
  if (text.includes('ERASE DATA')) {playwarning(); return eraseData();}
  if (text.includes('CREDITS')) { return credits() ; } 
  if (text.includes('SUPPORT')) { return supportGame() ; }
