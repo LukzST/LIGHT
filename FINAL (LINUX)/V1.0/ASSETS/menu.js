@@ -15,7 +15,10 @@ let cheatBuffer = "";
 
 let dots = 0;
 const player = require('play-sound')({
-  player: 'mpg123' // Instale com: 
+  player: 'aplay' // Alterado para aplay (nativo do Linux)
+});
+const player1 = require('play-sound')({
+  player: 'mplayer' // Alterado para aplay (nativo do Linux)
 });
 const achDir = '../ACHIEVEMENTS'; 
 
@@ -57,7 +60,7 @@ const LUX4_LOGO =
  "      :::        :::    ::: :::    :::\n" +
  "     :+:        :+:    :+: :+:    :+: \n" +
  "    +:+        +:+    +:+  +:+  +:+   \n" +
- "   +#+        +#+    +:+   +#++:+     \n" +
+ "   +#+        +#+    +#+   +#++:+     \n" +
  "  +#+        +#+    +#+  +#+  +#+     \n" +
  " #+#        #+#    #+# #+#    #+#     \n" +
  "##########  ########  ###    ###      \n"
@@ -67,7 +70,7 @@ const ALL_ACHIEVEMENTS = [
  { id: 'NEVERMISS', name: 'NEVER BE LATE', desc: 'Complete tasks in under 2 seconds.', hint: 'Be extremely fast during the morning tasks.' },
  { id: 'OVERRIDE', name: 'SYSTEM HACKER', desc: 'Accessed restricted developer info.', hint: 'Use the developer code in System Info.' },
  { id: 'REBEL_PATH', name: 'HELLO, REBEL', desc: 'Used the administrative override.', hint: 'Input an alternative code in the office login terminal.' },
- { id: 'CEO_CONFRONT', name: 'DIRECTOR’S CUT', desc: 'Confronted the CEO.', hint: 'Take the secret route to the CEO office.' },
+ { id: 'CEO_CONFRONT', name: 'DIRECTOR\'S CUT', desc: 'Confronted the CEO.', hint: 'Take the secret route to the CEO office.' },
  { id: 'TRUTH_SEEKER', name: 'DECRYPTOR', desc: 'Decrypted Project Fade logs.', hint: 'Find and use the encryption key correctly.' },
  { id: 'RADIO_LISTENER', name: 'STATIC VOICES', desc: 'Listened to the radio report.', hint: 'Choose to listen to the radio in the elevator.' },
  { id: 'GHOST_GUARDIAN', name: 'DIGITAL SHEPHERD', desc: 'Stabilized the Fade.', hint: 'Choose to protect the souls in the final core.' },
@@ -79,14 +82,14 @@ const ALL_ACHIEVEMENTS = [
  { id: 'COLOR_MASTER', name: 'SPECTRUM ANALYST', desc: 'Cycle through all system colors 5 times in a single session.', hint: 'The [C] key holds the power of the visible spectrum.' },
  { id: 'DATA_MINER', name: 'DATA MINER', desc: 'Access the System Info panel 10 times in a single session.', hint: 'Obsession with data is a requirement for this position.' },
  { id: 'GLITCH_ADDICT', name: 'GLITCH ADDICT', desc: 'Toggle the Glitch effect 10 times.', hint: 'Do you prefer the broken reality or the fake stability?' },
- { id: 'TERMINAL_JUNKIE', name: 'TERMINAL JUNKIE', desc: 'Enter and exit the Achievements screen 5 times.', hint: 'Checking your progress won’t make it go faster.' },
+ { id: 'TERMINAL_JUNKIE', name: 'TERMINAL JUNKIE', desc: 'Enter and exit the Achievements screen 5 times.', hint: 'Checking your progress won\'t make it go faster.' },
  { id: 'HARD_RESET', name: 'FRESH START', desc: 'Use the Reset to Defaults option in Settings.', hint: 'Wipe the slate clean. Forget the errors of the past.' },
  { id: 'RARE_BOOT', name: 'SYSTEM ANOMALY', desc: 'Triggered the rare LUX-4 initialization sequence.', hint: 'The system has a small chance to reveal its true face upon boot.' },
  ];
 
 function checkUpdates(callback) {
     const url = 'https://api.github.com/repos/lukzst/LIGHT/contents/FINAL';
-    const cmd = `curl -s -H "User-Agent: LIGHT-Game" ${url}`;
+    const cmd = `curl -s -H "User-Agent: LIGHT-Game" "${url}"`;
 
     exec(cmd, (error, stdout) => {
         if (error) return callback(null);
@@ -109,9 +112,9 @@ function checkUpdates(callback) {
 
 async function downloadAndInstall(version, statusWin) {
     const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
-    const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' -Headers @{'User-Agent'='LIGHT-Updater'}).tree | ConvertTo-Json -Compress"`;
+    const getTreeCmd = `curl -s -H "User-Agent: LIGHT-Updater" "${treeUrl}"`;
     
-    statusWin.setContent('{center}\n{yellow-fg}MAPPING REPOSITORY...{/}\nEstablishing secure link via PowerShell.{/center}');
+    statusWin.setContent('{center}\n{yellow-fg}MAPPING REPOSITORY...{/}\nEstablishing secure link via cURL.{/center}');
     screen.render();
 
     exec(getTreeCmd, {maxBuffer: 1024 * 1024 * 10}, async (error, stdout) => {
@@ -148,8 +151,8 @@ async function downloadAndInstall(version, statusWin) {
                     const fileUrl = `https://raw.githubusercontent.com/lukzst/LIGHT/main/${fileMetadata.path}`;
 
                     if (!fs.existsSync(path.dirname(destPath))) fs.mkdirSync(path.dirname(destPath), { recursive: true });
-                    // Substitua o dlCmd do powershell por curl:
-const dlCmd = `curl -L -s '${fileUrl}' -o '${destPath}'`;
+                    
+                    const dlCmd = `curl -L -s '${fileUrl}' -o '${destPath}'`;
                     await new Promise((res) => { exec(dlCmd, () => { downloaded++; res(); }); });
                 }
 
@@ -222,7 +225,7 @@ async function showUpdateStatus() {
         global.latestVersionFound = version;
         
         const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
-        const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' -Headers @{'User-Agent'='LIGHT-Updater'}).tree | ConvertTo-Json -Compress"`;
+        const getTreeCmd = `curl -s -H "User-Agent: LIGHT-Updater" "${treeUrl}"`;
 
         exec(getTreeCmd, {maxBuffer: 1024 * 1024 * 10}, (error, stdout) => {
             let estimatedTime = "CALCULATING...";
@@ -324,7 +327,6 @@ if (fs.existsSync(LOCK_FILE)) {
         setTimeout(() => process.exit(0), 3500);
         return;
     } else {
-
         releaseLock();
     }
 }
@@ -349,7 +351,7 @@ const ACHIEVEMENT_NAMES = {
  'NEVERMISS': 'NEVER BE LATE',
  'OVERRIDE': 'SYSTEM HACKER',
  'REBEL_PATH': 'HELLO, REBEL',
- 'CEO_CONFRONT': 'DIRECTOR’S CUT',
+ 'CEO_CONFRONT': 'DIRECTOR\'S CUT',
  'TRUTH_SEEKER': 'DECRYPTOR',
  'RADIO_LISTENER': 'STATIC VOICES',
  'GHOST_GUARDIAN': 'DIGITAL SHEPHERD',
@@ -426,7 +428,10 @@ function watchAchievements() {
  });
 }
 color = '#555555'
-const isModernTerminal = process.argv.includes('--wt');
+const isModernTerminal = process.env.TERM_PROGRAM === 'vscode' || 
+                         process.env.TERM === 'xterm-256color' || 
+                         process.env.COLORTERM === 'truecolor';
+
 function startLogoAnimation() {
     
  setInterval(() => {
@@ -612,88 +617,89 @@ function finalizeBoot(wasFocused) {
 }
 
 function fullscreen_pre_save() {
- if(FULLSCREEN === 'ON' && isModernTerminal) {
- const vbsPath = path.join(__dirname, 'toggle_fs.vbs');
- const BCT = `Set objShell = WScript.CreateObject("WScript.Shell")\nWScript.Sleep 100\nobjShell.SendKeys "{F11}"`;
- try {
- fs.writeFileSync(vbsPath, BCT);
- spawn('wscript.exe', [vbsPath]);
- } catch (err) {}
- } else {
- if (!isModernTerminal) FULLSCREEN = 'OFF';
- }
+    if (FULLSCREEN === 'ON') {
+        // No Linux, fullscreen é geralmente controlado pelo terminal em si
+        console.log('Fullscreen: Modo fullscreen depende do terminal em uso');
+    }
 }
 
 if (fs.existsSync('../CONFIG/EFFECTS_STATE.txt')) {
-    var EFFECTS_STATUS = fs.readFileSync(path.join('../CONFIG/EFFECTS_STATE.txt'), 'utf8').trim();
+    var EFFECTS_STATUS = fs.readFileSync(path.join(__dirname, '../CONFIG/EFFECTS_STATE.txt'), 'utf8').trim();
 } else {
     var EFFECTS_STATUS = 'ON';
-    fs.writeFileSync('../CONFIG/EFFECTS_STATE.txt', EFFECTS_STATUS, 'utf8');
+    fs.writeFileSync(path.join(__dirname, '../CONFIG/EFFECTS_STATE.txt'), EFFECTS_STATUS, 'utf8');
 }
 if (fs.existsSync('../CONFIG/TIME.txt')) {
-    var timeRaw = fs.readFileSync('../CONFIG/TIME.txt', 'utf8').split('\n');
+    var timeRaw = fs.readFileSync(path.join(__dirname, '../CONFIG/TIME.txt'), 'utf8').split('\n');
     var TIME_STATUS = timeRaw[0].trim();
     var TOTAL_PLAYTIME = parseInt(timeRaw[1]) || 0;
 } else {
     var TIME_STATUS = 'ON';
     var TOTAL_PLAYTIME = 0;
-    fs.writeFileSync('../CONFIG/TIME.txt', `${TIME_STATUS}\n${TOTAL_PLAYTIME}`, 'utf8');
+    fs.writeFileSync(path.join(__dirname, '../CONFIG/TIME.txt'), `${TIME_STATUS}\n${TOTAL_PLAYTIME}`, 'utf8');
 }
 if (fs.existsSync('../CONFIG/SIDEBAR.txt')) {
- var SIDEBAR = fs.readFileSync(path.join('../CONFIG/SIDEBAR.txt'), 'utf8').trim();
+ var SIDEBAR = fs.readFileSync(path.join(__dirname, '../CONFIG/SIDEBAR.txt'), 'utf8').trim();
 } else {
  var SIDEBAR = 'OFF';
- fs.writeFileSync('../CONFIG/SIDEBAR.txt', SIDEBAR, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/SIDEBAR.txt'), SIDEBAR, 'utf8');
 }
 if (fs.existsSync('../CONFIG/GLITCH.txt')) {
- var GLITCH = fs.readFileSync(path.join('../CONFIG/GLITCH.txt'), 'utf8').trim();
+ var GLITCH = fs.readFileSync(path.join(__dirname, '../CONFIG/GLITCH.txt'), 'utf8').trim();
 } else {
  var GLITCH = 'ON';
- fs.writeFileSync('../CONFIG/GLITCH.txt', GLITCH, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/GLITCH.txt'), GLITCH, 'utf8');
 }
 if (fs.existsSync('../CONFIG/FULLSCREEN.txt')) {
- var FULLSCREEN = fs.readFileSync(path.join('../CONFIG/FULLSCREEN.txt'), 'utf8').trim();
+ var FULLSCREEN = fs.readFileSync(path.join(__dirname, '../CONFIG/FULLSCREEN.txt'), 'utf8').trim();
 } else {
  var FULLSCREEN = 'OFF';
- fs.writeFileSync('../CONFIG/FULLSCREEN.txt', FULLSCREEN, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/FULLSCREEN.txt'), FULLSCREEN, 'utf8');
 }
 if (fs.existsSync('../CONFIG/AUDIOSTATE.txt')) {
- var audiostate = fs.readFileSync(path.join('../CONFIG/AUDIOSTATE.txt'), 'utf8')
+ var audiostate = fs.readFileSync(path.join(__dirname, '../CONFIG/AUDIOSTATE.txt'), 'utf8').trim();
 } else {
  var audiostate = 'OFF';
- fs.writeFileSync('../CONFIG/AUDIOSTATE.txt', audiostate, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/AUDIOSTATE.txt'), audiostate, 'utf8');
 }
 if (fs.existsSync('../CONFIG/COLORDEFAULT.txt')) {
- var COLORNAME = fs.readFileSync(path.join('../CONFIG/COLORNAME.txt'), 'utf8').trim();
- var COLORDEFAULT = fs.readFileSync(path.join('../CONFIG/COLORDEFAULT.txt'), 'utf8').trim();
+ var COLORNAME = fs.readFileSync(path.join(__dirname, '../CONFIG/COLORNAME.txt'), 'utf8').trim();
+ var COLORDEFAULT = fs.readFileSync(path.join(__dirname, '../CONFIG/COLORDEFAULT.txt'), 'utf8').trim();
 } else {
  var COLORNAME = 'RED';
  var COLORDEFAULT = '#ff0000';
- fs.writeFileSync('../CONFIG/COLORNAME.txt', COLORNAME, 'utf8');
- fs.writeFileSync('../CONFIG/COLORDEFAULT.txt', COLORDEFAULT, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/COLORNAME.txt'), COLORNAME, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/COLORDEFAULT.txt'), COLORDEFAULT, 'utf8');
 }
 if (fs.existsSync('../CONFIG/USER.txt')) {
- var USERNAMEP = fs.readFileSync(path.join('../CONFIG/USER.txt'), 'utf8').trim();
+ var USERNAMEP = fs.readFileSync(path.join(__dirname, '../CONFIG/USER.txt'), 'utf8').trim();
 } else {
  var USERNAMEP = 'OPERATOR 07';
- fs.writeFileSync('../CONFIG/USER.txt', USERNAMEP, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/USER.txt'), USERNAMEP, 'utf8');
 }
 if (fs.existsSync('../CONFIG/DIFFICULTY.txt')) {
- var DIFFICULTY = fs.readFileSync(path.join('../CONFIG/DIFFICULTY.txt'), 'utf8').trim();
+ var DIFFICULTY = fs.readFileSync(path.join(__dirname, '../CONFIG/DIFFICULTY.txt'), 'utf8').trim();
 } else {
  var DIFFICULTY = 'NORMAL';
- fs.writeFileSync('../CONFIG/DIFFICULTY.txt', DIFFICULTY, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/DIFFICULTY.txt'), DIFFICULTY, 'utf8');
 }
 let CANwin = 'OFF';
 let vlcProcess = null;
 
-let winVersion = os.release()
+let osVersion = os.release();
 let userName = os.userInfo().username;
-let friendlyName = 'Windows';
-if (winVersion.startsWith('10.0.2')) friendlyName = 'Windows 11';
-if (winVersion.startsWith('10.0.1')) friendlyName = 'Windows 10';
-if (winVersion.startsWith('6.3')) friendlyName = 'Windows 8.1 - NOT SUPPORTED';
-if (winVersion.startsWith('6.1')) friendlyName = 'Windows 7 - NOT SUPPORTED';
+let friendlyName = os.type() + ' ' + osVersion;
+if (os.type() === 'Linux') {
+    // Tentar detectar distribuição específica
+    try {
+        const release = fs.readFileSync('/etc/os-release', 'utf8');
+        const match = release.match(/PRETTY_NAME="(.+)"/);
+        if (match) friendlyName = match[1];
+    } catch (e) {
+        friendlyName = 'Linux ' + osVersion;
+    }
+}
+
 if (audiostate === 'ON') {
  playAudio()
  }
@@ -706,7 +712,7 @@ const screen = blessed.screen({
 function refreshMenu() {
     const checkPacPath = path.join(__dirname, '..', 'ACHIEVEMENTS', 'PACPRO.ach');
     const hasPac = fs.existsSync(checkPacPath);
-    const checkNewPac = hasPac && !fs.existsSync('../CONFIG/PACPRO_SEEN.txt');
+    const checkNewPac = hasPac && !fs.existsSync(path.join(__dirname, '../CONFIG/PACPRO_SEEN.txt'));
 
     let items = ['{center}START MISSION{/center}'];
 
@@ -816,7 +822,7 @@ const mainList = blessed.list({
  }
 });
 if (isNewPac) {
- fs.writeFileSync(pacSeenPath, 'SEEN', 'utf8');
+ fs.writeFileSync(path.join(__dirname, pacSeenPath), 'SEEN', 'utf8');
 }
 mainList.on('select item', (item) => {
     playBeep();
@@ -898,17 +904,17 @@ function showAchievementPopup(achId) {
 
 function playBeep() {
     if (EFFECTS_STATUS === 'OFF') return;
-    player.play(beepfile, (err) => {});
+    player.play(path.join(__dirname, beepfile), (err) => {});
 }
 
 function playlux4() {
     if (EFFECTS_STATUS === 'OFF') return;
-    player.play(BOOTfile, (err) => {});
+    player.play(path.join(__dirname, BOOTfile), (err) => {});
 }
 
 function playBeep2() {
     if (EFFECTS_STATUS === 'OFF') return;
-    player.play(beepfile2, (err) => {});
+    player.play(path.join(__dirname, beepfile2), (err) => {});
 }
 
 function playfresh() {
@@ -916,12 +922,12 @@ function playfresh() {
     if (audiostate === 'ON') {
         stopAudio();
         setTimeout(() => {
-            player.play(freshfile, (err) => {
+            player.play(path.join(__dirname, freshfile), (err) => {
                 if (audiostate === 'ON') playAudio();
             });
         }, 500);
     } else {
-        player.play(freshfile, (err) => {});
+        player.play(path.join(__dirname, freshfile), (err) => {});
     }
 }
 
@@ -930,18 +936,18 @@ function playwin() {
     if (audiostate === 'ON') {
         stopAudio();
         setTimeout(() => {
-            player.play(winfile, (err) => {
+            player.play(path.join(__dirname, winfile), (err) => {
                 if (audiostate === 'ON') playAudio();
             });
         }, 500);
     } else {
-        player.play(winfile, (err) => {});
+        player.play(path.join(__dirname, winfile), (err) => {});
     }
 }
 
 function playwarning() {
     if (EFFECTS_STATUS === 'OFF') return;
-        player.play(warningfile, (err) => {});
+        player.play(path.join(__dirname, warningfile), (err) => {});
 }
 
 function playsupport() {
@@ -949,29 +955,29 @@ function playsupport() {
     if (audiostate === 'ON') {
         stopAudio();
         setTimeout(() => {
-            player.play(supportfile, (err) => {
+            player.play(path.join(__dirname, supportfile), (err) => {
                 if (audiostate === 'ON') playAudio();
             });
         }, 500);
     } else {
-        player.play(supportfile, (err) => {});
+        player.play(path.join(__dirname, supportfile), (err) => {});
     }
 }
 
 function playback() {
     if (EFFECTS_STATUS === 'OFF') return;
-    player.play(backfile, (err) => {});
+    player.play(path.join(__dirname, backfile), (err) => {});
 }
 
 function playstart() {
     if (EFFECTS_STATUS === 'OFF') return;
     
-        player.play(startfile, (err) => {});
+        player.play(path.join(__dirname, startfile), (err) => {});
 }
 
 function playsucesso() {
     if (EFFECTS_STATUS === 'OFF') return;
-    player.play(sucessofile, (err) => {});
+    player.play(path.join(__dirname, sucessofile), (err) => {});
 }
 
 function playcheckpoint() {
@@ -979,12 +985,12 @@ function playcheckpoint() {
     if (audiostate === 'ON') {
         stopAudio();
         setTimeout(() => {
-            player.play(checkpointfile, (err) => {
+            player.play(path.join(__dirname, checkpointfile), (err) => {
                 if (audiostate === 'ON') playAudio();
             });
         }, 500);
     } else {
-        player.play(checkpointfile, (err) => {});
+        player.play(path.join(__dirname, checkpointfile), (err) => {});
     }
 }
 
@@ -1231,7 +1237,7 @@ function credits() {
         const txt = item.getText();
         if (txt.includes('INSTAGRAM')) {
             playBeep2()
-            exec('start https://instagram.com/PlayLightGame');
+            exec('xdg-open https://instagram.com/PlayLightGame');
         }
         if (txt.includes('CLOSE')) {
             playBeep2()
@@ -1329,7 +1335,7 @@ function eraseData() {
                 screen.render();
                 
                 setTimeout(() => {
-                    const eraser = spawn('node', ['./EraseData.js'], { stdio: 'inherit' });
+                    const eraser = spawn('node', [path.join(__dirname, 'EraseData.js')], { stdio: 'inherit' });
                     
                     eraser.on('close', () => {
                         TIME_STATUS = 'ON';
@@ -1463,7 +1469,7 @@ function erasePlaytime() {
             setTimeout(() => {
                 clearInterval(logInterval);
                 
-                const timerReset = spawn('node', ['./erasetime.js'], { stdio: 'inherit' });
+                const timerReset = spawn('node', [path.join(__dirname, 'erasetime.js')], { stdio: 'inherit' });
 
                 timerReset.on('close', () => {
                     TOTAL_PLAYTIME = 0; 
@@ -1661,7 +1667,7 @@ settingsWin = blessed.list({
  if (txt.includes('PLAYTIME HUD')) {
         TIME_STATUS = (TIME_STATUS === 'ON') ? 'OFF' : 'ON';
         playBeep2()
-        fs.writeFileSync('../CONFIG/TIME.txt', `${TIME_STATUS}\n${TOTAL_PLAYTIME}`, 'utf8');
+        fs.writeFileSync(path.join(__dirname, '../CONFIG/TIME.txt'), `${TIME_STATUS}\n${TOTAL_PLAYTIME}`, 'utf8');
         
         settingsWin.setItem(7, ' PLAYTIME HUD: [' + TIME_STATUS + ']');
         refreshMenu()
@@ -1670,18 +1676,18 @@ settingsWin = blessed.list({
  if (txt.includes('AUDIO')) {
  if (audiostate === 'ON') {
  audiostate = 'OFF';
- if (fs.existsSync('../CONFIG/AUDIOSTATE.txt')) {
- fs.unlinkSync('../CONFIG/AUDIOSTATE.txt');
+ if (fs.existsSync(path.join(__dirname, '../CONFIG/AUDIOSTATE.txt'))) {
+ fs.unlinkSync(path.join(__dirname, '../CONFIG/AUDIOSTATE.txt'));
  }
- fs.writeFileSync('../CONFIG/AUDIOSTATE.txt', audiostate, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/AUDIOSTATE.txt'), audiostate, 'utf8');
  stopAudio();
  } else {
     playwarning()
  audiostate = 'ON';
- if (fs.existsSync('../CONFIG/AUDIOSTATE.txt')) {
- fs.unlinkSync('../CONFIG/AUDIOSTATE.txt');
+ if (fs.existsSync(path.join(__dirname, '../CONFIG/AUDIOSTATE.txt'))) {
+ fs.unlinkSync(path.join(__dirname, '../CONFIG/AUDIOSTATE.txt'));
  }
- fs.writeFileSync('../CONFIG/AUDIOSTATE.txt',audiostate, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/AUDIOSTATE.txt'),audiostate, 'utf8');
  playAudio();
  const bg1Overlay = blessed.box({
  parent: screen,
@@ -1738,38 +1744,38 @@ screen.render();
     playBeep2()
  COLORDEFAULT = '#00ff00';
  COLORNAME = 'GREEN';
- if (fs.existsSync('../CONFIG/COLORDEFAULT.txt')) {
- fs.unlinkSync('../CONFIG/COLORDEFAULT.txt');
+ if (fs.existsSync(path.join(__dirname, '../CONFIG/COLORDEFAULT.txt'))) {
+ fs.unlinkSync(path.join(__dirname, '../CONFIG/COLORDEFAULT.txt'));
  }
- if (fs.existsSync('../CONFIG/COLORNAME.txt')) {
- fs.unlinkSync('../CONFIG/COLORNAME.txt');
+ if (fs.existsSync(path.join(__dirname, '../CONFIG/COLORNAME.txt'))) {
+ fs.unlinkSync(path.join(__dirname, '../CONFIG/COLORNAME.txt'));
  }
- fs.writeFileSync('../CONFIG/COLORNAME.txt', COLORNAME, 'utf8');
- fs.writeFileSync('../CONFIG/COLORDEFAULT.txt', COLORDEFAULT, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/COLORNAME.txt'), COLORNAME, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/COLORDEFAULT.txt'), COLORDEFAULT, 'utf8');
  } else if (COLORDEFAULT === '#00ff00') {
     playBeep2()
  COLORDEFAULT = '#0000ff';
  COLORNAME = 'BLUE';
- if (fs.existsSync('../CONFIG/COLORDEFAULT.txt')) {
- fs.unlinkSync('../CONFIG/COLORDEFAULT.txt');
+ if (fs.existsSync(path.join(__dirname, '../CONFIG/COLORDEFAULT.txt'))) {
+ fs.unlinkSync(path.join(__dirname, '../CONFIG/COLORDEFAULT.txt'));
  }
- if (fs.existsSync('../CONFIG/COLORNAME.txt')) {
- fs.unlinkSync('../CONFIG/COLORNAME.txt');
+ if (fs.existsSync(path.join(__dirname, '../CONFIG/COLORNAME.txt'))) {
+ fs.unlinkSync(path.join(__dirname, '../CONFIG/COLORNAME.txt'));
  }
- fs.writeFileSync('../CONFIG/COLORNAME.txt', COLORNAME, 'utf8');
- fs.writeFileSync('../CONFIG/COLORDEFAULT.txt', COLORDEFAULT, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/COLORNAME.txt'), COLORNAME, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/COLORDEFAULT.txt'), COLORDEFAULT, 'utf8');
  } else {
     playBeep2()
  COLORDEFAULT = '#ff0000';
  COLORNAME = 'RED';
- if (fs.existsSync('../CONFIG/COLORDEFAULT.txt')) {
- fs.unlinkSync('../CONFIG/COLORDEFAULT.txt');
+ if (fs.existsSync(path.join(__dirname, '../CONFIG/COLORDEFAULT.txt'))) {
+ fs.unlinkSync(path.join(__dirname, '../CONFIG/COLORDEFAULT.txt'));
  }
- if (fs.existsSync('../CONFIG/COLORNAME.txt')) {
- fs.unlinkSync('../CONFIG/COLORNAME.txt');
+ if (fs.existsSync(path.join(__dirname, '../CONFIG/COLORNAME.txt'))) {
+ fs.unlinkSync(path.join(__dirname, '../CONFIG/COLORNAME.txt'));
  }
- fs.writeFileSync('../CONFIG/COLORNAME.txt', COLORNAME, 'utf8');
- fs.writeFileSync('../CONFIG/COLORDEFAULT.txt', COLORDEFAULT, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/COLORNAME.txt'), COLORNAME, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/COLORDEFAULT.txt'), COLORDEFAULT, 'utf8');
  }
  settingsWin.setItem(2, ' COLOR: [' + COLORNAME + ']');
  logoBox.style.fg = COLORDEFAULT;
@@ -1823,10 +1829,10 @@ screen.render();
  if (value && value.trim() !== "") {
     playsucesso()
  USERNAMEP = value.trim().toUpperCase();
- if (fs.existsSync('../CONFIG/USER.txt')) {
- fs.unlinkSync('../CONFIG/USER.txt');
+ if (fs.existsSync(path.join(__dirname, '../CONFIG/USER.txt'))) {
+ fs.unlinkSync(path.join(__dirname, '../CONFIG/USER.txt'));
  }
- fs.writeFileSync('../CONFIG/USER.txt', USERNAMEP, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/USER.txt'), USERNAMEP, 'utf8');
  settingsWin.setItem(4, ' USERNAME: [' + USERNAMEP + ']');
  }
  input.destroy();
@@ -1841,69 +1847,32 @@ screen.render();
  });
 }
 if (txt.includes('FULL SCREEN')) {
- if (!isModernTerminal) {
- const overlay = blessed.box({
- parent: screen,
- top: 0, left: 0,
- width: '100%', height: '100%',
- style: { bg: 'black' },
- transparent: false
- });
- overlay.setIndex(999);
- const warningBox = blessed.box({
- parent: overlay,
- top: 'center',
- left: 'center',
- width: 60,
- height: 10,
- tags: true,
- border: 'line',
- content: '{center}{red-fg}{bold}FEATURE LOCKED{/bold}{/red-fg}\n\n' +
- 'Fullscreen is only available via {bold}Windows Terminal{/bold}.\n' +
- 'Legacy CMD does not support this protocol.\n\n' +
- '{yellow-fg}[ESC] TO RETURN{/}',
- style: { border: { fg: COLORDEFAULT } }
- });
- const closeWarning = () => {
- overlay.destroy();
- settingsWin.focus();
- screen.render();
- };
- screen.onceKey(['escape'], closeWarning);
- return screen.render();
- }
  FULLSCREEN = (FULLSCREEN === 'OFF') ? 'ON' : 'OFF';
  playBeep2()
- const vbsPath = path.join(__dirname, 'toggle_fs.vbs');
- const BCT = `Set objShell = WScript.CreateObject("WScript.Shell")\nWScript.Sleep 100\nobjShell.SendKeys "{F11}"`;
- try {
- fs.writeFileSync(vbsPath, BCT);
- const child = spawn('wscript.exe', [vbsPath]);
- child.on('exit', () => {
- setTimeout(() => { if (fs.existsSync(vbsPath)) fs.unlinkSync(vbsPath); }, 1000);
- });
- } catch (err) {
- console.error("Erro FS:", err);
+ 
+ // No Linux, podemos usar atalhos do terminal ou bibliotecas específicas
+ // Por enquanto, apenas alternamos a configuração
+ if (fs.existsSync(path.join(__dirname, '../CONFIG/FULLSCREEN.txt'))) {
+     fs.unlinkSync(path.join(__dirname, '../CONFIG/FULLSCREEN.txt'));
  }
- if (fs.existsSync('../CONFIG/FULLSCREEN.txt')) fs.unlinkSync('../CONFIG/FULLSCREEN.txt');
- fs.writeFileSync('../CONFIG/FULLSCREEN.txt', FULLSCREEN, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/FULLSCREEN.txt'), FULLSCREEN, 'utf8');
  settingsWin.setItem(5, ' FULL SCREEN: [' + FULLSCREEN + ']');
  screen.render();
 }
 if (txt.includes('GLITCH')) {
  GLITCH = (GLITCH === 'ON') ? 'OFF' : 'ON';
  playBeep2()
- if (fs.existsSync('../CONFIG/GLITCH.txt')) {
- fs.unlinkSync('../CONFIG/GLITCH.txt');
+ if (fs.existsSync(path.join(__dirname, '../CONFIG/GLITCH.txt'))) {
+ fs.unlinkSync(path.join(__dirname, '../CONFIG/GLITCH.txt'));
  }
- fs.writeFileSync('../CONFIG/GLITCH.txt', GLITCH, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/GLITCH.txt'), GLITCH, 'utf8');
  settingsWin.setItem(3, ' GLITCH LOGO: [' + GLITCH + ']');
  screen.render();
 }
 if (txt.includes('SIDEBAR')) {
  SIDEBAR = (SIDEBAR === 'ON') ? 'OFF' : 'ON';
  playBeep2()
- fs.writeFileSync('../CONFIG/SIDEBAR.txt', SIDEBAR, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/SIDEBAR.txt'), SIDEBAR, 'utf8');
  settingsWin.setItem(6, ' SIDEBAR: [' + SIDEBAR + ']');
  if (SIDEBAR === 'ON') {
  leftSidebar.show();
@@ -1918,7 +1887,7 @@ if (txt.includes('SOUND EFFECTS')) {
     EFFECTS_STATUS = (EFFECTS_STATUS === 'ON') ? 'OFF' : 'ON';
     
 
-    fs.writeFileSync('../CONFIG/EFFECTS_STATE.txt', EFFECTS_STATUS, 'utf8');
+    fs.writeFileSync(path.join(__dirname, '../CONFIG/EFFECTS_STATE.txt'), EFFECTS_STATUS, 'utf8');
 
     settingsWin.setItem(1, ' SOUND EFFECTS: [' + EFFECTS_STATUS + ']');
     
@@ -1941,7 +1910,7 @@ if (txt.includes('RESET')) {
         'DIFFICULTY.txt', 'GLITCH.txt', 'TIME.txt', 'SIDEBAR.txt'
     ];
     configs.forEach(cfg => {
-        const p = path.join('../CONFIG/', cfg);
+        const p = path.join(__dirname, '../CONFIG/', cfg);
         if (fs.existsSync(p)) fs.unlinkSync(p);
     });
 
@@ -1956,15 +1925,15 @@ if (txt.includes('RESET')) {
     SIDEBAR = 'OFF';
     TIME_STATUS = 'ON';
 
-    fs.writeFileSync('../CONFIG/TIME.txt', `${TIME_STATUS}\n${TOTAL_PLAYTIME}`, 'utf8');
-    fs.writeFileSync('../CONFIG/FULLSCREEN.txt', FULLSCREEN, 'utf8');
-    fs.writeFileSync('../CONFIG/AUDIOSTATE.txt', audiostate, 'utf8');
-    fs.writeFileSync('../CONFIG/EFFECTS_STATE.txt', EFFECTS_STATUS, 'utf8');
-    fs.writeFileSync('../CONFIG/COLORNAME.txt', COLORNAME, 'utf8');
-    fs.writeFileSync('../CONFIG/COLORDEFAULT.txt', COLORDEFAULT, 'utf8');
-    fs.writeFileSync('../CONFIG/USER.txt', USERNAMEP, 'utf8');
-    fs.writeFileSync('../CONFIG/GLITCH.txt', GLITCH, 'utf8');
-    fs.writeFileSync('../CONFIG/SIDEBAR.txt', SIDEBAR, 'utf8');
+    fs.writeFileSync(path.join(__dirname, '../CONFIG/TIME.txt'), `${TIME_STATUS}\n${TOTAL_PLAYTIME}`, 'utf8');
+    fs.writeFileSync(path.join(__dirname, '../CONFIG/FULLSCREEN.txt'), FULLSCREEN, 'utf8');
+    fs.writeFileSync(path.join(__dirname, '../CONFIG/AUDIOSTATE.txt'), audiostate, 'utf8');
+    fs.writeFileSync(path.join(__dirname, '../CONFIG/EFFECTS_STATE.txt'), EFFECTS_STATUS, 'utf8');
+    fs.writeFileSync(path.join(__dirname, '../CONFIG/COLORNAME.txt'), COLORNAME, 'utf8');
+    fs.writeFileSync(path.join(__dirname, '../CONFIG/COLORDEFAULT.txt'), COLORDEFAULT, 'utf8');
+    fs.writeFileSync(path.join(__dirname, '../CONFIG/USER.txt'), USERNAMEP, 'utf8');
+    fs.writeFileSync(path.join(__dirname, '../CONFIG/GLITCH.txt'), GLITCH, 'utf8');
+    fs.writeFileSync(path.join(__dirname, '../CONFIG/SIDEBAR.txt'), SIDEBAR, 'utf8');
 
     settingsWin.setItem(0, ' MENU AUDIO: [' + audiostate + ']');
     settingsWin.setItem(1, ' SOUND EFFECTS: [' + EFFECTS_STATUS + ']');
@@ -2003,7 +1972,7 @@ function stopAudio() {
         bgmProcess.kill();
         bgmProcess = null;
     }
-    exec('pkill mpg123 > /dev/null 2>&1');
+    exec('pkill mpg123 2>/dev/null');
 }
 
 screen.key(['/'], () => {
@@ -2172,7 +2141,7 @@ screen.key(['/'], () => {
                         
                         selectedIds.forEach(id => {
                             try {
-                                const fileAch = path.join(achDir, `${id}.ach`);
+                                const fileAch = path.join(__dirname, '../ACHIEVEMENTS', `${id}.ach`);
                                 fs.writeFileSync(fileAch, 'COMPLETED', 'utf8');
                                 logBox.log(`{green-fg}[OK] SECTOR ${id} SYNCHRONIZED{/}`);
                             } catch (err) {
@@ -2213,7 +2182,7 @@ function playAudio() {
     }
     if (bgmProcess) return;
 
-    bgmProcess = player.play(audioFile, function(err) {
+    bgmProcess = player.play(path.join(__dirname, audioFile), function(err) {
         bgmProcess = null;
 
         if (!err || (err && !err.killed)) {
@@ -2227,24 +2196,20 @@ function stopcreditsaudio() {
         vlcProcess.kill();
         vlcProcess = null;
     }
-    spawn('pkill mpg123 > /dev/null 2>&1');
+    spawn('pkill mpg123 2>/dev/null');
 }
 
 function playcreditsaudio() {
-    vlcProcess = player.play(audioaa, function(err){
+    vlcProcess = player1.play(path.join(__dirname, audioaa), function(err){
         if (err && !err.killed) console.error("Erro áudio créditos:", err);
     });
 }
 function getTerminalType() {
- const args = process.argv;
- if (args.includes('--wt')) {
- return 'WINDOWS TERMINAL (WT.EXE)';
- }
- if (args.includes('--cmd')) {
- return 'CMD (LEGACY)';
- }
- if (process.env.WT_SESSION) return 'WINDOWS TERMINAL (WT.EXE)';
- return 'CMD (LEGACY)';;
+    if (process.env.TERM_PROGRAM === 'vscode') return 'VS CODE TERMINAL';
+    if (process.env.TERM === 'xterm-256color') return 'XTERM';
+    if (process.env.TERM === 'screen') return 'SCREEN/TMUX';
+    if (process.env.TERM) return process.env.TERM.toUpperCase();
+    return 'UNKNOWN TERMINAL';
 }
 let terminalName = getTerminalType();
 function showSystemInfo() {
@@ -2256,7 +2221,7 @@ function showSystemInfo() {
  showAchievementToast('DATA_MINER');
  }
  }
- const keyFilePath = '../CONFIG/KEY.txt';
+ const keyFilePath = path.join(__dirname, '../CONFIG/KEY.txt');
  const isUnlocked = fs.existsSync(keyFilePath);
  const backdrop = blessed.box({
  parent: screen,
@@ -2280,7 +2245,7 @@ function showSystemInfo() {
  const text = [
  ` {bold}STATUS:{/bold}       {green-fg}OPERATIONAL{/green-fg}`,
  ` {bold}OS:{/bold}           ${friendlyName}`,
- ` {bold}VERSION:{/bold}      ${winVersion}`,
+ ` {bold}VERSION:{/bold}      ${osVersion}`,
  ` {bold}PC-USER:{/bold}      ${userName.toUpperCase()}`,
  ` {bold}TERMINAL:{/bold}     ${terminalName}`,
  ` {bold}ACHIEVEMENTS:{/bold} ${achievements}`,
@@ -2431,12 +2396,12 @@ function supportGame() {
     supportOptions.on('select', (item) => {
         const text = item.getText();
         if (text.includes('ITCH.IO')) {
-            exec('start https://palelunadev.itch.io/light');
+            exec('xdg-open https://palelunadev.itch.io/light');
             playBeep2();
         }
         else if (text.includes('TWITTER')) {
             const tweetText = encodeURIComponent("I'm playing LIGHT! A unique terminal horror experience. Check it out here: https://palelunadev.itch.io/light");
-            exec(`start https://twitter.com/intent/tweet?text=${tweetText}`);
+            exec(`xdg-open https://twitter.com/intent/tweet?text=${tweetText}`);
             playBeep2();
         }
         else if (text.includes('CLOSE')) {
@@ -2626,7 +2591,7 @@ const k = (ch || key.full || "").toLowerCase();
  }
  }
 }
- fs.writeFileSync('../CONFIG/AUDIOSTATE.txt', audiostate, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/AUDIOSTATE.txt'), audiostate, 'utf8');
  updateStatus();
  }
  if (k === 'f1' || k === 'i') {
@@ -2657,8 +2622,8 @@ if (colorCycles >= 15) {
  } else {
  COLORDEFAULT = '#ff0000'; COLORNAME = 'RED';
  }
- fs.writeFileSync('../CONFIG/COLORNAME.txt', COLORNAME, 'utf8');
- fs.writeFileSync('../CONFIG/COLORDEFAULT.txt', COLORDEFAULT, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/COLORNAME.txt'), COLORNAME, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/COLORDEFAULT.txt'), COLORDEFAULT, 'utf8');
  [logoBox, hotkeysBar, statusBox, hintDisplay, hintListWin].forEach(el => {
  if (el) {
  el.style.fg = COLORDEFAULT;
@@ -2680,7 +2645,7 @@ if (colorCycles >= 15) {
  showAchievementToast('GLITCH_ADDICT');
  }
  }
- fs.writeFileSync('../CONFIG/GLITCH.txt', GLITCH, 'utf8');
+ fs.writeFileSync(path.join(__dirname, '../CONFIG/GLITCH.txt'), GLITCH, 'utf8');
  updateStatus();
  }
 });
@@ -2745,7 +2710,7 @@ mainList.on('select', (item) => {
  setTimeout(() => {
  menuBox.setContent(`\n\n{center}{yellow-fg}PACPRO RUNNING IN EXTERNAL TERMINAL...{/}\n\nWaiting for session end...{/center}`);
  screen.render();
-const pacmanProc = spawn('x-terminal-emulator', ['-e', 'node PACPRO.js'], {
+const pacmanProc = spawn('x-terminal-emulator', ['-e', 'node', path.join(__dirname, 'PACPRO.js')], {
     shell: true
 });
  pacmanProc.on('exit', () => {
@@ -2808,7 +2773,7 @@ if (text.includes('UPDATES')) {
  mainList.destroy();
  screen.destroy();
  playBeep()
- const child = spawn('node', ['main.js'], {
+ const child = spawn('node', [path.join(__dirname, 'main.js')], {
  stdio: 'inherit',
  });
  child.on('exit', () => {
