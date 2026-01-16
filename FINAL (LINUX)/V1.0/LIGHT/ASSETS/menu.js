@@ -89,7 +89,7 @@ const ALL_ACHIEVEMENTS = [
 
 function checkUpdates(callback) {
     const url = 'https://api.github.com/repos/lukzst/LIGHT/contents/FINAL';
-    const cmd = `curl -s -H "User-Agent: LIGHT-Game" "${url}"`;
+    const cmd = `curl -s --connect-timeout 10 -H "User-Agent: LIGHT-Game" "${url}"`;
 
     exec(cmd, (error, stdout) => {
         if (error) return callback(null);
@@ -108,6 +108,27 @@ function checkUpdates(callback) {
             }
         } catch (e) { callback(null); }
     });
+}
+
+function getAvailableTerminal() {
+    const terminals = [
+        'x-terminal-emulator', 'gnome-terminal', 'konsole', 'xfce4-terminal', 
+        'xterm', 'alacritty', 'kitty'
+    ];
+    
+    for (const term of terminals) {
+        try {
+            // Verifica se o terminal está disponível
+            const result = require('child_process').execSync(
+                `which ${term} 2>/dev/null`,
+                { encoding: 'utf8' }
+            ).trim();
+            if (result) return term;
+        } catch (e) {
+            continue;
+        }
+    }
+    return 'xterm'; // Fallback
 }
 
 async function downloadAndInstall(version, statusWin) {
@@ -152,7 +173,7 @@ async function downloadAndInstall(version, statusWin) {
 
                     if (!fs.existsSync(path.dirname(destPath))) fs.mkdirSync(path.dirname(destPath), { recursive: true });
                     
-                    const dlCmd = `curl -L -s '${fileUrl}' -o '${destPath}'`;
+                    const dlCmd = `curl -L -s --connect-timeout 30 --max-time 60 '${fileUrl}' -o '${destPath}'`;
                     await new Promise((res) => { exec(dlCmd, () => { downloaded++; res(); }); });
                 }
 
@@ -180,6 +201,32 @@ statusWin.setContent(`{center}\n{red-fg}FAILED TO INSTALL UPDATE{/red-fg}\n\n${e
             blockMenuInput = false;
         }
     });
+}
+
+function checkSystemDependencies(callback) {
+    const required = ['mplayer', 'mpg123', 'aplay', 'curl', 'pgrep'];
+    const missing = [];
+    
+    function checkNext(index) {
+        if (index >= required.length) {
+            if (missing.length > 0) {
+                console.error('\x1b[31m[ERROR]\x1b[0m Missing system dependencies:');
+                missing.forEach(cmd => console.error(`  • ${cmd}`));
+                console.error('\nInstall them with: sudo apt install mplayer mpg123 curl');
+                process.exit(1);
+            }
+            callback();
+            return;
+        }
+        
+        const cmd = required[index];
+        exec(`which ${cmd}`, (error) => {
+            if (error) missing.push(cmd);
+            checkNext(index + 1);
+        });
+    }
+    
+    checkNext(0);
 }
 
 async function showUpdateStatus() {
@@ -618,8 +665,9 @@ function finalizeBoot(wasFocused) {
 
 function fullscreen_pre_save() {
     if (FULLSCREEN === 'ON') {
-        // No Linux, fullscreen é geralmente controlado pelo terminal em si
-        console.log('Fullscreen: Modo fullscreen depende do terminal em uso');
+        console.log('\x1b[33m[NOTICE]\x1b[0m For fullscreen mode:');
+        console.log('  • Press F11 or Ctrl+Shift+F for terminal fullscreen');
+        console.log('  • Most terminals support F11 for fullscreen mode\n');
     }
 }
 
@@ -1469,7 +1517,7 @@ function erasePlaytime() {
             setTimeout(() => {
                 clearInterval(logInterval);
                 
-                const timerReset = spawn('node', [path.join(__dirname, 'erasetime.js')], { stdio: 'inherit' });
+                const timerReset = spawn('node', [path.join(__dirname, 'EraseTIME.js')], { stdio: 'inherit' });
 
                 timerReset.on('close', () => {
                     TOTAL_PLAYTIME = 0; 
@@ -1639,7 +1687,7 @@ settingsWin = blessed.list({
       if (settingsWin._lastIndex < index) {
         settingsWin.select(9);
       } else {
-        settingsWin.select(7);
+        settingsWin.select(10);
       }
     }
     settingsWin._lastIndex = settingsWin.selected;
@@ -1847,17 +1895,38 @@ screen.render();
  });
 }
 if (txt.includes('FULL SCREEN')) {
- FULLSCREEN = (FULLSCREEN === 'OFF') ? 'ON' : 'OFF';
- playBeep2()
- 
- // No Linux, podemos usar atalhos do terminal ou bibliotecas específicas
- // Por enquanto, apenas alternamos a configuração
- if (fs.existsSync(path.join(__dirname, '../CONFIG/FULLSCREEN.txt'))) {
-     fs.unlinkSync(path.join(__dirname, '../CONFIG/FULLSCREEN.txt'));
- }
- fs.writeFileSync(path.join(__dirname, '../CONFIG/FULLSCREEN.txt'), FULLSCREEN, 'utf8');
- settingsWin.setItem(5, ' FULL SCREEN: [' + FULLSCREEN + ']');
- screen.render();
+    FULLSCREEN = (FULLSCREEN === 'OFF') ? 'ON' : 'OFF';
+    playBeep2();
+    
+    // Salvar configuração
+    fs.writeFileSync(path.join(__dirname, '../CONFIG/FULLSCREEN.txt'), FULLSCREEN, 'utf8');
+    settingsWin.setItem(5, ' FULL SCREEN: [' + FULLSCREEN + ']');
+    
+    // Mostrar mensagem informativa
+    if (FULLSCREEN === 'ON') {
+        const infoBox = blessed.box({
+            parent: screen,
+            top: 'center', left: 'center',
+            width: 50, height: 10,
+            border: 'line',
+            label: ' [ FULLSCREEN MODE ] ',
+            tags: true,
+            content: '{center}\n{cyan-fg}NOTE:{/} Terminal fullscreen enabled\n\n' +
+                     'Press {bold}F11{/} or {bold}Ctrl+Shift+F{/} to toggle\n' +
+                     'terminal fullscreen mode.\n\n' +
+                     '{grey-fg}[ESC] to close{/}{/center}',
+            style: { border: { fg: 'cyan' } }
+        });
+        
+        screen.render();
+        screen.onceKey(['escape'], () => {
+            infoBox.destroy();
+            settingsWin.focus();
+            screen.render();
+        });
+    }
+    
+    screen.render();
 }
 if (txt.includes('GLITCH')) {
  GLITCH = (GLITCH === 'ON') ? 'OFF' : 'ON';
@@ -1940,9 +2009,9 @@ if (txt.includes('RESET')) {
     settingsWin.setItem(2, ' COLOR: [' + COLORNAME + ']');
     settingsWin.setItem(3, ' GLITCH LOGO: [' + GLITCH + ']');
     settingsWin.setItem(4, ' USERNAME: [' + USERNAMEP + ']');
-    settingsWin.setItem(5, ' FULL SCREEN: [' + FULLSCREEN + ']');
-    settingsWin.setItem(6, ' SIDEBAR: [' + SIDEBAR + ']');
-    settingsWin.setItem(7, ' PLAYTIME HUD: [' + TIME_STATUS + ']');
+    settingsWin.setItem(6, ' FULL SCREEN: [' + FULLSCREEN + ']');
+    settingsWin.setItem(7, ' SIDEBAR: [' + SIDEBAR + ']');
+    settingsWin.setItem(8, ' PLAYTIME HUD: [' + TIME_STATUS + ']');
 
     logoBox.style.fg = COLORDEFAULT;
     mainList.style.selected.bg = COLORDEFAULT;
@@ -1972,7 +2041,20 @@ function stopAudio() {
         bgmProcess.kill();
         bgmProcess = null;
     }
-    exec('pkill mpg123 2>/dev/null');
+    const userId = process.getuid();
+    // pkill é mais limpo que pgrep + xargs
+    exec(`pkill -u ${userId} -fi "mpg123.*4.mp3"`);
+    exec(`pkill -u ${userId} -fi "mplayer.*5.mp3"`);
+    exec(`pkill -u ${userId} -fi "aplay"`);
+}
+
+function stopcreditsaudio() {
+    if (vlcProcess) {
+        vlcProcess.kill();
+        vlcProcess = null;
+    }
+    const userId = process.getuid();
+    exec(`pkill -u ${userId} -fi "mplayer.*5.mp3"`);
 }
 
 screen.key(['/'], () => {
@@ -2189,14 +2271,6 @@ function playAudio() {
             playAudio();
         }
     });
-}
-
-function stopcreditsaudio() {
-    if (vlcProcess) {
-        vlcProcess.kill();
-        vlcProcess = null;
-    }
-    spawn('pkill mpg123 2>/dev/null');
 }
 
 function playcreditsaudio() {
@@ -2697,45 +2771,67 @@ mainList.on('select', (item) => {
 
 
  const text = item.getText();
- if (text.includes('PACPRO')) {
- mainList.detach();
- let progress = 0;
- const loadInterval = setInterval(() => {
- progress += 10;
- const bar = "█".repeat(progress / 10) + "░".repeat(10 - progress / 10);
- menuBox.setContent(`\n\n{center}{bold}INITIALIZING EXTERNAL PROTOCOL{/bold}\n\n[${bar}] ${progress}%{/center}`);
- screen.render();
- if (progress >= 100) clearInterval(loadInterval);
- }, 100);
- setTimeout(() => {
- menuBox.setContent(`\n\n{center}{yellow-fg}PACPRO RUNNING IN EXTERNAL TERMINAL...{/}\n\nWaiting for session end...{/center}`);
- screen.render();
-const pacmanProc = spawn('x-terminal-emulator', ['-e', 'node', path.join(__dirname, 'PACPRO.js')], {
-    shell: true
-});
- pacmanProc.on('exit', () => {
- const achPath = path.join(__dirname, '..', 'ACHIEVEMENTS', 'PACPRO.ach');
- const hasWon = fs.existsSync(achPath);
- if (hasWon) {
- menuBox.style.border.fg = 'yellow';
- menuBox.setContent(`\n\n{center}{yellow-fg}{bold}CONGRATULATIONS!{/}\n\nPACPRO ELITE LEVEL CLEAR\n\nREBOOTING SYSTEM...{/center}`);
- } else {
- menuBox.style.border.fg = 'red';
- menuBox.setContent(`\n\n{center}{red-fg}{bold}GAME OVER{/}\n\nPROTOCOL FAILURE: DATA LOST\n\nRESTARTING...{/center}`);
- }
- screen.render();
- setTimeout(() => {
-        menuBox.style.border.fg = '#555555'; 
-        menuBox.setContent(''); 
-        menuBox.append(mainList);
-        updateStatus(); 
-        refreshMenu(); 
-        mainList.focus();
+if (text.includes('PACPRO')) {
+    mainList.detach();
+    let progress = 0;
+    const loadInterval = setInterval(() => {
+        progress += 10;
+        const bar = "█".repeat(progress / 10) + "░".repeat(10 - progress / 10);
+        menuBox.setContent(`\n\n{center}{bold}INITIALIZING EXTERNAL PROTOCOL{/bold}\n\n[${bar}] ${progress}%{/center}`);
         screen.render();
-    }, 3000);
- });
- }, 1500);
- return;
+        if (progress >= 100) clearInterval(loadInterval);
+    }, 100);
+    
+    setTimeout(() => {
+        menuBox.setContent(`\n\n{center}{yellow-fg}PACPRO RUNNING IN EXTERNAL TERMINAL...{/}\n\nWaiting for session end...{/center}`);
+        screen.render();
+        
+        const terminal = getAvailableTerminal();
+        const pacmanProc = spawn(terminal, [
+            '-e', 'node', path.join(__dirname, 'PACPRO.js')
+        ], {
+            detached: true,
+            stdio: 'ignore'
+        });
+        
+        pacmanProc.unref(); // Permite que o processo continue após este script terminar
+        
+        // Verificar se o processo ainda está rodando
+        const checkInterval = setInterval(() => {
+            try {
+                process.kill(pacmanProc.pid, 0); // Verifica se processo existe
+            } catch (e) {
+                clearInterval(checkInterval);
+                handlePACPROReturn();
+            }
+        }, 1000);
+        
+        // Função para lidar com o retorno
+        function handlePACPROReturn() {
+            const achPath = path.join(__dirname, '..', 'ACHIEVEMENTS', 'PACPRO.ach');
+            const hasWon = fs.existsSync(achPath);
+            
+            if (hasWon) {
+                menuBox.style.border.fg = 'yellow';
+                menuBox.setContent(`\n\n{center}{yellow-fg}{bold}CONGRATULATIONS!{/}\n\nPACPRO ELITE LEVEL CLEAR\n\nREBOOTING SYSTEM...{/center}`);
+            } else {
+                menuBox.style.border.fg = 'red';
+                menuBox.setContent(`\n\n{center}{red-fg}{bold}GAME OVER{/}\n\nPROTOCOL FAILURE: DATA LOST\n\nRESTARTING...{/center}`);
+            }
+            
+            screen.render();
+            setTimeout(() => {
+                menuBox.style.border.fg = '#555555';
+                menuBox.setContent('');
+                menuBox.append(mainList);
+                updateStatus();
+                refreshMenu();
+                mainList.focus();
+                screen.render();
+            }, 3000);
+        }
+    }, 1500);
+    return;
 }
 if (text.includes('UPDATES')) {
     blockMenuInput = true; 
@@ -2786,7 +2882,9 @@ if (text.includes('UPDATES')) {
 }
 });
 screen.key(['C-c'], () => confirmExit());
-bootSequence();
+checkSystemDependencies(() => {
+    bootSequence();
+});
 process.on('SIGINT', () => {
  confirmExit();
 });
