@@ -8,6 +8,7 @@ let isBooting = true;
 let isUpdateInterfaceActive = false;
 let isupdating = false;
 let isBooting2 = true;
+let account = false;
 let isERASE = false
 let blockMenuInput = false;
 const GITHUB_CLIENT_ID = "Ov23lidCgfrBVjsGIlmb"; 
@@ -274,6 +275,7 @@ async function showUpdateStatus() {
         
         bgOverlay.destroy();
         isUpdateInterfaceActive = false;
+        isupdating = false;
         blockMenuInput = false;
         mainList.focus();
         screen.render();
@@ -2209,7 +2211,7 @@ function stopAudio() {
 }
 
 screen.key(['-'], () => {
-    if (isOverrideActive || issettigsopen || isGalleryOpen || iscreditsOpen || issupportOpen || isBooting || isBooting2 || isERASE || isupdating) {
+    if (isOverrideActive || issettigsopen || isGalleryOpen || iscreditsOpen || issupportOpen || isBooting || isBooting2 || isERASE || isupdating || account) {
         return;
     }
 
@@ -3020,6 +3022,7 @@ if (text.includes('UPDATES')) {
   return erasePlaytime();
 }
 if (text.includes('ACCOUNT')) {
+    account = true;
     screen.unkey('escape');
     
     if (githubToken && githubUser) {
@@ -3155,15 +3158,18 @@ if (text.includes('ACCOUNT')) {
                 githubToken = null; githubUser = null;
                 if (fs.existsSync('../CONFIG/GITHUB_TOKEN.txt')) fs.unlinkSync('../CONFIG/GITHUB_TOKEN.txt');
                 updateAccountStatus()
+                account = false;
                 bgOverlay.destroy(); refreshMenu(); mainList.focus(); screen.render();
             }
 
             if (ptext.includes('RETURN')) {
+                account = false;
                 playback(); screen.unkey('escape'); bgOverlay.destroy(); mainList.focus(); screen.render();
             }
         });
 
         screen.key(['escape'], function escProfile() {
+            account = false;
             playback(); screen.unkey('escape', escProfile); bgOverlay.destroy(); mainList.focus(); screen.render();
         });
         return;
@@ -3201,6 +3207,7 @@ if (text.includes('ACCOUNT')) {
         }
         playback();
         bgOverlay.destroy();
+        account = false;
         screen.unkey('escape', abortLogin);
         mainList.focus();
         screen.render();
@@ -3238,6 +3245,7 @@ if (text.includes('ACCOUNT')) {
 
                 if (pollData.access_token) {
                     clearInterval(pollInterval);
+                    account = false;
                     screen.unkey('escape', abortLogin);
                     
                     githubToken = pollData.access_token;
