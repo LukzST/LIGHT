@@ -1,4 +1,4 @@
-const CURRENT_VERSION = "V1.01";
+const CURRENT_VERSION = "V1.0";
 const blessed = require('blessed');
 const os = require('os');
 const { spawn } = require('child_process');
@@ -10,13 +10,10 @@ let isupdating = false;
 let isBooting2 = true;
 let isERASE = false
 let blockMenuInput = false;
-const GITHUB_CLIENT_ID = "Ov23lidCgfrBVjsGIlmb"; 
-let githubToken = null;
-let githubUser = null;
 let isOverrideActive = false;
 const path = require('path');
 let cheatBuffer = "";
-const achievements = fs.readdirSync('../Achievements').filter(f => f.endsWith('.ach')).length;
+const achievements = fs.readdirSync('../Achievements').filter(f => f.endsWith('.bin')).length;
 let dots = 0;
 const player = require('play-sound')({
  player: '../AUDIO/PLAYER/cmdmp3.exe'
@@ -628,26 +625,6 @@ function fullscreen_pre_save() {
  }
 }
 
-
-// --- AUTO-LOGIN GITHUB PROTOCOL ---
-if (fs.existsSync('../CONFIG/GITHUB_TOKEN.txt')) {
-    githubToken = fs.readFileSync('../CONFIG/GITHUB_TOKEN.txt', 'utf8').trim();
-    
-    // Tenta validar o token e buscar os dados do perfil em segundo plano
-    const cmdUser = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $res = Invoke-RestMethod -Uri 'https://api.github.com/user' -Headers @{'Authorization'='token ${githubToken}'; 'User-Agent'='LIGHT-Game'}; $res | ConvertTo-Json"`;
-    
-    exec(cmdUser, (err, stdout) => {
-        if (!err) {
-            try { 
-                githubUser = JSON.parse(stdout);
-                // Se quiser, pode disparar uma sincronização de save aqui futuramente
-            } catch(e) { githubToken = null; }
-        } else {
-            // Token inválido ou expirado
-            githubToken = null;
-        }
-    });
-}
 if (fs.existsSync('../CONFIG/EFFECTS_STATE.txt')) {
     var EFFECTS_STATUS = fs.readFileSync(path.join('../CONFIG/EFFECTS_STATE.txt'), 'utf8').trim();
 } else {
@@ -734,22 +711,19 @@ function refreshMenu() {
 
     let items = ['{center}START MISSION{/center}'];
 
-    
-
-    
-    items.push('{center}ACHIEVEMENTS{/center}');
-    items.push('{center}CHECKPOINTS{/center}');
     if (hasPac) {
         if (checkNewPac) {
-            items.push('{center}{yellow-fg}MINIGAME (NEW){/yellow-fg}{/center}');
+            items.push('{center}{yellow-fg}PACPRO SUBSYSTEM (NEW){/yellow-fg}{/center}');
         } else {
-            items.push('{center}MINIGAME{/center}');
+            items.push('{center}{yellow-fg}PACPRO SUBSYSTEM{/yellow-fg}{/center}');
         }
     }
+
+
+    items.push('{center}ACHIEVEMENTS{/center}');
+    items.push('{center}CHECKPOINTS{/center}');
     items.push('{center}UPDATES{/center}');
     items.push('{center}SETTINGS{/center}');
-    items.push('{center}ACCOUNT{/center}');
-
 
 
     items = items.concat([
@@ -833,7 +807,7 @@ const mainList = blessed.list({
  mouse: true,
  items: refreshMenu(),
  style: {
- selected: { bg: COLORDEFAULT, fg: 'black' },
+ selected: { bg: COLORDEFAULT, fg: 'white', bold: true },
  item: { fg: '#bbbbbb' }
  }
 });
@@ -861,15 +835,14 @@ const descriptionBox = blessed.box({
 });
 const menuDescriptions = {
  'START MISSION': 'START THE PRIMARY OPERATIONAL PROTOCOL.',
- 'MINIGAME': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
- 'MINIGAME (NEW)': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
+ 'PACPRO SUBSYSTEM': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
+ 'PACPRO SUBSYSTEM (NEW)': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
  'ACHIEVEMENTS': 'SEE YOUR ACHIEVEMENTS',
  'UPDATES': 'CHECK FOR UPDATES.',
- 'ACCOUNT': 'LINK YOUR ACCOUNT TO SEE YOUR PROFILE INFORMATION.',
  'CHECKPOINTS': 'SEE YOUR CHECKPOINTS',
  'SETTINGS': 'AUDIO, COLOR, USER AND FULL SCREEN CONFIGURATION.',
  'ERASE DATA': 'ERASE ALL LOCAL USER DATA AND SETTINGS.',
- 'SYSTEM': 'VIEW SYSTEM AND TERMINAL INFORMATION.',
+ 'SYSTEM INFO': 'VIEW SYSTEM AND TERMINAL INFORMATION.',
  'CREDITS': 'INFORMATION ABOUT THE DEVELOPMENT TEAM.',
  'SUPPORT': 'HELP THE DEVELOPMENT OF LIGHT GAME.',
  'RESET TIME': 'ERASE ALL PLAYTIME SETTINGS.',
@@ -885,7 +858,7 @@ const copyrightBOX1 = blessed.box({
  right: '0',
  width: 'shrink',
  height: 1,
- content: 'V1.01',
+ content: ' V1.0',
  tags: true,
  style: {
  fg: color,
@@ -2922,7 +2895,7 @@ mainList.on('select', (item) => {
 
 
  const text = item.getText();
- if (text.includes('MINIGAME')) {
+ if (text.includes('PACPRO')) {
  mainList.detach();
  let progress = 0;
  const loadInterval = setInterval(() => {
@@ -3008,190 +2981,6 @@ if (text.includes('UPDATES')) {
  }
  if (text.includes('RESET TIME')) {
   return erasePlaytime();
-}
-if (text.includes('ACCOUNT')) {
-    screen.unkey('escape');
-    if (githubToken && githubUser) {
-        // --- INTERFACE DE PERFIL ESTILO REDE SOCIAL ---
-        playBeep2();
-        const bgOverlay = blessed.box({
-            parent: screen,
-            top: 0, left: 0,
-            width: '100%', height: '100%',
-            style: { bg: 'black' },
-            index: 300
-        });
-
-        const profileWin = blessed.box({
-            parent: bgOverlay,
-            top: 'center', left: 'center',
-            width: 85, height: 22,
-            border: 'line',
-            label: ` [ @${githubUser.login.toUpperCase()} ] `,
-            tags: true,
-            style: { border: { fg: 'cyan' }, label: { fg: 'cyan', bold: true } }
-        });
-
-        // Banner Superior (Header)
-        blessed.box({
-            parent: profileWin,
-            top: 0, left: 0, right: 0,
-            height: 3,
-            align: 'center',
-            tags: true,
-            content: `\n{bold}{cyan-fg}GITHUB{/} OPERATOR NETWORK {bold}{grey-fg}/// SYNC STATUS: ONLINE{/}{/bold}`,
-            style: { bg: '#111' }
-        });
-
-        // Seção Esquerda: Bio e Dados Sociais
-        const socialData = [
-            `{cyan-fg}{bold}${githubUser.name || githubUser.login}{/}`,
-            `{bold}{grey-fg}@${githubUser.login}{/}{/bold}\n`,
-            `{white-fg}${githubUser.bio || "No sector description available."}{/}\n`,
-            `{bold}LOCATION:{/bold}  ${githubUser.location || "UNKNOWN"}`,
-            `{bold}FOLLOWERS:{/bold} ${githubUser.followers}`,
-            `{bold}GISTS:{/bold}     ${githubUser.public_gists}`
-        ].join('\n');
-
-        blessed.box({
-            parent: profileWin,
-            top: 5, left: 3, width: '55%', height: 10,
-            tags: true,
-            content: socialData
-        });
-
-        // Seção Direita: Estatísticas do Sistema
-        const systemStats = [
-            `{center}{yellow-fg}OPERATIONAL STATS{/}`,
-            `{center}────────────────{/}`,
-            `{bold}VERSION:{/bold} ${CURRENT_VERSION}`,
-            `{bold}PC-USER:{/bold} ${userName.toUpperCase()}`,
-            `{bold}ACHS:{/bold}    ${achievements}/${ALL_ACHIEVEMENTS.length}`
-        ].join('\n');
-
-        blessed.box({
-            parent: profileWin,
-            top: 5, right: 3, width: '35%', height: 9,
-            border: 'line',
-            tags: true,
-            content: systemStats,
-            bold:true,
-            style: { border: { fg: 'cyan-fg' } }
-        });
-
-        // Menu de Ações (Footer)
-        const profileActions = blessed.list({
-            parent: profileWin,
-            bottom: 1, left: 'center',
-            width: '90%', height: 2,
-            keys: true, mouse: true,
-            tags: true,
-            items: [
-                '{center} DISCONNECT ACCOUNT {/center}',
-                '{center} RETURN TO MENU {/center}'
-            ],
-            style: {
-                selected: { bg: 'cyan', fg: 'black'},
-                item: { fg: 'cyan' }
-            }
-        });
-
-        profileActions.focus();
-        screen.render();
-
-        profileActions.on('select', (item) => {
-            const ptext = item.getText();
-            playBeep2();
-            if (ptext.includes('DISCONNECT')) {
-                githubToken = null;
-                githubUser = null;
-                if (fs.existsSync('../CONFIG/GITHUB_TOKEN.txt')) fs.unlinkSync('../CONFIG/GITHUB_TOKEN.txt');
-                bgOverlay.destroy();
-                refreshMenu();
-                mainList.focus();
-                screen.render();
-            }
-            if (ptext.includes('RETURN')) {
-                playback();
-            screen.unkey('escape');
-            bgOverlay.destroy();
-            mainList.focus();
-            screen.render();
-            }
-        });
-
-        screen.key(['escape'], function escProfile() {
-            playback();
-            screen.unkey('escape', escProfile);
-            bgOverlay.destroy();
-            mainList.focus();
-            screen.render();
-        });
-        return;
-    }
-
-    // --- FLUXO DE LOGIN (CASO NÃO ESTEJA LOGADO) ---
-    playwarning();
-    const bgOverlay = blessed.box({
-        parent: screen,
-        top: 0, left: 0,
-        width: '100%', height: '100%',
-        style: { bg: 'black' },
-        index: 300
-    });
-
-    const loginWin = blessed.box({
-        parent: bgOverlay,
-        top: 'center', left: 'center',
-        width: 60, height: 12,
-        border: 'line',
-        tags: true,
-        content: '{center}\nGENERATING LOGIN CODE...{/center}',
-        style: { border: { fg: 'cyan' } }
-    });
-    loginWin.focus(); // TIRA O FOCO DO MENU PRINCIPAL
-    screen.render();
-
-    const cmdCode = `powershell -NoProfile -Command "$res = Invoke-RestMethod -Method Post -Uri 'https://github.com/login/device/code' -Body @{client_id='${GITHUB_CLIENT_ID}';scope='gist,read:user'} -Headers @{'Accept'='application/json'}; $res | ConvertTo-Json"`;
-
-    exec(cmdCode, (error, stdout) => {
-        if (error) return;
-        const data = JSON.parse(stdout);
-        const { device_code, user_code, verification_uri, interval } = data;
-
-        loginWin.setContent(
-            `{center}\n{white-fg}ACCESS:{/}\n{yellow-fg}${verification_uri}{/}\n\n` +
-            `{white-fg}INPUT CODE:{/}\n{bold}${user_code}{/bold}\n\n` +
-            `{cyan-fg}WAITING FOR AUTHORIZATION...{/center}`
-        );
-        exec(`start ${verification_uri}`);
-        screen.render();
-
-        const pollInterval = setInterval(() => {
-            const cmdPoll = `powershell -NoProfile -Command "$res = Invoke-RestMethod -Method Post -Uri 'https://github.com/login/oauth/access_token' -Body @{client_id='${GITHUB_CLIENT_ID}';device_code='${device_code}';grant_type='urn:ietf:params:oauth:grant-type:device_code'} -Headers @{'Accept'='application/json'}; $res | ConvertTo-Json"`;
-            
-            exec(cmdPoll, (pollErr, pollStdout) => {
-                const pollData = JSON.parse(pollStdout);
-                if (pollData.access_token) {
-    clearInterval(pollInterval);
-    githubToken = pollData.access_token;
-    
-    const cmdUser = `powershell -NoProfile -Command "Invoke-RestMethod -Uri 'https://api.github.com/user' -Headers @{'Authorization'='token ${githubToken}'} | ConvertTo-Json"`;
-    exec(cmdUser, (uErr, uStdout) => {
-        githubUser = JSON.parse(uStdout);
-        playsucesso();
-        
-        // SALVA O TOKEN PARA O PRÓXIMO BOOT
-        if (!fs.existsSync('../CONFIG')) fs.mkdirSync('../CONFIG', { recursive: true });
-        fs.writeFileSync('../CONFIG/GITHUB_TOKEN.txt', githubToken, 'utf8');
-        
-        bgOverlay.destroy();
-        mainList.emit('select', { getText: () => 'ACCOUNT' });
-    });
-}
-            });
-        }, interval * 1050);
-    });
 }
 });
 screen.key(['C-c'], () => confirmExit());

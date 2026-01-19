@@ -1,4 +1,4 @@
-const CURRENT_VERSION = "V1.0";
+const CURRENT_VERSION = "V1.01";
 const blessed = require('blessed');
 const os = require('os');
 const { spawn } = require('child_process');
@@ -10,10 +10,13 @@ let isupdating = false;
 let isBooting2 = true;
 let isERASE = false
 let blockMenuInput = false;
+const GITHUB_CLIENT_ID = "Ov23lidCgfrBVjsGIlmb"; 
+let githubToken = null;
+let githubUser = null;
 let isOverrideActive = false;
 const path = require('path');
 let cheatBuffer = "";
-const achievements = fs.readdirSync('../Achievements').filter(f => f.endsWith('.bin')).length;
+const achievements = fs.readdirSync('../Achievements').filter(f => f.endsWith('.ach')).length;
 let dots = 0;
 const player = require('play-sound')({
  player: '../AUDIO/PLAYER/cmdmp3.exe'
@@ -625,6 +628,24 @@ function fullscreen_pre_save() {
  }
 }
 
+
+
+if (fs.existsSync('../CONFIG/GITHUB_TOKEN.txt')) {
+    githubToken = fs.readFileSync('../CONFIG/GITHUB_TOKEN.txt', 'utf8').trim();
+    
+    const cmdUser = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $res = Invoke-RestMethod -Uri 'https://api.github.com/user' -Headers @{'Authorization'='token ${githubToken}'; 'User-Agent'='LIGHT-Game'}; $res | ConvertTo-Json"`;
+    
+    exec(cmdUser, (err, stdout) => {
+        if (!err) {
+            try { 
+                githubUser = JSON.parse(stdout);
+                updateAccountStatus()
+            } catch(e) { githubToken = null; }
+        } else {
+            githubToken = null;
+        }
+    });
+}
 if (fs.existsSync('../CONFIG/EFFECTS_STATE.txt')) {
     var EFFECTS_STATUS = fs.readFileSync(path.join('../CONFIG/EFFECTS_STATE.txt'), 'utf8').trim();
 } else {
@@ -711,19 +732,22 @@ function refreshMenu() {
 
     let items = ['{center}START MISSION{/center}'];
 
-    if (hasPac) {
-        if (checkNewPac) {
-            items.push('{center}{yellow-fg}PACPRO SUBSYSTEM (NEW){/yellow-fg}{/center}');
-        } else {
-            items.push('{center}{yellow-fg}PACPRO SUBSYSTEM{/yellow-fg}{/center}');
-        }
-    }
+    
 
-
+    
     items.push('{center}ACHIEVEMENTS{/center}');
     items.push('{center}CHECKPOINTS{/center}');
+    if (hasPac) {
+        if (checkNewPac) {
+            items.push('{center}{yellow-fg}MINIGAME (NEW){/yellow-fg}{/center}');
+        } else {
+            items.push('{center}MINIGAME{/center}');
+        }
+    }
     items.push('{center}UPDATES{/center}');
     items.push('{center}SETTINGS{/center}');
+    items.push('{center}ACCOUNT{/center}');
+
 
 
     items = items.concat([
@@ -807,7 +831,7 @@ const mainList = blessed.list({
  mouse: true,
  items: refreshMenu(),
  style: {
- selected: { bg: COLORDEFAULT, fg: 'white', bold: true },
+ selected: { bg: COLORDEFAULT, fg: 'black' },
  item: { fg: '#bbbbbb' }
  }
 });
@@ -821,6 +845,28 @@ mainList.on('select item', (item) => {
  descriptionBox.setContent(`{bold}${desc.toUpperCase()}{/}`);
  screen.render();
 });
+const loginstatus = blessed.box({
+    parent: screen,
+    top: 0,
+    left: 0,
+    width: 'shrink',
+    tags: true,
+    height: 1, 
+    content: '{bold}ACCOUNT STATUS: {red-fg}OFFLINE{/red-fg}{/bold}',
+    style: {
+        fg: color,
+    }
+});
+
+function updateAccountStatus() {
+    if (githubToken && githubUser) {
+        loginstatus.setContent(`{bold}ACCOUNT STATUS: {green-fg}ONLINE (@${githubUser.login.toUpperCase()}){/green-fg}{/bold}`);
+    } else {
+        loginstatus.setContent('{bold}ACCOUNT STATUS: {red-fg}OFFLINE{/red-fg}{/bold}');
+    }
+    screen.render();
+}
+
 const descriptionBox = blessed.box({
  parent: screen,
  bottom: 0,
@@ -835,14 +881,15 @@ const descriptionBox = blessed.box({
 });
 const menuDescriptions = {
  'START MISSION': 'START THE PRIMARY OPERATIONAL PROTOCOL.',
- 'PACPRO SUBSYSTEM': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
- 'PACPRO SUBSYSTEM (NEW)': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
+ 'MINIGAME': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
+ 'MINIGAME (NEW)': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
  'ACHIEVEMENTS': 'SEE YOUR ACHIEVEMENTS',
  'UPDATES': 'CHECK FOR UPDATES.',
+ 'ACCOUNT': 'LINK YOUR ACCOUNT TO SEE YOUR PROFILE INFORMATION.',
  'CHECKPOINTS': 'SEE YOUR CHECKPOINTS',
  'SETTINGS': 'AUDIO, COLOR, USER AND FULL SCREEN CONFIGURATION.',
  'ERASE DATA': 'ERASE ALL LOCAL USER DATA AND SETTINGS.',
- 'SYSTEM INFO': 'VIEW SYSTEM AND TERMINAL INFORMATION.',
+ 'SYSTEM': 'VIEW SYSTEM AND TERMINAL INFORMATION.',
  'CREDITS': 'INFORMATION ABOUT THE DEVELOPMENT TEAM.',
  'SUPPORT': 'HELP THE DEVELOPMENT OF LIGHT GAME.',
  'RESET TIME': 'ERASE ALL PLAYTIME SETTINGS.',
@@ -858,7 +905,7 @@ const copyrightBOX1 = blessed.box({
  right: '0',
  width: 'shrink',
  height: 1,
- content: ' V1.0',
+ content: 'V1.01',
  tags: true,
  style: {
  fg: color,
@@ -892,7 +939,7 @@ function showResetOptions() {
         ],
         style: {
             border: { fg: 'red' },
-            selected: { bg: 'red', fg: 'white', bold: true }
+            selected: { bg: 'red', fg: 'black' },
         }
     });
 
@@ -1162,7 +1209,7 @@ function confirmExit() {
  selected: 0,
  style: {
  border: { fg: COLORDEFAULT },
- selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
+ selected: { bg: COLORDEFAULT, fg: 'black' }
  }
  });
  confirmWin.focus();
@@ -1314,7 +1361,7 @@ function credits() {
         style: {
             border: { fg: COLORDEFAULT },
             label: { fg: COLORDEFAULT, bold: true },
-            selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
+            selected: { bg: COLORDEFAULT, fg: 'black' }
         }
     });
 
@@ -1409,7 +1456,7 @@ function eraseData() {
         selected: 1, 
         style: {
             border: { fg: COLORDEFAULT },
-            selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
+            selected: { bg: COLORDEFAULT, fg: 'black' }
         }
     });
 
@@ -1534,7 +1581,7 @@ function erasePlaytime() {
         selected: 3,
         style: {
             border: { fg: COLORDEFAULT },
-            selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
+            selected: { bg: COLORDEFAULT, fg: 'black' }
         }
     });
     eraseWin.select(2); 
@@ -1781,7 +1828,7 @@ settingsWin = blessed.list({
  selected: 0,
  style: {
  border: { fg: COLORDEFAULT },
- selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
+ selected: { bg: COLORDEFAULT, fg: 'black' }
  }
  });
  settingsWin._lastIndex = 0;
@@ -2570,7 +2617,7 @@ function supportGame() {
         ],
         style: {
             border: { fg: '#333333' },
-            selected: { bg: COLORDEFAULT, fg: 'white', bold: true }
+            selected: { bg: COLORDEFAULT, fg: 'black' }
         }
     });
 
@@ -2895,7 +2942,7 @@ mainList.on('select', (item) => {
 
 
  const text = item.getText();
- if (text.includes('PACPRO')) {
+ if (text.includes('MINIGAME')) {
  mainList.detach();
  let progress = 0;
  const loadInterval = setInterval(() => {
@@ -2981,6 +3028,193 @@ if (text.includes('UPDATES')) {
  }
  if (text.includes('RESET TIME')) {
   return erasePlaytime();
+}
+if (text.includes('ACCOUNT')) {
+    screen.unkey('escape');
+    
+    if (githubToken && githubUser) {
+        playBeep2();
+        const bgOverlay = blessed.box({
+            parent: screen,
+            top: 0, left: 0,
+            width: '100%', height: '100%',
+            style: { bg: 'black' },
+            index: 300
+        });
+
+        const profileWin = blessed.box({
+            parent: bgOverlay,
+            top: 'center', left: 'center',
+            width: 85, height: 22,
+            border: 'line',
+            label: ` [ @${githubUser.login.toUpperCase()} ] `,
+            tags: true,
+            style: { border: { fg: 'cyan' }, label: { fg: 'cyan', bold: true }, bg: '#050505' }
+        });
+
+        blessed.box({
+            parent: profileWin,
+            top: 0, left: 0, right: 0, height: 3,
+            align: 'center', tags: true,
+            content: `\n{bold}{cyan-fg}GITHUB{/} NETWORK {/bold}`,
+            style: { bg: '#111' }
+        });
+
+        const socialData = [
+            `{cyan-fg}{bold}${githubUser.name || githubUser.login}{/}`,
+            `{bold}{grey-fg}@${githubUser.login}{/}{/bold}\n`,
+            `{white-fg}${githubUser.bio || "No sector description available."}{/}\n`,
+            `{bold}LOCATION:{/bold}  ${githubUser.location || "UNKNOWN"}`,
+            `{bold}FOLLOWERS:{/bold} ${githubUser.followers}`,
+            `{bold}GISTS:{/bold}     ${githubUser.public_gists}`
+        ].join('\n');
+
+        blessed.box({ parent: profileWin, top: 5, left: 3, width: '55%', height: 10, tags: true, content: socialData });
+
+
+        const currentAchs = fs.readdirSync(path.join(__dirname, '../Achievements')).filter(f => f.endsWith('.ach')).length;
+        const systemStats = [
+            `{center}{yellow-fg}OPERATIONAL STATS{/}`,
+            `{center}────────────────{/}`,
+            `{bold}VERSION:{/bold} ${CURRENT_VERSION}`,
+            `{bold}PC-USER:{/bold} ${userName.toUpperCase()}`,
+            `{bold}ACHS:{/bold}    ${currentAchs}/${ALL_ACHIEVEMENTS.length}`,
+            ``,
+            ` {bold}STORAGE:{/bold} CLOUD GIST`
+        ].join('\n');
+
+        blessed.box({
+            parent: profileWin,
+            top: 5, right: 3, width: '35%', height: 10,
+            border: 'line', tags: true, content: systemStats,
+            style: { border: { fg: 'rgb(102, 102, 102)' } }
+        });
+
+        const profileActions = blessed.list({
+            parent: profileWin,
+            bottom: 1, left: 2,
+            width: '40%', height: 4,
+            keys: true, mouse: true, tags: true,
+            items: [
+                ' SYNC DATA TO CLOUD ',
+                ' RESTORE DATA FROM CLOUD ',
+                ' DISCONNECT GITHUB ACCOUNT ',
+                ' RETURN TO MENU '
+            ],
+            style: { selected: { bg: 'cyan', fg: 'black'}, item: { fg: 'cyan' } }
+        });
+
+        profileActions.focus();
+        screen.render();
+
+        profileActions.on('select item', (item) => {
+    playBeep();
+        });
+
+        profileActions.on('select', async (item) => {
+            const ptext = item.getText();
+            playBeep2();
+
+            if (ptext.includes('SYNC')) {
+                profileWin.setLabel(' [ UPLOADING DATA... ] ');
+                screen.render();
+
+                const saveData = {
+                    achievements: fs.readdirSync(path.join(__dirname, '../Achievements')).filter(f => f.endsWith('.ach')),
+                    config: { user: USERNAMEP, color: COLORDEFAULT, glitch: GLITCH }
+                };
+                
+                const base64Data = Buffer.from(JSON.stringify(saveData)).toString('base64');
+                const syncCmd = `powershell -NoProfile -Command "$headers = @{'Authorization'='token ${githubToken}'; 'Accept'='application/json'}; $body = @{description='LIGHT_SAVE'; public=$false; files=@{'light_save.bin'=@{content='${base64Data}'}}} | ConvertTo-Json -Depth 10; $gists = Invoke-RestMethod -Uri 'https://api.github.com/gists' -Headers $headers; $exists = $gists | Where-Object {$_.description -eq 'LIGHT_SAVE'}; if($exists){ Invoke-RestMethod -Method Patch -Uri $exists.url -Headers $headers -Body $body } else { Invoke-RestMethod -Method Post -Uri 'https://api.github.com/gists' -Headers $headers -Body $body }"`;
+
+                exec(syncCmd, (err) => {
+                    if (!err) { profileWin.setLabel(' [ SYNC SUCCESSFUL ] '); playsucesso(); }
+                    else { profileWin.setLabel(' [ SYNC FAILED ] '); playwarning(); }
+                    screen.render();
+                });
+            }
+
+            if (ptext.includes('RESTORE')) {
+                profileWin.setLabel(' [ DOWNLOADING DATA... ] ');
+                screen.render();
+
+                const loadCmd = `powershell -NoProfile -Command "$headers = @{'Authorization'='token ${githubToken}'; 'Accept'='application/json'}; $gists = Invoke-RestMethod -Uri 'https://api.github.com/gists' -Headers $headers; $target = $gists | Where-Object {$_.description -eq 'LIGHT_SAVE'}; if($target){ $gistDetails = Invoke-RestMethod -Uri $target.url -Headers $headers; $gistDetails.files.'light_save.bin'.content } else { write-host 'NOT_FOUND' }"`;
+
+                exec(loadCmd, (err, stdout) => {
+                    const output = stdout.trim();
+                    if (err || output === 'NOT_FOUND' || !output) {
+                        profileWin.setLabel(' [ NO SAVE FOUND ] ');
+                        playwarning();
+                    } else {
+                        try {
+                            const jsonStr = Buffer.from(output, 'base64').toString('utf-8');
+                            const cloudData = JSON.parse(jsonStr);
+                            cloudData.achievements.forEach(ach => {
+                                const achPath = path.join(__dirname, '../Achievements', ach);
+                                if (!fs.existsSync(achPath)) fs.writeFileSync(achPath, 'RESTORED');
+                            });
+                            profileWin.setLabel(' [ DATA RECOVERED ] ');
+                            playsucesso();
+                        } catch(e) { profileWin.setLabel(' [ DATA CORRUPT ] '); playwarning(); }
+                    }
+                    screen.render();
+                });
+            }
+
+            if (ptext.includes('DISCONNECT')) {
+                githubToken = null; githubUser = null;
+                if (fs.existsSync('../CONFIG/GITHUB_TOKEN.txt')) fs.unlinkSync('../CONFIG/GITHUB_TOKEN.txt');
+                updateAccountStatus()
+                bgOverlay.destroy(); refreshMenu(); mainList.focus(); screen.render();
+            }
+
+            if (ptext.includes('RETURN')) {
+                playback(); screen.unkey('escape'); bgOverlay.destroy(); mainList.focus(); screen.render();
+            }
+        });
+
+        screen.key(['escape'], function escProfile() {
+            playback(); screen.unkey('escape', escProfile); bgOverlay.destroy(); mainList.focus(); screen.render();
+        });
+        return;
+    }
+
+    playwarning();
+    const bgOverlay = blessed.box({ parent: screen, top: 0, left: 0, width: '100%', height: '100%', style: { bg: 'black' }, index: 300 });
+    const loginWin = blessed.box({
+        parent: bgOverlay, top: 'center', left: 'center', width: 60, height: 12, border: 'line', tags: true,
+        content: '{center}\nGENERATING LOGIN CODE...{/center}', style: { border: { fg: 'cyan' } }
+    });
+    screen.render();
+
+    const cmdCode = `powershell -NoProfile -Command "$res = Invoke-RestMethod -Method Post -Uri 'https://github.com/login/device/code' -Body @{client_id='${GITHUB_CLIENT_ID}';scope='gist,read:user'} -Headers @{'Accept'='application/json'}; $res | ConvertTo-Json"`;
+
+    exec(cmdCode, (error, stdout) => {
+        if (error) { bgOverlay.destroy(); mainList.focus(); return; }
+        const { device_code, user_code, verification_uri, interval } = JSON.parse(stdout);
+        loginWin.setContent(`{center}\n{white-fg}ACCESS:{/}\n{yellow-fg}${verification_uri}{/}\n\n{white-fg}INPUT CODE:{/}\n{bold}${user_code}{/bold}\n\n{cyan-fg}WAITING FOR AUTHORIZATION...{/center}`);
+        exec(`start ${verification_uri}`);
+        screen.render();
+
+        const pollInterval = setInterval(() => {
+            const cmdPoll = `powershell -NoProfile -Command "$res = Invoke-RestMethod -Method Post -Uri 'https://github.com/login/oauth/access_token' -Body @{client_id='${GITHUB_CLIENT_ID}';device_code='${device_code}';grant_type='urn:ietf:params:oauth:grant-type:device_code'} -Headers @{'Accept'='application/json'}; $res | ConvertTo-Json"`;
+            exec(cmdPoll, (pollErr, pollStdout) => {
+                const pollData = JSON.parse(pollStdout);
+                if (pollData.access_token) {
+                    clearInterval(pollInterval);
+                    githubToken = pollData.access_token;
+                    exec(`powershell -NoProfile -Command "Invoke-RestMethod -Uri 'https://api.github.com/user' -Headers @{'Authorization'='token ${githubToken}'} | ConvertTo-Json"`, (uErr, uStdout) => {
+                        githubUser = JSON.parse(uStdout);
+                        playsucesso();
+                        fs.writeFileSync('../CONFIG/GITHUB_TOKEN.txt', githubToken, 'utf8');
+                        updateAccountStatus()
+                        bgOverlay.destroy();
+                        mainList.emit('select', { getText: () => 'ACCOUNT' });
+                    });
+                }
+            });
+        }, interval * 1050);
+    });
 }
 });
 screen.key(['C-c'], () => confirmExit());
