@@ -1,4 +1,4 @@
-const CURRENT_VERSION = "V1.0";
+const CURRENT_VERSION = "V1.01";
 const blessed = require('blessed');
 const os = require('os');
 const { spawn } = require('child_process');
@@ -734,19 +734,21 @@ function refreshMenu() {
 
     let items = ['{center}START MISSION{/center}'];
 
-    if (hasPac) {
-        if (checkNewPac) {
-            items.push('{center}{yellow-fg}PACPRO SUBSYSTEM (NEW){/yellow-fg}{/center}');
-        } else {
-            items.push('{center}{yellow-fg}PACPRO SUBSYSTEM{/yellow-fg}{/center}');
-        }
-    }
+    
 
-    items.push('{center}{cyan-fg}CONNECT GITHUB{/cyan-fg}{/center}');
+    
     items.push('{center}ACHIEVEMENTS{/center}');
     items.push('{center}CHECKPOINTS{/center}');
+    if (hasPac) {
+        if (checkNewPac) {
+            items.push('{center}{yellow-fg}MINIGAME (NEW){/yellow-fg}{/center}');
+        } else {
+            items.push('{center}MINIGAME{/center}');
+        }
+    }
     items.push('{center}UPDATES{/center}');
     items.push('{center}SETTINGS{/center}');
+    items.push('{center}ACCOUNT{/center}');
 
 
 
@@ -831,7 +833,7 @@ const mainList = blessed.list({
  mouse: true,
  items: refreshMenu(),
  style: {
- selected: { bg: COLORDEFAULT, fg: 'white', bold: true },
+ selected: { bg: COLORDEFAULT, fg: 'black' },
  item: { fg: '#bbbbbb' }
  }
 });
@@ -859,15 +861,15 @@ const descriptionBox = blessed.box({
 });
 const menuDescriptions = {
  'START MISSION': 'START THE PRIMARY OPERATIONAL PROTOCOL.',
- 'PACPRO SUBSYSTEM': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
- 'PACPRO SUBSYSTEM (NEW)': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
+ 'MINIGAME': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
+ 'MINIGAME (NEW)': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
  'ACHIEVEMENTS': 'SEE YOUR ACHIEVEMENTS',
  'UPDATES': 'CHECK FOR UPDATES.',
- 'CONNECT GITHUB': 'LINK YOUR ACCOUNT TO SEE YOUR PROFILE INFORMATION.',
+ 'ACCOUNT': 'LINK YOUR ACCOUNT TO SEE YOUR PROFILE INFORMATION.',
  'CHECKPOINTS': 'SEE YOUR CHECKPOINTS',
  'SETTINGS': 'AUDIO, COLOR, USER AND FULL SCREEN CONFIGURATION.',
  'ERASE DATA': 'ERASE ALL LOCAL USER DATA AND SETTINGS.',
- 'SYSTEM INFO': 'VIEW SYSTEM AND TERMINAL INFORMATION.',
+ 'SYSTEM': 'VIEW SYSTEM AND TERMINAL INFORMATION.',
  'CREDITS': 'INFORMATION ABOUT THE DEVELOPMENT TEAM.',
  'SUPPORT': 'HELP THE DEVELOPMENT OF LIGHT GAME.',
  'RESET TIME': 'ERASE ALL PLAYTIME SETTINGS.',
@@ -883,7 +885,7 @@ const copyrightBOX1 = blessed.box({
  right: '0',
  width: 'shrink',
  height: 1,
- content: ' V1.0',
+ content: 'V1.01',
  tags: true,
  style: {
  fg: color,
@@ -2920,7 +2922,7 @@ mainList.on('select', (item) => {
 
 
  const text = item.getText();
- if (text.includes('PACPRO')) {
+ if (text.includes('MINIGAME')) {
  mainList.detach();
  let progress = 0;
  const loadInterval = setInterval(() => {
@@ -3007,7 +3009,7 @@ if (text.includes('UPDATES')) {
  if (text.includes('RESET TIME')) {
   return erasePlaytime();
 }
-if (text.includes('CONNECT GITHUB')) {
+if (text.includes('ACCOUNT')) {
     screen.unkey('escape');
     if (githubToken && githubUser) {
         // --- INTERFACE DE PERFIL ESTILO REDE SOCIAL ---
@@ -3184,7 +3186,7 @@ if (text.includes('CONNECT GITHUB')) {
         fs.writeFileSync('../CONFIG/GITHUB_TOKEN.txt', githubToken, 'utf8');
         
         bgOverlay.destroy();
-        mainList.emit('select', { getText: () => 'CONNECT GITHUB' });
+        mainList.emit('select', { getText: () => 'ACCOUNT' });
     });
 }
             });
