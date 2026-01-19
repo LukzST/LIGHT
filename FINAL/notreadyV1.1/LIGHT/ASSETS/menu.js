@@ -86,25 +86,21 @@ const ALL_ACHIEVEMENTS = [
  ];
 
 function checkUpdates(callback) {
-    const url = 'https://api.github.com/repos/lukzst/LIGHT/contents/FINAL';
-    const cmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $res = Invoke-WebRequest -Uri '${url}' -Headers @{'User-Agent'='LIGHT-Game'} -UseBasicParsing; $res.Content"`;
+    // URL Direta para o conteúdo bruto do arquivo no seu repositório
+    const rawUrl = 'https://raw.githubusercontent.com/lukzst/LIGHT/main/version.txt';
+    
+    // O PowerShell baixa apenas o texto puro do arquivo
+    const cmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; try { (Invoke-WebRequest -Uri '${rawUrl}' -UseBasicParsing).Content.Trim() } catch { exit 1 }"`;
 
     exec(cmd, (error, stdout) => {
-        if (error) return callback(null);
-        try {
-            const json = JSON.parse(stdout);
-            const versions = json
-                .filter(file => file.type === 'dir' && file.name.startsWith('V'))
-                .map(file => file.name)
-                .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-
-            const latestVersion = versions[versions.length - 1];
-            if (latestVersion && latestVersion !== CURRENT_VERSION) {
-                callback(true, latestVersion);
-            } else {
-                callback(false, latestVersion);
-            }
-        } catch (e) { callback(null); }
+        if (error || !stdout) return callback(null); // Retorna Network Error se o site estiver fora
+        
+        const latestVersion = stdout; // O stdout agora é apenas o texto "V1.2"
+        if (latestVersion !== CURRENT_VERSION) {
+            callback(true, latestVersion);
+        } else {
+            callback(false, latestVersion);
+        }
     });
 }
 
@@ -218,8 +214,12 @@ async function showUpdateStatus() {
 
     checkUpdates(async (hasUpdate, version) => {
     if (hasUpdate === null) {
-        statusWin.setContent('{center}\n{red-fg}NETWORK ERROR{/red-fg}\n\nCheck connection.{/center}');
-    } else if (hasUpdate) {
+    statusWin.setContent('{center}\n{red-fg}NETWORK ERROR{/red-fg}\n\n{white-fg}The GitHub API rejected the connection.\nWait 1 minute or check your proxy.{/}\n\n[R] RETRY | [ESC] EXIT{/center}');
+    screen.key(['r', 'R'], function retryUpdate() {
+        screen.unkey('r', retryUpdate);
+        showUpdateStatus(); // Reinicia o processo
+    });
+}else if (hasUpdate) {
         global.latestVersionFound = version;
         
         const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
