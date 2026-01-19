@@ -730,13 +730,9 @@ function refreshMenu() {
     const hasPac = fs.existsSync(checkPacPath);
     const checkNewPac = hasPac && !fs.existsSync('../CONFIG/PACPRO_SEEN.txt');
 
-    let items = ['{center}START MISSION{/center}'];
+    // 1. NÚCLEO (Gameplay principal)
+    let items = ['{center}START GAME{/center}'];
 
-    
-
-    
-    items.push('{center}ACHIEVEMENTS{/center}');
-    items.push('{center}CHECKPOINTS{/center}');
     if (hasPac) {
         if (checkNewPac) {
             items.push('{center}{yellow-fg}MINIGAME (NEW){/yellow-fg}{/center}');
@@ -744,30 +740,31 @@ function refreshMenu() {
             items.push('{center}MINIGAME{/center}');
         }
     }
-    items.push('{center}UPDATES{/center}');
+
+    // 2. PROGRESSO (O que o jogador conquistou)
+    items.push('{center}CHECKPOINTS{/center}');
+    items.push('{center}ACHIEVEMENTS{/center}');
+    items.push('{center}ACCOUNT{/center}'); // Vinculado ao progresso na nuvem
+
+    // 3. SISTEMA E PERSONALIZAÇÃO
     items.push('{center}SETTINGS{/center}');
-    items.push('{center}ACCOUNT{/center}');
+    items.push('{center}UPDATES{/center}');
+    items.push('{center}[TOP_SECRET]{/center}'); // Geralmente fica perto de SYSTEM/INFO
 
-
-
+    // 4. INFORMAÇÕES E SAÍDA
     items = items.concat([
-        '{center}SYSTEM{/center}',
-        '{center}CREDITS{/center}',
         '{center}SUPPORT{/center}',
-        '{center}EXIT{/center}'
+        '{center}CREDITS{/center}',
+        '{center}CLOSE{/center}'
     ]);
 
     try {
         if (typeof mainList !== 'undefined' && mainList !== null) {
-
             mainList.setItems(items);
-            
             mainList.style.selected.bg = COLORDEFAULT;
-            
             screen.render();
         }
-    } catch (e) {
-    }
+    } catch (e) {}
     
     return items;
 }
@@ -880,7 +877,7 @@ const descriptionBox = blessed.box({
  }
 });
 const menuDescriptions = {
- 'START MISSION': 'START THE PRIMARY OPERATIONAL PROTOCOL.',
+ 'START GAME': 'START THE PRIMARY OPERATIONAL PROTOCOL.',
  'MINIGAME': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
  'MINIGAME (NEW)': 'PLAY THE MINIGAME FROM THE ELEVATOR SEQUENCE.',
  'ACHIEVEMENTS': 'SEE YOUR ACHIEVEMENTS',
@@ -889,11 +886,11 @@ const menuDescriptions = {
  'CHECKPOINTS': 'SEE YOUR CHECKPOINTS',
  'SETTINGS': 'AUDIO, COLOR, USER AND FULL SCREEN CONFIGURATION.',
  'ERASE DATA': 'ERASE ALL LOCAL USER DATA AND SETTINGS.',
- 'SYSTEM': 'VIEW SYSTEM AND TERMINAL INFORMATION.',
+ '[TOP_SECRET]': 'INFORMATION REQUIRES A PASSWORD FOR ACCESS.',
  'CREDITS': 'INFORMATION ABOUT THE DEVELOPMENT TEAM.',
  'SUPPORT': 'HELP THE DEVELOPMENT OF LIGHT GAME.',
  'RESET TIME': 'ERASE ALL PLAYTIME SETTINGS.',
- 'EXIT': 'EXIT THE APPLICATION SAFELY. (DO NOT FORCE CLOSE)'
+ 'CLOSE': 'EXIT THE APPLICATION SAFELY. (DO NOT FORCE CLOSE)'
 };
 
 
@@ -2457,6 +2454,8 @@ function getTerminalType() {
  return 'CMD (LEGACY)';;
 }
 let terminalName = getTerminalType();
+
+
 function showSystemInfo() {
  infoAccessCount++;
  if (infoAccessCount >= 10) {
@@ -2498,6 +2497,7 @@ function showSystemInfo() {
  ` [ESC] TO RETURN`
  ].join('\n');
  infoBox.setContent(text);
+ screen.key(['escape'], closeInfo);
  screen.render();
  };
  if (isUnlocked) {
@@ -2533,17 +2533,12 @@ function showSystemInfo() {
  input.destroy();
  backdrop.destroy();
  mainList.focus();
+ closeInfo();
  descriptionBox.setContent('{red-fg}INVALID AUTHORIZATION CODE. ACCESS DENIED.{/}');
  screen.render();
  }
  });
- input.on('cancel', () => {
- input.destroy();
- playback()
- backdrop.destroy();
- mainList.focus();
- screen.render();
- });
+ input.on('cancel', closeInfo);
  }
  function closeInfo() {
     playback()
@@ -2994,15 +2989,15 @@ if (text.includes('UPDATES')) {
     
     return;
 }
- if (text.includes('EXIT')) {return confirmExit();}
+ if (text.includes('CLOSE')) {return confirmExit();}
  if (text.includes('SETTINGS')) {playBeep2(); return showSettings();}
- if (text.includes('SYSTEM')) {playwarning(); return showSystemInfo();}
+ if (text.includes('[TOP_SECRET]')) {playwarning(); return showSystemInfo();}
  if (text.includes('ERASE DATA')) {playwarning(); return eraseData();}
  if (text.includes('CREDITS')) { return credits() ; } 
  if (text.includes('SUPPORT')) { return supportGame() ; }
  if (text.includes('ACHIEVEMENTS')) { return Achievements(); }
  if (text.includes('CHECKPOINTS')) {  playBeep2();return showCheckpointGallery(); }
- if (text.includes('START MISSION')) {
+ if (text.includes('START GAME')) {
  mainList.detach();
  let dots = 0;
  const loader = setInterval(() => {
@@ -3180,34 +3175,86 @@ if (text.includes('ACCOUNT')) {
     }
 
     playwarning();
-    const bgOverlay = blessed.box({ parent: screen, top: 0, left: 0, width: '100%', height: '100%', style: { bg: 'black' }, index: 300 });
-    const loginWin = blessed.box({
-        parent: bgOverlay, top: 'center', left: 'center', width: 60, height: 12, border: 'line', tags: true,
-        content: '{center}\nGENERATING LOGIN CODE...{/center}', style: { border: { fg: 'cyan' } }
+    
+    let pollInterval = null;
+    let currentPowerShell = null; // Para rastrear o processo do powershell
+
+    const bgOverlay = blessed.box({ 
+        parent: screen, 
+        top: 0, left: 0, 
+        width: '100%', height: '100%', 
+        style: { bg: 'black' }, 
+        index: 300 
+    });
+
+    const loginWin = blessed.box({ 
+        parent: bgOverlay, 
+        top: 'center', left: 'center', 
+        width: 60, height: 13, 
+        border: 'line', 
+        tags: true, 
+        content: '{center}\nGENERATING LOGIN CODE...\n\n{grey-fg}[ESC] TO CANCEL{/center}', 
+        style: { border: { fg: 'cyan' } } 
     });
     screen.render();
 
+    // Função para abortar tudo
+    const abortLogin = () => {
+        if (pollInterval) clearInterval(pollInterval);
+        // Mata o processo do PowerShell se ele ainda estiver rodando
+        if (currentPowerShell) {
+            exec(`taskkill /F /T /PID ${currentPowerShell.pid} > nul 2>&1`);
+        }
+        playback();
+        bgOverlay.destroy();
+        screen.unkey('escape', abortLogin); // Remove o listener do ESC
+        mainList.focus();
+        screen.render();
+    };
+
+    // Ativa o ESC para cancelar
+    screen.key(['escape'], abortLogin);
+
     const cmdCode = `powershell -NoProfile -Command "$res = Invoke-RestMethod -Method Post -Uri 'https://github.com/login/device/code' -Body @{client_id='${GITHUB_CLIENT_ID}';scope='gist,read:user'} -Headers @{'Accept'='application/json'}; $res | ConvertTo-Json"`;
 
-    exec(cmdCode, (error, stdout) => {
-        if (error) { bgOverlay.destroy(); mainList.focus(); return; }
-        const { device_code, user_code, verification_uri, interval } = JSON.parse(stdout);
-        loginWin.setContent(`{center}\n{white-fg}ACCESS:{/}\n{yellow-fg}${verification_uri}{/}\n\n{white-fg}INPUT CODE:{/}\n{bold}${user_code}{/bold}\n\n{cyan-fg}WAITING FOR AUTHORIZATION...{/center}`);
+    currentPowerShell = exec(cmdCode, (error, stdout) => {
+        if (error) return;
+        
+        let data;
+        try { data = JSON.parse(stdout); } catch(e) { return; }
+        
+        const { device_code, user_code, verification_uri, interval } = data;
+
+        loginWin.setContent(
+            `{center}\n{white-fg}ACCESS:{/}\n{yellow-fg}${verification_uri}{/}\n\n` +
+            `{white-fg}INPUT CODE:{/}\n{bold}${user_code}{/bold}\n\n` +
+            `{cyan-fg}WAITING FOR AUTHORIZATION...{/}\n\n` +
+            `{bold}{grey-fg}[ESC] TO CANCEL{/bold}{/center}`
+        );
         exec(`start ${verification_uri}`);
         screen.render();
 
-        const pollInterval = setInterval(() => {
+        pollInterval = setInterval(() => {
             const cmdPoll = `powershell -NoProfile -Command "$res = Invoke-RestMethod -Method Post -Uri 'https://github.com/login/oauth/access_token' -Body @{client_id='${GITHUB_CLIENT_ID}';device_code='${device_code}';grant_type='urn:ietf:params:oauth:grant-type:device_code'} -Headers @{'Accept'='application/json'}; $res | ConvertTo-Json"`;
-            exec(cmdPoll, (pollErr, pollStdout) => {
-                const pollData = JSON.parse(pollStdout);
+            
+            currentPowerShell = exec(cmdPoll, (pollErr, pollStdout) => {
+                if (pollErr) return;
+                
+                let pollData;
+                try { pollData = JSON.parse(pollStdout); } catch(e) { return; }
+
                 if (pollData.access_token) {
                     clearInterval(pollInterval);
+                    screen.unkey('escape', abortLogin);
+                    
                     githubToken = pollData.access_token;
-                    exec(`powershell -NoProfile -Command "Invoke-RestMethod -Uri 'https://api.github.com/user' -Headers @{'Authorization'='token ${githubToken}'} | ConvertTo-Json"`, (uErr, uStdout) => {
+                    const cmdUser = `powershell -NoProfile -Command "Invoke-RestMethod -Uri 'https://api.github.com/user' -Headers @{'Authorization'='token ${githubToken}'} | ConvertTo-Json"`;
+                    
+                    exec(cmdUser, (uErr, uStdout) => {
                         githubUser = JSON.parse(uStdout);
                         playsucesso();
                         fs.writeFileSync('../CONFIG/GITHUB_TOKEN.txt', githubToken, 'utf8');
-                        updateAccountStatus()
+                        updateAccountStatus();
                         bgOverlay.destroy();
                         mainList.emit('select', { getText: () => 'ACCOUNT' });
                     });
