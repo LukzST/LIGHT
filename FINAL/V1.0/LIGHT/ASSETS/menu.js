@@ -730,7 +730,6 @@ function refreshMenu() {
     const hasPac = fs.existsSync(checkPacPath);
     const checkNewPac = hasPac && !fs.existsSync('../CONFIG/PACPRO_SEEN.txt');
 
-    // 1. NÚCLEO (Gameplay principal)
     let items = ['{center}START GAME{/center}'];
 
     if (hasPac) {
@@ -741,17 +740,13 @@ function refreshMenu() {
         }
     }
 
-    // 2. PROGRESSO (O que o jogador conquistou)
     items.push('{center}CHECKPOINTS{/center}');
     items.push('{center}ACHIEVEMENTS{/center}');
-    items.push('{center}ACCOUNT{/center}'); // Vinculado ao progresso na nuvem
+    items.push('{center}ACCOUNT{/center}');
 
-    // 3. SISTEMA E PERSONALIZAÇÃO
     items.push('{center}SETTINGS{/center}');
     items.push('{center}UPDATES{/center}');
-    items.push('{center}[TOP_SECRET]{/center}'); // Geralmente fica perto de SYSTEM/INFO
-
-    // 4. INFORMAÇÕES E SAÍDA
+    items.push('{center}[TOP_SECRET]{/center}');
     items = items.concat([
         '{center}SUPPORT{/center}',
         '{center}CREDITS{/center}',
@@ -3177,7 +3172,7 @@ if (text.includes('ACCOUNT')) {
     playwarning();
     
     let pollInterval = null;
-    let currentPowerShell = null; // Para rastrear o processo do powershell
+    let currentPowerShell = null;
 
     const bgOverlay = blessed.box({ 
         parent: screen, 
@@ -3198,21 +3193,19 @@ if (text.includes('ACCOUNT')) {
     });
     screen.render();
 
-    // Função para abortar tudo
+
     const abortLogin = () => {
         if (pollInterval) clearInterval(pollInterval);
-        // Mata o processo do PowerShell se ele ainda estiver rodando
         if (currentPowerShell) {
             exec(`taskkill /F /T /PID ${currentPowerShell.pid} > nul 2>&1`);
         }
         playback();
         bgOverlay.destroy();
-        screen.unkey('escape', abortLogin); // Remove o listener do ESC
+        screen.unkey('escape', abortLogin);
         mainList.focus();
         screen.render();
     };
 
-    // Ativa o ESC para cancelar
     screen.key(['escape'], abortLogin);
 
     const cmdCode = `powershell -NoProfile -Command "$res = Invoke-RestMethod -Method Post -Uri 'https://github.com/login/device/code' -Body @{client_id='${GITHUB_CLIENT_ID}';scope='gist,read:user'} -Headers @{'Accept'='application/json'}; $res | ConvertTo-Json"`;
