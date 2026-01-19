@@ -899,7 +899,7 @@ const copyrightBOX1 = blessed.box({
  right: '0',
  width: 'shrink',
  height: 1,
- content: 'V1.0',
+ content: CURRENT_VERSION,
  tags: true,
  style: {
  fg: color,
