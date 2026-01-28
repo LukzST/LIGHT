@@ -202,3 +202,6 @@ async function iniciar() {
 }
 
 iniciar();
+if (fs.existsSync('./TERMINALACCESS/SURVEY_RUNNING.status')) {
+    fs.unlinkSync('./TERMINALACCESS/SURVEY_RUNNING.status');
+}

@@ -1900,23 +1900,76 @@ process.exit();
         }
 
         if (text.includes('START NEW')) {
-            clearPuzzle()
-            if (fs.existsSync('./TERMINALACCESS/SECRET_ROUTE.status')) fs.unlinkSync('./TERMINALACCESS/SECRET_ROUTE.status');
-            
-            playBeep2();
-            if (fs.existsSync(checkPath)) fs.unlinkSync(checkPath);
-            
-            menu.hide();
-            logoBox.hide();
-            exec('start cmd /c "node SURVEY.js"');
-            const ok = await monitorSurvey();
-            if (ok) {
+    clearPuzzle();
+    if (fs.existsSync('./TERMINALACCESS/SECRET_ROUTE.status')) {
+        fs.unlinkSync('./TERMINALACCESS/SECRET_ROUTE.status');
+    }
+    
+    playBeep2();
+    if (fs.existsSync(checkPath)) fs.unlinkSync(checkPath);
+    
+    menu.hide();
+    logoBox.hide();
+
+    const loading = blessed.loading({
+        parent: container,
+        top: 'center',
+        left: 'center',
+        width: 'shrink',
+        height: 'shrink',
+        border: { type: 'line' },
+        style: style
+    });
+    loading.load(' [SYSTEM AWAITING SURVEY RESPONSES...] ');
+    screen.render();
+
+    const surveyCmd = exec('start /wait cmd /c "node SURVEY.js"');
+
+    surveyCmd.on('exit', () => {
+        setTimeout(async () => {
+            loading.stop();
+            const success = fs.existsSync('./TERMINALACCESS/ACESSOSTATUS.LIGHT');
+            const memory = fs.existsSync('./TERMINALACCESS/MEMORY_1999.bin');
+            const failure = fs.existsSync('./TERMINALACCESS/GAMEOVER.status');
+
+            if (memory) {
+                play1999();
+                container.children.forEach(c => c.hide());
+                const fadeBox = blessed.box({
+                    parent: container,
+                    top: 'center',
+                    left: 'center',
+                    width: '80%',
+                    height: '40%',
+                    border: { type: 'line', fg: 'yellow' },
+                    style: { fg: 'yellow' },
+                    padding: 1,
+                    tags: true,
+                    content: "{center}{bold}[WARNING] 1999 MEMORY SYNCED.{/bold}\n\nYOU ARE NOW PART OF THE FADE.\nSYSTEM IN CONFLICT.\n\n{blink}Press [ENTER] to restart and try again...{/blink}{/center}"
+                });
+                screen.render();
+                screen.once('keypress', (ch, key) => {
+                    if (key.name === 'enter') {
+                        fadeBox.destroy();
+                        try { fs.unlinkSync('./TERMINALACCESS/MEMORY_1999.bin'); } catch (e) {}
+                        startMainMenu();
+                    }
+                });
+            } else if (success) {
+                stopAudio();
+                setTimeout(() => {
+                    playwin();
+                }, 200);
                 saveCheckpoint("START_NARRATIVE");
                 startNarrative();
+            } else if (failure) {
+                execGameOver("SYSTEM LOCKED: INTRUSION ATTEMPT.");
             } else {
-                execGameOver("SYSTEM LOCKED: INTRUSION ATTEMPT DETECTED.");
+                execGameOver("CONNECTION LOST: Survey terminal was closed abruptly.");
             }
-        }
+        }, 500);
+    });
+}
     });
 
     menu.on('select item', () => {
