@@ -3265,11 +3265,16 @@ if (text.includes('ACCOUNT')) {
     });
 }
 });
-screen.key(['C-c'], () => confirmExit());
+screen.key(['C-c'], () => {
+    releaseLock();
+    confirmExit()});
+    
 bootSequence();
 process.on('SIGINT', () => {
+    releaseLock();
  confirmExit();
 });
 process.on('SIGHUP', () => {
+    releaseLock();
  confirmExit();
 });

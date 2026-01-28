@@ -585,6 +585,12 @@ screen.key(['escape', 'C-c'], () => {
     }
 });
 
+const releaseLock = () => {
+    if (fs.existsSync(LOCK_FILE)) {
+        try { fs.unlinkSync(LOCK_FILE); } catch (e) {}
+    }
+};
+
 function stopcreditsaudio() {
     exec('taskkill /F /IM cmdmp3.exe /T > nul 2>&1', (err) => {
     });
@@ -1806,7 +1812,7 @@ async function monitorSurvey() {
                             fg: 'yellow'
                         },
                         padding: 1,
-                        content: "{center}{bold}[WARNING] 1999 MEMORY SYNCED.{/bold}\n\nYOU ARE NOW PART OF THE FADE.\nSYSTEM IN CONFLICT.\n\n{blink}Press [ENTER] to clear cache and retry the Survey...{/blink}{/center}",
+                        content: "{center}{bold}1999 MEMORY SYNCED.{/bold}\n\nYOU ARE NOW PART OF THE FADE.\nSYSTEM IN CONFLICT.\n\n{blink}Press [ENTER] to clear cache and retry the Survey...{/blink}{/center}",
                         tags: true
                     });
                     screen.render();
@@ -1945,7 +1951,7 @@ process.exit();
                     style: { fg: 'yellow' },
                     padding: 1,
                     tags: true,
-                    content: "{center}{bold}[WARNING]\n\n1999 MEMORY SYNCED.{/bold}\n\nYOU ARE NOW PART OF THE FADE.\nSYSTEM IN CONFLICT.\n\n{blink}Press [ENTER] to restart and try again...{/blink}{/center}"
+                    content: "{center}{bold}1999 MEMORY SYNCED.{/bold}\n\nYOU ARE NOW PART OF THE FADE.\nSYSTEM IN CONFLICT.\n\n{blink}Press [ENTER] to restart and try again...{/blink}{/center}"
                 });
                 screen.render();
                 screen.once('keypress', (ch, key) => {
@@ -2064,8 +2070,10 @@ process.on('exit', () => {
 
 screen.key(['escape', 'q', 'Q', 'C-c'], () => {
     if (iscreditsOpen) {
+        releaseLock();
         saveFinalTime();
     } else {
+        releaseLock();
     saveFinalTime();
     clearPuzzle();
     process.exit(0);
@@ -2074,8 +2082,10 @@ screen.key(['escape', 'q', 'Q', 'C-c'], () => {
 });
 
 process.on('SIGINT', () => {
+    releaseLock();
  saveFinalTime();
 });
 process.on('SIGHUP', () => {
+    releaseLock();
  saveFinalTime();
 });
