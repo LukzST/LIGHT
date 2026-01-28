@@ -90,7 +90,7 @@ async function revelarTheFade() {
     await digitar("OP_06: Are you listening? The clock stopped at 00:00.", 50);
     await digitar("OP_06: 'The Fade' was not a technical glitch. It was a cleanup.", 50);
     await digitar("OP_06: In 1999, the world forgot how to breathe for 10 seconds.", 50);
-    await digitar("OP_06: Welcome to the void, Operator.", 70);
+    await digitar("OP_06: Welcome to the void, operator_07.", 70);
     
     if (!fs.existsSync('./TERMINALACCESS')) fs.mkdirSync('./TERMINALACCESS');
     fs.writeFileSync('./TERMINALACCESS/MEMORY_1999.bin', 'DATA_CORRUPTED_BY_FADE');
