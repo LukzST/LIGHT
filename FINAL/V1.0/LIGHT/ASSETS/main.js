@@ -1945,7 +1945,7 @@ process.exit();
                     style: { fg: 'yellow' },
                     padding: 1,
                     tags: true,
-                    content: "{center}{bold}[WARNING] 1999 MEMORY SYNCED.{/bold}\n\nYOU ARE NOW PART OF THE FADE.\nSYSTEM IN CONFLICT.\n\n{blink}Press [ENTER] to restart and try again...{/blink}{/center}"
+                    content: "{center}{bold}[WARNING]\n\n1999 MEMORY SYNCED.{/bold}\n\nYOU ARE NOW PART OF THE FADE.\nSYSTEM IN CONFLICT.\n\n{blink}Press [ENTER] to restart and try again...{/blink}{/center}"
                 });
                 screen.render();
                 screen.once('keypress', (ch, key) => {
