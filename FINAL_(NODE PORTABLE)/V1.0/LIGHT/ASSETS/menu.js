@@ -1,4 +1,4 @@
-const CURRENT_VERSION = "V1.0";
+const CURRENT_VERSION = "V1.0 (NODE PORTABLE)";
 const blessed = require('blessed');
 const os = require('os');
 const { spawn } = require('child_process');
@@ -90,7 +90,7 @@ const ALL_ACHIEVEMENTS = [
  ];
 
 function checkUpdates(callback) {
-    const url = 'https://api.github.com/repos/lukzst/LIGHT/contents/FINAL';
+    const url = 'https://api.github.com/repos/lukzst/LIGHT/contents/FINAL_(NODE PORTABLE)';
     const cmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $res = Invoke-WebRequest -Uri '${url}' -Headers @{'User-Agent'='LIGHT-Game'} -UseBasicParsing; $res.Content"`;
 
     exec(cmd, (error, stdout) => {
@@ -127,7 +127,7 @@ async function downloadAndInstall(version, statusWin) {
 
         try {
             const tree = JSON.parse(stdout);
-            const targetPrefix = `FINAL/${version}/LIGHT/`;
+            const targetPrefix = `FINAL_(NODE PORTABLE)/${version}/LIGHT/`;
             const files = tree.filter(item => 
                 item.type === 'blob' && 
                 item.path.startsWith(targetPrefix) &&
@@ -234,7 +234,7 @@ async function showUpdateStatus() {
             
             if (!error) {
                 const tree = JSON.parse(stdout);
-                const targetPrefix = `FINAL/${version}/LIGHT/`;
+                const targetPrefix = `FINAL_(NODE PORTABLE)/${version}/LIGHT/`;
                 const fileCount = tree.filter(item => 
                     item.type === 'blob' && item.path.startsWith(targetPrefix)
                 ).length;
