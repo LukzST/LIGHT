@@ -112,77 +112,6 @@ function checkUpdates(callback) {
     });
 }
 
-async function downloadAndInstall(version, statusWin) {
-    const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
-    const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' -Headers @{'User-Agent'='LIGHT-Updater'}).tree | ConvertTo-Json -Compress"`;
-    
-    statusWin.setContent('{center}\n{yellow-fg}MAPPING REPOSITORY...{/}\nEstablishing secure link via PowerShell.{/center}');
-    screen.render();
-
-    exec(getTreeCmd, {maxBuffer: 1024 * 1024 * 10}, async (error, stdout) => {
-        if (error) {
-            statusWin.setContent('{center}\n{red-fg}MAP ERROR{/red-fg}\n\nConnection refused by host.{/center}');
-            return screen.render();
-        }
-
-        try {
-            const tree = JSON.parse(stdout);
-            const targetPrefix = `FINAL_(NODE PORTABLE)/${version}/LIGHT/`;
-            const files = tree.filter(item => 
-                item.type === 'blob' && 
-                item.path.startsWith(targetPrefix) &&
-                !item.path.includes('/CONFIG/') && 
-                !item.path.includes('/Achievements/')
-            );
-
-            if (files.length === 0) throw new Error("Data sectors empty.");
-
-            blockMenuInput = true;
-            let downloaded = 0;
-            const totalSteps = 30;
-
-            for (let i = 1; i <= totalSteps; i++) {
-                const bar = "█".repeat(i) + "░".repeat(totalSteps - i);
-                const percentage = Math.round((i / totalSteps) * 100);
-                
-                const filesPerStep = Math.ceil(files.length / totalSteps);
-                for(let j = 0; j < filesPerStep && downloaded < files.length; j++) {
-                    const fileMetadata = files[downloaded];
-                    const relPath = fileMetadata.path.replace(targetPrefix, '');
-                    const destPath = path.join(__dirname, '..', relPath);
-                    const fileUrl = `https://raw.githubusercontent.com/lukzst/LIGHT/main/${fileMetadata.path}`;
-
-                    if (!fs.existsSync(path.dirname(destPath))) fs.mkdirSync(path.dirname(destPath), { recursive: true });
-                    const dlCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iwr -Uri '${fileUrl}' -OutFile '${destPath}'"`;
-                    await new Promise((res) => { exec(dlCmd, () => { downloaded++; res(); }); });
-                }
-
-                statusWin.setContent(
-    `{center}\n{yellow-fg}INSTALLING NEW UPDATE...{/}\n\n` +
-    `Version: ${version.replace('V', '')}\n\n` +
-    `[${bar}] ${percentage}%\n\n` +
-    `{white-fg}Please wait, do not close the game...{/white-fg}{/center}`
-);
-                screen.render();
-                await new Promise(r => setTimeout(r, 400));
-            }
-
-            statusWin.style.border.fg = 'green';
-statusWin.setContent(`{center}\n{green-fg}UPDATE INSTALLED SUCCESSFULLY!{/green-fg}\n\nVersion: ${version.replace('V', '')} is now ready.\n\n{blink}PRESS [ENTER] TO RESTART THE GAME{/center}`);
-            screen.render();
-            playsucesso();
-            
-            screen.onceKey(['enter'], () => process.exit(0));
-
-        } catch (err) {
-            statusWin.style.border.fg = 'red';
-statusWin.setContent(`{center}\n{red-fg}FAILED TO INSTALL UPDATE{/red-fg}\n\n${err.message}\n\nPlease try again later.{/center}`);
-            screen.render();
-            blockMenuInput = false;
-        }
-    });
-}
-
 async function showUpdateStatus() {
     isupdating = true
     if (isUpdateInterfaceActive) return;
@@ -221,64 +150,167 @@ async function showUpdateStatus() {
     };
 
     checkUpdates(async (hasUpdate, version) => {
-    if (hasUpdate === null) {
-        statusWin.setContent('{center}\n{red-fg}NETWORK ERROR{/red-fg}\n\nCheck connection.{/center}');
-    } else if (hasUpdate) {
-        global.latestVersionFound = version;
-        
-        const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
-        const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' -Headers @{'User-Agent'='LIGHT-Updater'}).tree | ConvertTo-Json -Compress"`;
-
-        exec(getTreeCmd, {maxBuffer: 1024 * 1024 * 10}, (error, stdout) => {
-            let estimatedTime = "CALCULATING...";
+        if (hasUpdate === null) {
+            statusWin.setContent('{center}\n{red-fg}NETWORK ERROR{/red-fg}\n\nCheck connection.{/center}');
+        } else if (hasUpdate) {
+            global.latestVersionFound = version;
             
-            if (!error) {
-                const tree = JSON.parse(stdout);
-                const targetPrefix = `FINAL_(NODE PORTABLE)/${version}/LIGHT/`;
-                const fileCount = tree.filter(item => 
-                    item.type === 'blob' && item.path.startsWith(targetPrefix)
-                ).length;
+            const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
+            const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' -Headers @{'User-Agent'='LIGHT-Updater'}).tree | ConvertTo-Json -Compress"`;
 
-                const totalSeconds = Math.round(fileCount * 1.5);
-                const mins = Math.floor(totalSeconds / 60);
-                const secs = totalSeconds % 60;
-                estimatedTime = mins > 0 ? `${mins} MIN ${secs} SEC` : `${secs} SECONDS`;
-            }
+            exec(getTreeCmd, {maxBuffer: 1024 * 1024 * 10}, (error, stdout) => {
+                let estimatedTime = "CALCULATING...";
+                
+                if (!error) {
+                    const tree = JSON.parse(stdout);
+                    const targetPrefix = `FINAL_(NODE PORTABLE)/${version}/LIGHT/`;
+                    
+                    const filesToUpdate = tree.filter(item => {
+                        const isTarget = item.type === 'blob' && item.path.startsWith(targetPrefix) &&
+                                         !item.path.includes('/CONFIG/') && !item.path.includes('/Achievements/');
+                        if (!isTarget) return false;
 
-            statusWin.style.border.fg = 'magenta';
-            statusWin.setContent(
-                `{center}\n{magenta-fg}UPDATE DETECTED: ${version}{/magenta-fg}\n\n` +
-                `NOTE: this update may take a few minutes to complete.\n` +
-                `ESTIMATED UPDATE TIME: {yellow-fg}${estimatedTime}{/yellow-fg}.\n\n` +
-                `{white-fg}[ENTER] START UPDATE | [ESC] ABORT{/center}`
-            );
-            screen.render();
-        });
-        
-        setTimeout(() => { 
-            canAcceptInput = true; 
-            screen.key(['enter'], onEnterUpdate);
-        }, 500);
+                        const relPath = item.path.replace(targetPrefix, '');
+                        const destPath = path.join(__dirname, '..', relPath);
 
-    } else {
-        statusWin.setContent(`{center}\n{green-fg}LIGHT IS UP TO DATE{/green-fg}\n\nVersion ${CURRENT_VERSION.replace('V', '')} is current.{/center}\n\n\n\n\n{center}{bold}{grey-fg}PRESS [ESC] TO CLOSE{/grey-fg}{/bold}{/center}`);
-    }
-    screen.render();
-});
+                        if (!fs.existsSync(destPath)) return true;
+                        const stats = fs.statSync(destPath);
+                        return stats.size !== item.size;
+                    });
+
+                    const fileCount = filesToUpdate.length;
+                    
+                    if (fileCount === 0) {
+                        estimatedTime = "0 SECONDS";
+                    } else {
+                        const totalSeconds = Math.round(fileCount * 1.5);
+                        const mins = Math.floor(totalSeconds / 60);
+                        const secs = totalSeconds % 60;
+                        estimatedTime = mins > 0 ? `${mins} MIN ${secs} SEC` : `${secs} SECONDS`;
+                    }
+                }
+
+                statusWin.style.border.fg = 'magenta';
+                statusWin.setContent(
+                    `{center}\n{magenta-fg}UPDATE DETECTED: ${version}{/magenta-fg}\n\n` +
+                    `NOTE: this update may take a few minutes to complete.\n` +
+                    `ESTIMATED UPDATE TIME: {yellow-fg}${estimatedTime}{/yellow-fg}.\n\n` +
+                    `{white-fg}[ENTER] START UPDATE | [ESC] ABORT{/center}`
+                );
+                screen.render();
+            });
+            
+            setTimeout(() => { 
+                canAcceptInput = true; 
+                screen.key(['enter'], onEnterUpdate);
+            }, 500);
+
+        } else {
+            statusWin.setContent(`{center}\n{green-fg}LIGHT IS UP TO DATE{/green-fg}\n\nVersion ${CURRENT_VERSION.replace('V', '')} is current.{/center}\n\n\n\n\n{center}{bold}{grey-fg}PRESS [ESC] TO CLOSE{/grey-fg}{/bold}{/center}`);
+        }
+        screen.render();
+    });
 
     screen.key(['escape'], function escUpdate() {
         if (blockMenuInput && statusWin.getContent().includes('█')) return;
-        
         playback();
         screen.unkey('escape', escUpdate);
         screen.unkey('enter', onEnterUpdate);
-        
         bgOverlay.destroy();
         isUpdateInterfaceActive = false;
         isupdating = false;
         blockMenuInput = false;
         mainList.focus();
         screen.render();
+    });
+}
+
+async function downloadAndInstall(version, statusWin) {
+    const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
+    const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' -Headers @{'User-Agent'='LIGHT-Updater'}).tree | ConvertTo-Json -Compress"`;
+    
+    statusWin.setContent('{center}\n{yellow-fg}MAPPING REPOSITORY...{/}\nEstablishing secure link via PowerShell.{/center}');
+    screen.render();
+
+    exec(getTreeCmd, {maxBuffer: 1024 * 1024 * 10}, async (error, stdout) => {
+        if (error) {
+            statusWin.setContent('{center}\n{red-fg}MAP ERROR{/red-fg}\n\nConnection refused by host.{/center}');
+            return screen.render();
+        }
+
+        try {
+            const tree = JSON.parse(stdout);
+            const targetPrefix = `FINAL_(NODE PORTABLE)/${version}/LIGHT/`;
+            
+            const filesToUpdate = tree.filter(item => {
+                const isTarget = item.type === 'blob' && 
+                                 item.path.startsWith(targetPrefix) &&
+                                 !item.path.includes('/CONFIG/') && 
+                                 !item.path.includes('/Achievements/');
+                
+                if (!isTarget) return false;
+
+                const relPath = item.path.replace(targetPrefix, '');
+                const destPath = path.join(__dirname, '..', relPath);
+
+                if (!fs.existsSync(destPath)) return true;
+
+                const stats = fs.statSync(destPath);
+                return stats.size !== item.size;
+            });
+
+            if (filesToUpdate.length === 0) {
+                statusWin.style.border.fg = 'green';
+                statusWin.setContent(`{center}\n{green-fg}UPDATE INSTALLED SUCCESSFULLY!{/green-fg}\n\nVersion: ${version.replace('V', '')} is now ready.\n\n{blink}PRESS [ENTER] TO RESTART THE GAME{/center}`);
+                screen.render();
+                return screen.onceKey(['enter'], () => process.exit(0));
+            }
+
+            blockMenuInput = true;
+            const totalFiles = filesToUpdate.length;
+
+            for (let i = 0; i < totalFiles; i++) {
+                const fileMetadata = filesToUpdate[i];
+                const relPath = fileMetadata.path.replace(targetPrefix, '');
+                const destPath = path.join(__dirname, '..', relPath);
+                const fileUrl = `https://raw.githubusercontent.com/lukzst/LIGHT/main/${fileMetadata.path}`;
+
+                const percentage = Math.round(((i) / totalFiles) * 100);
+                const bar = "█".repeat(Math.floor(percentage / 3.3)) + "░".repeat(30 - Math.floor(percentage / 3.3));
+
+                statusWin.setContent(
+                    `{center}\n{yellow-fg}INSTALLING NEW UPDATE...{/}\n\n` +
+                    `Version: ${version.replace('V', '')}\n\n` +
+                    `[${bar}] ${percentage}%\n\n` +
+                    `{white-fg}Please wait, do not close the game...{/white-fg}{/center}`
+                );
+
+                descriptionBox.setContent(`{center}{grey-fg}{bold}Sector ${i + 1} of ${totalFiles} | Synchronizing: ${relPath}{/bold}{/grey-fg}{/center}`);
+                screen.render();
+
+                if (!fs.existsSync(path.dirname(destPath))) fs.mkdirSync(path.dirname(destPath), { recursive: true });
+                
+                const dlCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iwr -Uri '${fileUrl}' -OutFile '${destPath}'"`;
+                
+                await new Promise((res) => { 
+                    exec(dlCmd, () => { res(); }); 
+                });
+            }
+
+            descriptionBox.setContent('{center}{bold}UPDATE SEQUENCE COMPLETE{/bold}{/center}');
+            statusWin.style.border.fg = 'green';
+            statusWin.setContent(`{center}\n{green-fg}UPDATE INSTALLED SUCCESSFULLY!{/green-fg}\n\nVersion: ${version.replace('V', '')} is now ready.\n\n{blink}PRESS [ENTER] TO RESTART THE GAME{/center}`);
+            screen.render();
+            playsucesso();
+            
+            screen.onceKey(['enter'], () => process.exit(0));
+
+        } catch (err) {
+            statusWin.style.border.fg = 'red';
+            statusWin.setContent(`{center}\n{red-fg}FAILED TO INSTALL UPDATE{/red-fg}\n\n${err.message}\n\nPlease try again later.{/center}`);
+            screen.render();
+            blockMenuInput = false;
+        }
     });
 }
 
