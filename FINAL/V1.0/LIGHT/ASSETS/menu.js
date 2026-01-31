@@ -891,7 +891,6 @@ const menuDescriptions = {
 };
 
 
-
 screen.render();
 const copyrightBOX1 = blessed.box({
  parent: screen,

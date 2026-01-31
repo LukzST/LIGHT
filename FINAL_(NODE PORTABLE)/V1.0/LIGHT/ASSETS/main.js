@@ -834,7 +834,7 @@ async function accessLuxFiles(box) {
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
-    box.setContent("{center}ENTER ENCRYPTION KEY TO ACCESS 'PROJECT_FADE_1999_LOGS'\n\n{yellow-fg}(HINT: Check 'System Info' in the Main Menu){/yellow-fg}{/center}\n\n{center}DO NOT PRESS ESC{/}");
+    box.setContent("{center}ENTER ENCRYPTION KEY TO ACCESS 'PROJECT_FADE_1999_LOGS'\n\n{yellow-fg}(HINT: Check '[TOP_SECRET]' in the Main Menu){/yellow-fg}{/center}\n\n{center}DO NOT PRESS ESC{/}");
     const accessInput = blessed.textbox({
         parent: box,
         top: 'center',
