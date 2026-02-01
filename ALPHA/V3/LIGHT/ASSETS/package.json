@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "blessed": "^0.1.81",
+    "prompt-sync": "^4.2.0"
+  }
+}
