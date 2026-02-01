@@ -1,1 +1,0 @@
-console.log('Main JS carregado com sucesso!');
