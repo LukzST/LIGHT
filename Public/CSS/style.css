@@ -313,10 +313,8 @@ body {
     background-color: var(--background-color-3);
 }
 
-/* --- ESTILOS MOBILE --- */
 @media (max-width: 768px) {
     
-    /* Ajustes Gerais de Fonte e Padding */
     .title-about, .title-screen, .title-download, .title-g, .title-others {
         font-size: 1.8rem;
         text-align: center;
@@ -327,13 +325,12 @@ body {
         padding: 0 10px;
     }
 
-    /* Header: Empilha ou esconde elementos se necessário */
     .header_web {
         height: auto;
         padding: 15px;
         flex-direction: column;
         gap: 15px;
-        position: relative; /* Evita que cubra conteúdo no mobile se for muito grande */
+        position: relative;
     }
 
     .navegationHeader {
@@ -351,16 +348,15 @@ body {
         width: 100%;
     }
 
-    /* Home: Remove margens fixas e ajusta o fundo */
     .home {
         height: auto;
         padding: 80px 20px;
         align-items: center;
-        background-attachment: scroll; /* Melhora performance mobile */
+        background-attachment: scroll; 
     }
 
     .download {
-        margin-left: 0; /* Remove o margin-left de 50px do desktop */
+        margin-left: 0;
         padding: 20px 0;
     }
 
@@ -373,36 +369,32 @@ body {
     }
 
     .box-button {
-        flex-direction: column; /* Botões um em cima do outro */
+        flex-direction: column;
         width: 100%;
         align-items: center;
     }
 
-    /* Galeria: Ajusta o grid para 1 coluna */
     .galeria-grid {
         grid-template-columns: 1fr;
         width: 100%;
     }
 
-    /* Removendo o Hover Scale excessivo no mobile (pode quebrar o layout) */
     .imagem img:hover {
         transform: scale(1.05);
     }
 
-    /* Seções de Logos e Links: Empilhamento vertical */
     .box-logo, .box-gamejams, .box-others {
         flex-direction: column;
         gap: 30px;
     }
 
-    /* Ajuste de largura das imagens para não estourarem a tela */
     .itch-link img, 
     .github-link img, 
     .cyg-6 img, 
     .PL img, 
     .PL-web img {
         width: 100%;
-        max-width: 320px; /* Limite para não ficar gigante em telas médias */
+        max-width: 320px;
         height: auto;
     }
 
