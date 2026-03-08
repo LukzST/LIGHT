@@ -288,38 +288,32 @@ async function showUpdateStatus() {
 
     screen.render();
 
+    // --- FUNÇÕES DE COMANDO COM NOME (PARA PODER LIMPAR) ---
+    async function handleRepair() {
+        screen.unkey('enter', handleRepair); // Remove o listener imediatamente
+        global.currentRepairFunc = null;
+        await downloadAndInstall(CURRENT_VERSION, statusWin, true);
+    }
+
+    async function handleNewUpdate() {
+        screen.unkey('enter', handleNewUpdate);
+        global.currentUpdateFunc = null;
+        await downloadAndInstall(global.latestVersionFound, statusWin, false);
+    }
+
     checkUpdates(async (hasUpdate, version) => {
         if (hasUpdate === null) {
             statusWin.setContent(t('UPDATE_ERROR'));
             screen.render();
         } else if (hasUpdate) {
             global.latestVersionFound = version;
-            const authHeader = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'; 'User-Agent'='LIGHT-Updater'}` : "-Headers @{'User-Agent'='LIGHT-Updater'}";
-            const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
-            const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' ${authHeader}).tree | ConvertTo-Json -Compress"`;
+            statusWin.style.border.fg = 'magenta';
+            statusWin.setContent(t('UPDATE_DETECTED', { version, time: "CALCULATING..." }));
+            screen.render();
 
-            exec(getTreeCmd, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout) => {
-                let estimatedTime = "CALCULATING...";
-                if (!error) {
-                    const tree = JSON.parse(stdout);
-                    const targetPrefix = `FINAL/${version}/LIGHT/`;
-                    const fileCount = tree.filter(item => item.type === 'blob' && item.path.startsWith(targetPrefix)).length;
-                    const totalSeconds = Math.round(fileCount * 1.5);
-                    const mins = Math.floor(totalSeconds / 60);
-                    const secs = totalSeconds % 60;
-                    estimatedTime = mins > 0 ? `${mins} MIN ${secs} SEC` : `${secs} SECONDS`;
-                }
-
-                statusWin.style.border.fg = 'magenta';
-                statusWin.setContent(t('UPDATE_DETECTED', { version, time: estimatedTime }));
-                screen.render();
-
-                canAcceptInput = true;
-                screen.key(['enter'], async function onEnter() {
-                    screen.unkey('enter', onEnter);
-                    await downloadAndInstall(version, statusWin, false);
-                });
-            });
+            canAcceptInput = true;
+            global.currentUpdateFunc = handleNewUpdate; // Salva para o ESC saber o que limpar
+            screen.onceKey(['enter'], handleNewUpdate);
 
         } else {
             statusWin.setContent(t('VERIFYING_INTEGRITY'));
@@ -354,26 +348,29 @@ async function showUpdateStatus() {
                     statusWin.setContent(t('INTEGRITY_FAIL'));
                     
                     canAcceptInput = true;
-
-                    // Definimos a função com nome para poder limpá-la no ESCAPE
-                    async function onRepair() {
-                        screen.unkey('enter', onRepair); // Mata o listener assim que usado
-                        await downloadAndInstall(CURRENT_VERSION, statusWin, true);
-                    }
-
-                    // Salvamos a função globalmente para o ESCAPE conseguir enxergar e deletar
-                    global.currentActiveRepair = onRepair;
-                    screen.onceKey(['enter'], onRepair);
+                    global.currentRepairFunc = handleRepair; // Salva para o ESC saber o que limpar
+                    screen.onceKey(['enter'], handleRepair);
                 }
                 screen.render();
             });
         }
     });
 
+    // --- LOGICA DE SAÍDA (LIMPEZA TOTAL) ---
     screen.key(['escape'], function escUpdate() {
+        // Se estiver baixando (barra de progresso), ignora o ESC
         if (blockMenuInput && statusWin.getContent().includes('█')) return;
-        screen.unkey('enter', onEnter);
-        screen.unkey('enter', onRepair);
+
+        // Limpa os listeners de ENTER para não disparar sozinho na próxima vez
+        if (global.currentRepairFunc) {
+            screen.unkey('enter', global.currentRepairFunc);
+            global.currentRepairFunc = null;
+        }
+        if (global.currentUpdateFunc) {
+            screen.unkey('enter', global.currentUpdateFunc);
+            global.currentUpdateFunc = null;
+        }
+
         playback();
         bgOverlay.destroy();
         isUpdateInterfaceActive = false;
