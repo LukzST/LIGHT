@@ -508,7 +508,7 @@ function credits() {
         t('CREDITS_SLIDE10', { name: 'LUIZ OTÁVIO' }),
         t('CREDITS_SLIDE11', { theme: 'THE LAST CHOICE - LIGHT OST' }),
         t('CREDITS_SLIDE12', { studio: 'PALE LUNA DEVELOPER' }),
-        t('CREDITS_SLIDE13', { testers: 'LUCAS EDUARDO, ISABELLA SANCHES, LUIZ OTÁVIO and some friends' }),
+        t('CREDITS_SLIDE13', { testers: 'HAGRAJAG (ROSE)' }),
         t('CREDITS_SLIDE14', { name: 'LUCAS EDUARDO' }),
         t('CREDITS_THANKS'),
         t('CREDITS_COPYRIGHT', { year: currentYear })
