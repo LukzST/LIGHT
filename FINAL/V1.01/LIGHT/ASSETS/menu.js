@@ -288,9 +288,8 @@ async function showUpdateStatus() {
 
     screen.render();
 
-    // --- FUNÇÕES DE COMANDO COM NOME (PARA PODER LIMPAR) ---
     async function handleRepair() {
-        screen.unkey('enter', handleRepair); // Remove o listener imediatamente
+        screen.unkey('enter', handleRepair);
         global.currentRepairFunc = null;
         await downloadAndInstall(CURRENT_VERSION, statusWin, true);
     }
@@ -312,7 +311,7 @@ async function showUpdateStatus() {
             screen.render();
 
             canAcceptInput = true;
-            global.currentUpdateFunc = handleNewUpdate; // Salva para o ESC saber o que limpar
+            global.currentUpdateFunc = handleNewUpdate;
             screen.onceKey(['enter'], handleNewUpdate);
 
         } else {
@@ -348,7 +347,7 @@ async function showUpdateStatus() {
                     statusWin.setContent(t('INTEGRITY_FAIL'));
                     
                     canAcceptInput = true;
-                    global.currentRepairFunc = handleRepair; // Salva para o ESC saber o que limpar
+                    global.currentRepairFunc = handleRepair;
                     screen.onceKey(['enter'], handleRepair);
                 }
                 screen.render();
@@ -356,12 +355,9 @@ async function showUpdateStatus() {
         }
     });
 
-    // --- LOGICA DE SAÍDA (LIMPEZA TOTAL) ---
     screen.key(['escape'], function escUpdate() {
-        // Se estiver baixando (barra de progresso), ignora o ESC
         if (blockMenuInput && statusWin.getContent().includes('█')) return;
 
-        // Limpa os listeners de ENTER para não disparar sozinho na próxima vez
         if (global.currentRepairFunc) {
             screen.unkey('enter', global.currentRepairFunc);
             global.currentRepairFunc = null;
