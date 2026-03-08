@@ -1,4 +1,4 @@
-# 📟 LIGHT | Terminal-Based Psychological Horror
+# LIGHT | Terminal-Based Psychological Horror
 
 ![Status](https://img.shields.io/badge/STATUS-OPERATIONAL-green)
 ![Version](https://img.shields.io/badge/VERSION-1.0.0-gold)
@@ -9,25 +9,25 @@
 
 ---
 
-## 📝 Description
+## Description
 **LIGHT** is a psychological horror experience focused on narrative and terminal-based interaction. You operate a 1999 communication subsystem attempting to recover data fragments from an isolated station.
 
 The silence of the terminal is your only companion. The light is your only hope.
 
-## 🕹️ Features
+## Features
 * **Authentic Terminal Interface:** Built entirely in Node.js using the `blessed` library.
 * **Achievement System (.ach):** Persistent unlocks that modify the system structure.
 * **Immersive Audio:** System sounds processed via PowerShell/aplay for an analog experience.
 * **Override Protocol:** Hidden commands for advanced users.
 * **Auto-Update:** Integrated version synchronization system via HTTPS protocol.
 
-## 🛠️ Installation
+## Installation
 
 ### Prerequisites
 * [Node.js](https://nodejs.org/) (Version 16 or higher recommended)
 * [Windows 10](https://www.microsoft.com/pt-br/software-download/windows10) (Version 20h2 or higher)
 
-## ⬇️ Download
+## Download
 * [Available only on Itch.io](https://palelunadev.itch.io/light)
 
 ### Boot Protocol
