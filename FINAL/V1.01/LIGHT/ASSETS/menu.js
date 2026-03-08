@@ -185,6 +185,7 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
                 
                 if (!fs.existsSync(destPath)) return true; 
                 const stats = fs.statSync(destPath);
+                // Se o tamanho for diferente, detectamos corrupção ou versão antiga
                 return stats.size !== item.size; 
             });
 
@@ -205,6 +206,15 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
                 const destPath = path.join(__dirname, '..', relPath);
                 const fileUrl = `https://raw.githubusercontent.com/lukzst/LIGHT/main/${fileMetadata.path}`;
 
+                // --- LÓGICA DE SEGURANÇA: APAGAR ANTES DE BAIXAR ---
+                if (fs.existsSync(destPath)) {
+                    try {
+                        fs.unlinkSync(destPath); // Remove o arquivo "estragado" ou antigo
+                    } catch (e) {
+                        // Se falhar (arquivo em uso), o PowerShell iwr -Force tentará sobrescrever
+                    }
+                }
+
                 const percentage = Math.round(((i) / totalFiles) * 100);
                 const bar = "█".repeat(Math.floor(percentage / 3.3)) + "░".repeat(30 - Math.floor(percentage / 3.3));
 
@@ -213,8 +223,15 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
                 screen.render();
 
                 if (!fs.existsSync(path.dirname(destPath))) fs.mkdirSync(path.dirname(destPath), { recursive: true });
-                const dlCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iwr -Uri '${fileUrl}' -OutFile '${destPath}'"`;
-                await new Promise((res) => { exec(dlCmd, () => { res(); }); });
+                
+                // O comando iwr (Invoke-WebRequest) agora baixa um arquivo limpo
+                const dlCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iwr -Uri '${fileUrl}' -OutFile '${destPath}' -ErrorAction Stop"`;
+                
+                await new Promise((res) => { 
+                    exec(dlCmd, (err) => {
+                        res(); 
+                    }); 
+                });
             }
 
             descriptionBox.setContent(t('UPDATE_COMPLETE_MSG'));
@@ -223,15 +240,14 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
             screen.render();
             playsucesso();
             
+            // REINÍCIO AUTOMÁTICO PARA APLICAR MUDANÇAS (INCLUINDO MENU.JS)
             screen.onceKey(['enter'], () => {
                 const exePath = path.join(__dirname, '..', 'LIGHT.exe');
-                
                 const child = spawn(exePath, [], {
                     stdio: 'ignore',
                     detached: true,
                     windowsHide: false
                 });
-                
                 child.unref();
                 process.exit(0);
             });
