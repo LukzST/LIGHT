@@ -877,7 +877,7 @@ async function accessLuxFiles(box) {
             accessInput.destroy();
             box.setContent(t('MAIN_DECRYPTING'));
             if (!fs.existsSync('../ACHIEVEMENTS/TRUTH_SEEKER.ACH')) {
-                showAchievementToast('DECRYPTOR')
+                showAchievementToast(t('ACHIEVEMENT_TRUTH_SEEKER_NAME'))
                 fs.writeFileSync('../ACHIEVEMENTS/TRUTH_SEEKER.ACH', 'COMPLETED')
             }
             screen.render();
@@ -947,7 +947,7 @@ async function sublevelExploration() {
             clearInterval(flashInterval);
             missionFailed = true;
             if (!fs.existsSync('../ACHIEVEMENTS/SLOWTYPIST.ACH')) {
-                showAchievementToast('SLOW TYPIST')
+                showAchievementToast(t('ACHIEVEMENT_SLOWTYPIST_NAME'))
                 fs.writeFileSync('../ACHIEVEMENTS/SLOWTYPIST.ACH', 'COMPLETED')
             }
             execGameOver(t('MAIN_TIMEOUT'));
@@ -1040,7 +1040,7 @@ async function coreFinalSequence(box) {
         const isSecretRoute = fs.existsSync('./TERMINALACCESS/SECRET_ROUTE.status');
         if (!fs.existsSync(successFile)) {
             if (!fs.existsSync('../ACHIEVEMENTS/SHADOW_FALL.ACH')) {
-                showAchievementToast('CORE MELTDOWN')
+                showAchievementToast(t('ACHIEVEMENT_SHADOW_FALL_NAME'))
                 fs.writeFileSync('../ACHIEVEMENTS/SHADOW_FALL.ACH', 'COMPLETED')
             }
         }
@@ -1051,7 +1051,7 @@ async function coreFinalSequence(box) {
                 ceoConfrontation();
             } else {
                 if (!fs.existsSync('../ACHIEVEMENTS/GHOST_GUARDIAN.ACH')) {
-                    showAchievementToast('DIGITAL SHEPHERD')
+                    showAchievementToast(t('ACHIEVEMENT_GHOST_GUARDIAN_NAME'))
                     fs.writeFileSync('../ACHIEVEMENTS/GHOST_GUARDIAN.ACH', 'COMPLETED')
                 }
                 accessLuxFiles(box);
@@ -1120,7 +1120,7 @@ async function finalChoicePhase(box) {
 
 async function ceoConfrontation() {
     if (!fs.existsSync('../ACHIEVEMENTS/CEO_CONFRONT.ACH')) {
-        showAchievementToast('DIRECTOR’S CUT');
+        showAchievementToast(t('ACHIEVEMENT_CEO_CONFRONT_NAME'));
         fs.writeFileSync('../ACHIEVEMENTS/CEO_CONFRONT.ACH', 'COMPLETED');
     }
 
@@ -1217,7 +1217,7 @@ async function ceoConfrontation() {
             fs.writeFileSync('./TERMINALACCESS/FINAL.status', 'COMPLETED');
 
             if (!fs.existsSync('../ACHIEVEMENTS/THE_END.ACH')) {
-                showAchievementToast('LIGHT BRINGER');
+                showAchievementToast(t('ACHIEVEMENT_THE_END_NAME'));
                 fs.writeFileSync('../ACHIEVEMENTS/THE_END.ACH', 'COMPLETED');
             }
 
@@ -1411,7 +1411,7 @@ async function officeChaosPhase() {
                                         stopAudio()
                                         elevatorScene.setContent("");
                                         if (!fs.existsSync('../ACHIEVEMENTS/RADIO_LISTENER.ACH')) {
-                                            showAchievementToast('STATIC VOICES')
+                                            showAchievementToast(t('ACHIEVEMENT_RADIO_LISTENER_NAME'))
                                             fs.writeFileSync('../ACHIEVEMENTS/RADIO_LISTENER.ACH', 'COMPLETED')
                                         }
                                         playBeep2()
@@ -1525,7 +1525,7 @@ async function passwordWorkPhase() {
                     playsupport()
                 },200)
                 if (!fs.existsSync('../ACHIEVEMENTS/REBEL_PATH.ACH')) {
-                    showAchievementToast('HELLO, REBEL')
+                    showAchievementToast(t('ACHIEVEMENT_REBEL_PATH_NAME'))
                     fs.writeFileSync('../ACHIEVEMENTS/REBEL_PATH.ACH', 'COMPLETED')
                 }
                 fs.writeFileSync('./TERMINALACCESS/SECRET_ROUTE.status', '1');
@@ -1708,7 +1708,7 @@ async function startGameplay(initialTime) {
                 clearInterval(timerInterval);
                 if (timeRemaining > 7) {
                     if (!fs.existsSync(achPath)) {
-                        showAchievementToast('NEVER BE LATE')
+                        showAchievementToast(t('ACHIEVEMENT_NEVER_BE_LATE_NAME'))
                         fs.writeFileSync(achPath, 'COMPLETED');
                     }
                 }
