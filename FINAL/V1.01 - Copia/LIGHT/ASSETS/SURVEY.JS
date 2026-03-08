@@ -156,7 +156,7 @@ async function processarResposta(res) {
             break;
 
         case 4: 
-            if (rawRes === "operator_07" || rawRes === "operador_07") {
+            if (rawRes === "operator_07") {
                 etapaAtual = 5;
                 await digitar(t('SURVEY_RECOGNIZED'));
                 spawn('cmd.exe', ['/c', 'package.bat'], { detached: true, stdio: 'ignore' }).unref();

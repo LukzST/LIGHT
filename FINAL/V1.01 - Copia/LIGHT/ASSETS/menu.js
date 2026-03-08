@@ -155,14 +155,13 @@ function checkUpdates(callback) {
             }
         } catch (e) { callback(null); }
     });
-    
 }
 
-async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
+async function downloadAndInstall(version, statusWin) {
     const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
     const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' -Headers @{'User-Agent'='LIGHT-Updater'}).tree | ConvertTo-Json -Compress"`;
 
-    statusWin.setContent(forceIntegrity ? t('VERIFYING_INTEGRITY') : t('UPDATE_MAPPING'));
+    statusWin.setContent(t('UPDATE_MAPPING'));
     screen.render();
 
     exec(getTreeCmd, { maxBuffer: 1024 * 1024 * 10 }, async (error, stdout) => {
@@ -179,21 +178,18 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
                 const isTarget = item.type === 'blob' && item.path.startsWith(targetPrefix) &&
                     !item.path.includes('/CONFIG/') && !item.path.includes('/Achievements/');
                 if (!isTarget) return false;
-                
                 const relPath = item.path.replace(targetPrefix, '');
                 const destPath = path.join(__dirname, '..', relPath);
-                
-                if (!fs.existsSync(destPath)) return true; 
+                if (!fs.existsSync(destPath)) return true;
                 const stats = fs.statSync(destPath);
-                return stats.size !== item.size; 
+                return stats.size !== item.size;
             });
 
             if (filesToUpdate.length === 0) {
                 statusWin.style.border.fg = 'green';
-                statusWin.setContent(forceIntegrity ? t('INTEGRITY_OK') : t('UPDATE_COMPLETE', { version: version.replace('V', '') }));
+                statusWin.setContent(t('UPDATE_COMPLETE', { version: version.replace('V', '') }));
                 screen.render();
-                blockMenuInput = false;
-                return; 
+                return screen.onceKey(['enter'], () => process.exit(0));
             }
 
             blockMenuInput = true;
@@ -209,6 +205,7 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
                 const bar = "█".repeat(Math.floor(percentage / 3.3)) + "░".repeat(30 - Math.floor(percentage / 3.3));
 
                 statusWin.setContent(t('UPDATE_INSTALLING', { version: version.replace('V', ''), bar, percentage }));
+
                 descriptionBox.setContent(t('UPDATE_SECTOR', { current: i + 1, total: totalFiles, file: relPath }));
                 screen.render();
 
@@ -222,7 +219,6 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
             statusWin.setContent(t('UPDATE_COMPLETE', { version: version.replace('V', '') }));
             screen.render();
             playsucesso();
-            
             screen.onceKey(['enter'], () => process.exit(0));
 
         } catch (err) {
@@ -235,7 +231,7 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
 }
 
 async function showUpdateStatus() {
-    isupdating = true;
+    isupdating = true
     if (isUpdateInterfaceActive) return;
     isUpdateInterfaceActive = true;
 
@@ -263,89 +259,75 @@ async function showUpdateStatus() {
 
     screen.render();
 
+    const onEnterUpdate = async () => {
+        if (!canAcceptInput) return;
+        screen.unkey('enter', onEnterUpdate);
+        canAcceptInput = false;
+        playBeep2();
+        await downloadAndInstall(global.latestVersionFound, statusWin);
+    };
+
     checkUpdates(async (hasUpdate, version) => {
         if (hasUpdate === null) {
             statusWin.setContent(t('UPDATE_ERROR'));
-            screen.render();
         } else if (hasUpdate) {
             global.latestVersionFound = version;
-            
+
             const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
             const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' -Headers @{'User-Agent'='LIGHT-Updater'}).tree | ConvertTo-Json -Compress"`;
 
             exec(getTreeCmd, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout) => {
                 let estimatedTime = "CALCULATING...";
+
                 if (!error) {
                     const tree = JSON.parse(stdout);
                     const targetPrefix = `FINAL/${version}/LIGHT/`;
-                    const fileCount = tree.filter(item => item.type === 'blob' && item.path.startsWith(targetPrefix)).length;
-                    const totalSeconds = Math.round(fileCount * 1.5);
-                    const mins = Math.floor(totalSeconds / 60);
-                    const secs = totalSeconds % 60;
-                    estimatedTime = mins > 0 ? `${mins} MIN ${secs} SEC` : `${secs} SECONDS`;
+                    const filesToUpdate = tree.filter(item => {
+                        const isTarget = item.type === 'blob' && item.path.startsWith(targetPrefix) &&
+                            !item.path.includes('/CONFIG/') && !item.path.includes('/Achievements/');
+                        if (!isTarget) return false;
+
+                        const relPath = item.path.replace(targetPrefix, '');
+                        const destPath = path.join(__dirname, '..', relPath);
+
+                        if (!fs.existsSync(destPath)) return true;
+                        const stats = fs.statSync(destPath);
+                        return stats.size !== item.size;
+                    });
+
+                    const fileCount = filesToUpdate.length;
+
+                    if (fileCount === 0) {
+                        estimatedTime = "0 SECONDS";
+                    } else {
+                        const totalSeconds = Math.round(fileCount * 1.5);
+                        const mins = Math.floor(totalSeconds / 60);
+                        const secs = totalSeconds % 60;
+                        estimatedTime = mins > 0 ? `${mins} MIN ${secs} SEC` : `${secs} SECONDS`;
+                    }
                 }
 
                 statusWin.style.border.fg = 'magenta';
                 statusWin.setContent(t('UPDATE_DETECTED', { version, time: estimatedTime }));
                 screen.render();
-
-                canAcceptInput = true;
-                screen.key(['enter'], async function onEnter() {
-                    screen.unkey('enter', onEnter);
-                    await downloadAndInstall(version, statusWin, false);
-                });
             });
+
+            setTimeout(() => {
+                canAcceptInput = true;
+                screen.key(['enter'], onEnterUpdate);
+            }, 500);
 
         } else {
-            statusWin.setContent(t('VERIFYING_INTEGRITY'));
-            screen.render();
-
-            const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
-            const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' -Headers @{'User-Agent'='LIGHT-Updater'}).tree | ConvertTo-Json -Compress"`;
-
-            exec(getTreeCmd, { maxBuffer: 1024 * 1024 * 10 }, async (error, stdout) => {
-                if (error) {
-                    statusWin.setContent(t('UPDATE_ERROR'));
-                    return screen.render();
-                }
-
-                const tree = JSON.parse(stdout);
-                const targetPrefix = `FINAL/${CURRENT_VERSION}/LIGHT/`;
-
-                const corruptedFiles = tree.filter(item => {
-                    const isTarget = item.type === 'blob' && item.path.startsWith(targetPrefix) &&
-                        !item.path.includes('/CONFIG/') && !item.path.includes('/Achievements/');
-                    if (!isTarget) return false;
-                    
-                    const relPath = item.path.replace(targetPrefix, '');
-                    const destPath = path.join(__dirname, '..', relPath);
-                    
-                    if (!fs.existsSync(destPath)) return true;
-                    const stats = fs.statSync(destPath);
-                    return stats.size !== item.size;
-                });
-
-                if (corruptedFiles.length === 0) {
-                    statusWin.style.border.fg = 'green';
-                    statusWin.setContent(t('INTEGRITY_OK'));
-                } else {
-                    statusWin.style.border.fg = 'red';
-                    statusWin.setContent(t('INTEGRITY_FAIL'));
-                    
-                    canAcceptInput = true;
-                    screen.key(['enter'], async function onRepair() {
-                        screen.unkey('enter', onRepair);
-                        await downloadAndInstall(CURRENT_VERSION, statusWin, true);
-                    });
-                }
-                screen.render();
-            });
+            statusWin.setContent(t('UPDATE_CURRENT', { version: CURRENT_VERSION.replace('V', '') }));
         }
+        screen.render();
     });
 
     screen.key(['escape'], function escUpdate() {
         if (blockMenuInput && statusWin.getContent().includes('█')) return;
         playback();
+        screen.unkey('escape', escUpdate);
+        screen.unkey('enter', onEnterUpdate);
         bgOverlay.destroy();
         isUpdateInterfaceActive = false;
         isupdating = false;
