@@ -322,7 +322,6 @@ async function showUpdateStatus() {
             });
 
         } else {
-            // --- FLUXO DE INTEGRIDADE (MESMA VERSÃO) ---
             statusWin.setContent(t('VERIFYING_INTEGRITY'));
             screen.render();
 
@@ -339,7 +338,6 @@ async function showUpdateStatus() {
                 const tree = JSON.parse(stdout);
                 const targetPrefix = `FINAL/${CURRENT_VERSION}/LIGHT/`;
 
-                // Apenas conta arquivos corrompidos, sem baixar nada ainda
                 const corruptedFiles = tree.filter(item => {
                     if (item.type !== 'blob' || item.path.includes('/CONFIG/') || item.path.includes('/Achievements/')) return false;
                     const relPath = item.path.replace(targetPrefix, '');
@@ -352,15 +350,20 @@ async function showUpdateStatus() {
                     statusWin.style.border.fg = 'green';
                     statusWin.setContent(t('INTEGRITY_OK'));
                 } else {
-                    // PARA AQUI E ESPERA O INPUT
                     statusWin.style.border.fg = 'red';
                     statusWin.setContent(t('INTEGRITY_FAIL'));
                     
                     canAcceptInput = true;
-                    // Só executa o downloadAndInstall se o jogador apertar ENTER
-                    screen.onceKey(['enter'], async () => {
+
+                    // Definimos a função com nome para poder limpá-la no ESCAPE
+                    async function onRepair() {
+                        screen.unkey('enter', onRepair); // Mata o listener assim que usado
                         await downloadAndInstall(CURRENT_VERSION, statusWin, true);
-                    });
+                    }
+
+                    // Salvamos a função globalmente para o ESCAPE conseguir enxergar e deletar
+                    global.currentActiveRepair = onRepair;
+                    screen.onceKey(['enter'], onRepair);
                 }
                 screen.render();
             });
