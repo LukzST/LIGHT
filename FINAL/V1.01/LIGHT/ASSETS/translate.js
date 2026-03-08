@@ -251,7 +251,7 @@ const strings = {
         'CHECKPOINT_FOOTER': '{center}[ESC] TO RETURN{/center}',
         
         'CREDITS_SLIDE1': '{center}{bold}{logo}{/bold}\n\nA TERMINAL HORROR GAME{/center}',
-        'CREDITS_SLIDE2': '{center}{yellow-fg}AN ORIGINAL STORY BY{/yellow-fg}\n\n{bold}LUKZXDD{/bold}{/center}',
+        'CREDITS_SLIDE2': '{center}{yellow-fg}AN ORIGINAL STORY BY{/yellow-fg}\n\n{bold}Lucas Eduardo{/bold}{/center}',
         'CREDITS_SLIDE3': '{center}{yellow-fg}DIRECTOR{/yellow-fg}\n\n{bold}{name}{/bold}{/center}',
         'CREDITS_SLIDE4': '{center}{yellow-fg}LEAD PROGRAMMER{/yellow-fg}\n\n{bold}{name}{/bold}{/center}',
         'CREDITS_SLIDE5': '{center}{yellow-fg}SYSTEM ARCHITECT{/yellow-fg}\n\n{bold}{name}{/bold}{/center}',
@@ -265,7 +265,7 @@ const strings = {
         'CREDITS_SLIDE13': '{center}{yellow-fg}SPECIAL THANKS{/yellow-fg}\n\n{bold}{testers}{/bold}{/center}',
         'CREDITS_SLIDE14': '{center}{yellow-fg}PROJECT LEAD{/yellow-fg}\n\n{bold}{name}{/bold}{/center}',
         'CREDITS_THANKS': '{center}{yellow-fg}THANK YOU FOR PLAYING{/yellow-fg}',
-        'CREDITS_COPYRIGHT': '{center}LUKZXDD\n\n{year} © ALL RIGHTS RESERVED{/center}',
+        'CREDITS_COPYRIGHT': '{center}PALE LUNA DEVELOPER\n\n{year} © ALL RIGHTS RESERVED{/center}',
         'CREDITS_INSTAGRAM': '{center}INSTAGRAM{/center}',
         'CREDITS_CLOSE': '{center}CLOSE{/center}',
         'CREDITS_EXIT': '{center}EXIT THE GAME{/center}',

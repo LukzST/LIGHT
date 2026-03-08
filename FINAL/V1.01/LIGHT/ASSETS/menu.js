@@ -185,7 +185,6 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
                 
                 if (!fs.existsSync(destPath)) return true; 
                 const stats = fs.statSync(destPath);
-                // Se o tamanho for diferente, detectamos corrupção ou versão antiga
                 return stats.size !== item.size; 
             });
 
@@ -206,12 +205,11 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
                 const destPath = path.join(__dirname, '..', relPath);
                 const fileUrl = `https://raw.githubusercontent.com/lukzst/LIGHT/main/${fileMetadata.path}`;
 
-                // --- LÓGICA DE SEGURANÇA: APAGAR ANTES DE BAIXAR ---
+   
                 if (fs.existsSync(destPath)) {
                     try {
-                        fs.unlinkSync(destPath); // Remove o arquivo "estragado" ou antigo
+                        fs.unlinkSync(destPath);
                     } catch (e) {
-                        // Se falhar (arquivo em uso), o PowerShell iwr -Force tentará sobrescrever
                     }
                 }
 
@@ -224,7 +222,6 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
 
                 if (!fs.existsSync(path.dirname(destPath))) fs.mkdirSync(path.dirname(destPath), { recursive: true });
                 
-                // O comando iwr (Invoke-WebRequest) agora baixa um arquivo limpo
                 const dlCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iwr -Uri '${fileUrl}' -OutFile '${destPath}' -ErrorAction Stop"`;
                 
                 await new Promise((res) => { 
@@ -240,7 +237,6 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
             screen.render();
             playsucesso();
             
-            // REINÍCIO AUTOMÁTICO PARA APLICAR MUDANÇAS (INCLUINDO MENU.JS)
             screen.onceKey(['enter'], () => {
                 const exePath = path.join(__dirname, '..', 'LIGHT.exe');
                 const child = spawn(exePath, [], {
@@ -1395,7 +1391,7 @@ function credits() {
         t('CREDITS_SLIDE10', { name: 'LUIZ OTÁVIO' }),
         t('CREDITS_SLIDE11', { theme: 'THE LAST CHOICE - LIGHT OST' }),
         t('CREDITS_SLIDE12', { studio: 'LUKZXDD' }),
-        t('CREDITS_SLIDE13', { testers: 'HAGRAJAG' }),
+        t('CREDITS_SLIDE13', { testers: 'HAGRAJAG (ROSE)' }),
         t('CREDITS_SLIDE14', { name: 'LUCAS EDUARDO' }),
         t('CREDITS_THANKS'),
         t('CREDITS_COPYRIGHT', { year: currentYear })
