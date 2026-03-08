@@ -410,7 +410,7 @@ body {
         font-weight: bold;
         letter-spacing: 2px;
         font-size: 0.8rem;
-        background-color: var(--background-color-3);
+        background-color: var(--background-color);
     }
 
     .navegationHeader:hover, 
