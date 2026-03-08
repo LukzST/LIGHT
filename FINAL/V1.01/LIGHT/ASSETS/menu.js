@@ -322,6 +322,7 @@ async function showUpdateStatus() {
             });
 
         } else {
+            // --- FLUXO DE INTEGRIDADE (MESMA VERSÃO) ---
             statusWin.setContent(t('VERIFYING_INTEGRITY'));
             screen.render();
 
@@ -337,6 +338,7 @@ async function showUpdateStatus() {
                 const tree = JSON.parse(stdout);
                 const targetPrefix = `FINAL/${CURRENT_VERSION}/LIGHT/`;
 
+                // APENAS MAPEIA, NÃO BAIXA AINDA
                 const corruptedFiles = tree.filter(item => {
                     const isTarget = item.type === 'blob' && item.path.startsWith(targetPrefix) &&
                         !item.path.includes('/CONFIG/') && !item.path.includes('/Achievements/');
@@ -354,12 +356,14 @@ async function showUpdateStatus() {
                     statusWin.style.border.fg = 'green';
                     statusWin.setContent(t('INTEGRITY_OK'));
                 } else {
+                    // SE TIVER ERRO, PARA TUDO E MOSTRA A MENSAGEM
                     statusWin.style.border.fg = 'red';
                     statusWin.setContent(t('INTEGRITY_FAIL'));
                     
+                    // SÓ AQUI ELE LIBERA O ENTER PARA REPARAR
                     canAcceptInput = true;
-                    screen.key(['enter'], async function onRepair() {
-                        screen.unkey('enter', onRepair);
+                    screen.onceKey(['enter'], async () => {
+                        canAcceptInput = false; // Bloqueia spam de enter
                         await downloadAndInstall(CURRENT_VERSION, statusWin, true);
                     });
                 }

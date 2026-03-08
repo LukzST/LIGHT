@@ -119,7 +119,7 @@ async function processarResposta(res) {
 
         case 1: 
             if (!["yes", "sim", "no", "nao", "não"].includes(rawRes)) {
-                return falhaTotal(t('SURVEY_INVALID_RESPONSE'));
+                return falhaTotal(t('SURVEY_ACCESS_DENIED'));
             }
             if (rawRes === "yes" || rawRes === "sim") perfil.sozinho = true;
             etapaAtual = 2;
@@ -129,7 +129,7 @@ async function processarResposta(res) {
 
         case 2: 
             if (!["yes", "sim", "no", "nao", "não"].includes(rawRes)) {
-                return falhaTotal(t('SURVEY_INVALID_RESPONSE'));
+                return falhaTotal(t('SURVEY_ACCESS_DENIED'));
             }
             if (rawRes === "no" || rawRes === "nao" || rawRes === "não") perfil.semPreocupacao = true;
             etapaAtual = 3;
