@@ -6,6 +6,10 @@
     --background-color-3: #1a1a2e;
     --text-color: #ffffff;
     --text-color-2: gray;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 2rem;
+    --transition-speed: 0.3s;
 }
 
 @font-face {
@@ -361,47 +365,81 @@ body {
 
 @media (max-width: 768px) {
     .header_web {
-        position: relative;
         height: auto;
-        padding: 20px 10px;
-        flex-direction: column;
+        padding: 1rem;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        position: fixed;
+    }
+
+    .logo {
+        width: 45px;
+        order: 1;
+    }
+
+    .socialMedia {
+        order: 2;
         gap: 15px;
     }
 
     .navegationHeader {
-        flex-direction: column;
-        gap: 15px;
+        order: 3;
         width: 100%;
-        justify-content: center;
-        align-items: center;
+        display: flex;
+        flex-direction: column;
+        background-color: var(--background-color);
+        max-height: 45px;
+        overflow: hidden;
+        transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-top: 10px;
+        border: 1px solid rgba(245, 241, 185, 0.2);
+        border-radius: 4px;
+    }
+
+    .navegationHeader::before {
+        content: "MENU ☰";
+        display: block;
+        padding: 12px;
+        text-align: center;
+        color: var(--primary-color);
+        font-weight: bold;
+        letter-spacing: 2px;
+        font-size: 0.8rem;
+        background-color: var(--background-color-3);
+    }
+
+    .navegationHeader:hover, 
+    .navegationHeader:active,
+    .navegationHeader:focus-within {
+        max-height: 500px;
+        border-color: var(--primary-color);
     }
 
     .text_header {
-        font-size: 1.1rem;
+        width: 100%;
+        padding: 15px;
         text-align: center;
+        font-size: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
     }
 
-    .socialMedia {
-        justify-content: center;
-        width: 100%;
-        padding-bottom: 10px;
+    .text_header:hover {
+        background-color: var(--background-color-2);
+        transform: none;
     }
 
     .home {
         height: auto;
-        padding: 40px 15px;
-        align-items: center;
+        min-height: 100vh;
+        padding: 120px 20px 60px;
         text-align: center;
+        background-attachment: scroll;
+        align-items: center;
     }
 
     .download {
         margin-left: 0;
-        padding: 20px 0;
-        width: 100%;
-    }
-
-    .logo-box {
-        font-size: 1.2rem;
+        padding: 0;
         width: 100%;
     }
 
@@ -412,89 +450,52 @@ body {
     .box-button {
         flex-direction: column;
         width: 100%;
-        gap: 15px;
-        align-items: center;
+        max-width: 280px;
+        margin: 20px auto;
     }
 
     .button_download_home a {
-        width: 80%;
+        width: 100%;
         font-size: 1.1rem;
-        text-align: center;
     }
 
     .about-text {
-        font-size: 1.1rem;
-        line-height: 1.6;
-        padding: 0 15px;
-        max-width: 100%;
+        font-size: 1rem;
+        line-height: 1.7;
+        padding: 0;
     }
 
-    .title-about, .title-screen, .title-download, .title-g, .title-others {
+    .title-about, .title-screen, .title-download, .title-g, .title-others, .title-team {
         font-size: 1.8rem;
         text-align: center;
     }
 
     .galeria-grid {
         grid-template-columns: 1fr;
-        width: 100%;
-        padding: 0 15px;
+        padding: 0;
     }
 
     .imagem img:hover {
-        transform: scale(1.05);
+        transform: scale(1.02);
     }
 
-    .box-logo, .box-gamejams, .box-others {
+    .box-logo, .box-gamejams, .box-others, .box-team {
         flex-direction: column;
-        gap: 30px;
-        width: 100%;
+        gap: 40px;
     }
 
     .itch-link img, .github-link img, .cyg-6 img, .PL img, .PL-web img {
-        width: 90%;
-        max-width: 280px;
-        height: auto;
-    }
-
-    .team {
-        padding: 40px 15px;
-        gap: 30px;
-    }
-
-    .title-team {
-        font-size: 1.8rem;
-        text-align: center;
-    }
-
-    .box-team {
-        flex-direction: column;
-        gap: 40px;
-        width: 100%;
-    }
-
-    .team-member {
-        width: 100%;
-        text-align: center;
+        width: 85%;
+        max-width: 260px;
     }
 
     .team-member img {
         width: 120px;
     }
 
-    .team-member img:hover {
-        transform: scale(1.05);
-    }
-
     .footer {
         padding: 40px 20px;
         flex-direction: column;
-        justify-content: center;
-        text-align: center;
-    }
-
-    .footer * {
-        font-size: 0.9rem;
-        width: 100%;
-        text-align: center;
+        gap: 10px;
     }
 }
