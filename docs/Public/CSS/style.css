@@ -377,6 +377,11 @@ body {
         order: 1;
     }
 
+    .logo-box h1 {
+        font-size: 2rem;
+        max-width: 170px;
+    }
+
     .socialMedia {
         order: 2;
         gap: 15px;
@@ -450,7 +455,7 @@ body {
     .box-button {
         flex-direction: column;
         width: 100%;
-        max-width: 280px;
+        max-width: 230px;
         margin: 20px auto;
     }
 
@@ -481,7 +486,7 @@ body {
 
     .box-logo, .box-gamejams, .box-others, .box-team {
         flex-direction: column;
-        gap: 40px;
+        gap: 20px;
     }
 
     .itch-link img, .github-link img, .cyg-6 img, .PL img, .PL-web img {
