@@ -38,7 +38,7 @@ const strings = {
         'DESC_CLOSE': 'TERMINATE APPLICATION SAFELY.',
         'DESC_DEFAULT': 'SELECT AN OPTION USING ARROW KEYS AND PRESS ENTER',
         
-        'BOOT_WARNING': '{center}{yellow-fg}{bold}\n\nSYSTEM INTERACTION WARNING{/bold}{/yellow-fg}\n\nThis software is designed to interact with and modify\nlocal files within the operational directory.\n\n{blink}PRESS [ENTER] TO ACKNOWLEDGE{/blink}',
+        'BOOT_WARNING': '{center}{yellow-fg}{bold}\nSYSTEM INTERACTION WARNING{/bold}{/yellow-fg}\n\nThis software is designed to interact with and modify\nlocal files within the operational directory.\n\n{blink}PRESS [ENTER] TO ACKNOWLEDGE{/blink}',
         'BOOT_CONTROLS': '{center}\n{bold}ARROWS{/bold} ........ NAVIGATE MENU  \n{bold}ENTER{/bold} ......... EXECUTE COMMAND \n{bold}ESC{/bold} ........... RETURN / CANCEL \n{bold}[M]{/bold} ............ TOGGLE AUDIO   \n{bold}[C]{/bold} ............ CYCLE COLORS   \n{bold}[G]{/bold} ............ TOGGLE GLITCH  \n{bold}[F1 / I]{/bold} ....... SYSTEM INFO   \n\n\n{cyan-fg}PRESS [ENTER] TO CONTINUE{/}\n{/center}',
         'BOOT_DEV_BRAND': '{center}\n\n{white-fg}A{/}\n\n{yellow-fg}{bold}PALE LUNA DEVELOPER{/bold}{/}\n\n{white-fg}GAME{/}\n\n\n{grey-fg}INITIALIZING...{/}{/center}',
         
@@ -544,7 +544,7 @@ const strings = {
         'DESC_CLOSE': 'ENCERRAR O APLICATIVO COM SEGURANÇA.',
         'DESC_DEFAULT': 'SELECIONE UMA OPÇÃO USANDO AS SETAS E PRESSIONE ENTER',
 
-        'BOOT_WARNING': '{center}{yellow-fg}{bold}\n\nAVISO DE INTERAÇÃO DO SISTEMA{/bold}{/yellow-fg}\n\nEste software foi projetado para interagir e modificar\narquivos locais dentro do diretório operacional.\n\n{blink}PRESSIONE [ENTER] PARA CONFIRMAR{/blink}',
+        'BOOT_WARNING': '{center}{yellow-fg}{bold}\nAVISO DE INTERAÇÃO DO SISTEMA{/bold}{/yellow-fg}\n\nEste software foi projetado para interagir e modificar\narquivos locais dentro do diretório operacional.\n\n{blink}PRESSIONE [ENTER] PARA CONFIRMAR{/blink}',
         'BOOT_CONTROLS': '{center}\n{bold}SETAS{/bold} ........ NAVEGAR NO MENU  \n{bold}ENTER{/bold} ......... EXECUTAR COMANDO \n{bold}ESC{/bold} ........... VOLTAR / CANCELAR \n{bold}[M]{/bold} ............ ALTERNAR ÁUDIO   \n{bold}[C]{/bold} ............ ALTERNAR CORES   \n{bold}[G]{/bold} ............ ALTERNAR GLITCH  \n{bold}[F1 / I]{/bold} ....... INFO DO SISTEMA   \n\n\n{cyan-fg}PRESSIONE [ENTER] PARA CONTINUAR{/}\n{/center}',
         'BOOT_DEV_BRAND': '{center}\n\n{white-fg}UM JOGO FEITO POR{/}\n\n{yellow-fg}{bold}PALE LUNA DEVELOPER{/bold}{/}\n\n\n{grey-fg}INICIALIZANDO...{/}{/center}',
         
