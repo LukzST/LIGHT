@@ -1,0 +1,414 @@
+:root {
+    --primary-color: #f5f1b9;
+    --secondary-color: #2f00ff;
+    --background-color: #030305;
+    --background-color-2: #0e0e18;
+    --background-color-3: #1a1a2e;
+    --text-color: #ffffff;
+    --text-color-2: gray;
+}
+
+@font-face {
+    font-family: 'lightFont-textNormal';
+    src: url(../FONTs/lightFontNormal.ttf);
+}
+@font-face {
+    font-family: 'boldfont';
+    src: url(../FONTs/BebasNeue-Bold.ttf);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'lightFont-textNormal', sans-serif;
+}
+
+body {
+    background-color: var(--background-color-2);
+    color: var(--text-color);
+}
+
+.header_web {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    position: fixed;
+    height: 80px;
+    padding: 0 20px;
+    background-color: var(--background-color);
+}
+
+.logo {
+    width: 50px;
+    height: auto;
+    height: auto;
+    display: block;
+}
+
+.navegationHeader {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 30px;
+    flex-grow: 1;
+    justify-content: flex-start;
+}
+
+.text_header {
+    font-size: 1.4rem;
+    color: var(--text-color-2);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.text_header:hover {
+    color: var(--primary-color);
+    transform: scale(1.2);
+}
+
+.text_header:active {
+    color: var(--secondary-color);
+}
+
+.socialMedia {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    justify-content: flex-end;
+}
+
+.home {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    justify-content: center;
+    height: 65vh;
+    padding: 50px 20px;
+    background-image: url('../IMG/1per2.png');
+    background-size: cover;
+    background-position: center;
+}
+
+.download {
+    display: flex;
+    flex-direction: column;
+    margin-left: 50px;
+    align-items: center;
+    padding: 50px 20px;
+}
+
+.logo-box {
+    display: flex;
+    font-size: 1.7rem;
+    flex-direction: column;
+    align-items: center;
+    color: var(--primary-color);
+    gap: 20px;
+}
+
+.logo_home img {
+    width: 250px;
+    height: auto;
+}
+
+.button_download_home a {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: var(--primary-color);
+    color: var(--background-color);
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1.4rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.3s ease, color 0.3s ease;
+}
+
+.button_download_home a:hover {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    transform: scale(1.1); 
+}
+
+.button_download_home a:active {
+    background-color: var(--secondary-color);
+    transform: scale(0.9);
+}
+
+.box-button {
+    margin-top: 10px;
+    display: flex;
+    gap: 20px;
+}
+
+.about {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    background-color: var(--background-color-2);
+    padding: 50px 20px;
+}
+
+.title-about {
+    font-family: 'boldfont';
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.about-text {
+    max-width: 1000px;
+    text-align: center;
+    font-size: 1.7rem;
+    color: var(--text-color-2);
+}
+
+.title-screen {
+    font-family: 'boldfont';
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.screenshots {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+    padding: 50px 20px;
+    background-color: var(--background-color);
+}
+
+.galeria-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.imagem img {
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+    border: 2px solid var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.imagem img:hover {
+    border-color: var(--secondary-color);
+    
+    transform: scale(1.3);
+
+}
+
+.download-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 50px;
+    padding: 50px 20px;
+    background-color: var(--background-color-2);
+}
+
+.title-download {
+    font-family: 'boldfont';
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.box-logo {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    align-items: center;
+}
+
+.itch-link img {
+    width: 300px;
+    height: auto;
+    transition: all 0.3s ease;
+}
+.github-link img {
+    width: 300px;
+    height: auto;
+    transition: all 0.3s ease;
+}
+
+.gamejams {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 50px;
+    padding: 50px 20px;
+    background-color: var(--background-color);
+}
+
+.title-g {
+        font-family: 'boldfont';
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: var(--primary-color);
+}
+
+.box-gamejams {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    align-items: center;
+}
+
+.cyg-6 img {
+    width: 500px;
+    height: auto;
+    transition: all 0.3s ease;
+}
+
+.others {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 50px;
+    padding: 50px 20px;
+    background-color: var(--background-color-2);
+}
+
+.title-others {
+    font-family: 'boldfont';
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.box-others {
+    display: flex;
+    gap: 50px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.PL img {
+    width: 400px;
+    height: auto;
+    transition: all 0.3s ease;
+}
+
+.PL-web img {
+    width: 400px;
+    height: auto;
+    transition: all 0.3s ease;
+}
+
+.footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background-color: var(--background-color-3);
+}
+
+/* --- ESTILOS MOBILE --- */
+@media (max-width: 768px) {
+    
+    /* Ajustes Gerais de Fonte e Padding */
+    .title-about, .title-screen, .title-download, .title-g, .title-others {
+        font-size: 1.8rem;
+        text-align: center;
+    }
+
+    .about-text {
+        font-size: 1.1rem;
+        padding: 0 10px;
+    }
+
+    /* Header: Empilha ou esconde elementos se necessário */
+    .header_web {
+        height: auto;
+        padding: 15px;
+        flex-direction: column;
+        gap: 15px;
+        position: relative; /* Evita que cubra conteúdo no mobile se for muito grande */
+    }
+
+    .navegationHeader {
+        gap: 15px;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .text_header {
+        font-size: 1rem;
+    }
+
+    .socialMedia {
+        justify-content: center;
+        width: 100%;
+    }
+
+    /* Home: Remove margens fixas e ajusta o fundo */
+    .home {
+        height: auto;
+        padding: 80px 20px;
+        align-items: center;
+        background-attachment: scroll; /* Melhora performance mobile */
+    }
+
+    .download {
+        margin-left: 0; /* Remove o margin-left de 50px do desktop */
+        padding: 20px 0;
+    }
+
+    .logo_home img {
+        width: 180px;
+    }
+
+    .logo-box {
+        font-size: 1.2rem;
+    }
+
+    .box-button {
+        flex-direction: column; /* Botões um em cima do outro */
+        width: 100%;
+        align-items: center;
+    }
+
+    /* Galeria: Ajusta o grid para 1 coluna */
+    .galeria-grid {
+        grid-template-columns: 1fr;
+        width: 100%;
+    }
+
+    /* Removendo o Hover Scale excessivo no mobile (pode quebrar o layout) */
+    .imagem img:hover {
+        transform: scale(1.05);
+    }
+
+    /* Seções de Logos e Links: Empilhamento vertical */
+    .box-logo, .box-gamejams, .box-others {
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    /* Ajuste de largura das imagens para não estourarem a tela */
+    .itch-link img, 
+    .github-link img, 
+    .cyg-6 img, 
+    .PL img, 
+    .PL-web img {
+        width: 100%;
+        max-width: 320px; /* Limite para não ficar gigante em telas médias */
+        height: auto;
+    }
+
+    .button_download_home a {
+        font-size: 1.1rem;
+        width: 100%;
+        text-align: center;
+    }
+}
