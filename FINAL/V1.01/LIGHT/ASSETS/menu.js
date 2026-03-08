@@ -327,7 +327,8 @@ async function showUpdateStatus() {
             screen.render();
 
             const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
-            const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' -Headers @{'User-Agent'='LIGHT-Updater'}).tree | ConvertTo-Json -Compress"`;
+            const authHeader = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'}` : "";
+            const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' ${authHeader}).tree | Where-Object {$_.path -like 'FINAL/${CURRENT_VERSION}/LIGHT/*'} | ConvertTo-Json -Compress"`;
 
             exec(getTreeCmd, { maxBuffer: 1024 * 1024 * 10 }, async (error, stdout) => {
                 if (error) {
@@ -338,32 +339,26 @@ async function showUpdateStatus() {
                 const tree = JSON.parse(stdout);
                 const targetPrefix = `FINAL/${CURRENT_VERSION}/LIGHT/`;
 
-                // APENAS MAPEIA, NÃO BAIXA AINDA
+                // Apenas conta arquivos corrompidos, sem baixar nada ainda
                 const corruptedFiles = tree.filter(item => {
-                    const isTarget = item.type === 'blob' && item.path.startsWith(targetPrefix) &&
-                        !item.path.includes('/CONFIG/') && !item.path.includes('/Achievements/');
-                    if (!isTarget) return false;
-                    
+                    if (item.type !== 'blob' || item.path.includes('/CONFIG/') || item.path.includes('/Achievements/')) return false;
                     const relPath = item.path.replace(targetPrefix, '');
                     const destPath = path.join(__dirname, '..', relPath);
-                    
                     if (!fs.existsSync(destPath)) return true;
-                    const stats = fs.statSync(destPath);
-                    return stats.size !== item.size;
+                    return fs.statSync(destPath).size !== item.size;
                 });
 
                 if (corruptedFiles.length === 0) {
                     statusWin.style.border.fg = 'green';
                     statusWin.setContent(t('INTEGRITY_OK'));
                 } else {
-                    // SE TIVER ERRO, PARA TUDO E MOSTRA A MENSAGEM
+                    // PARA AQUI E ESPERA O INPUT
                     statusWin.style.border.fg = 'red';
                     statusWin.setContent(t('INTEGRITY_FAIL'));
                     
-                    // SÓ AQUI ELE LIBERA O ENTER PARA REPARAR
                     canAcceptInput = true;
+                    // Só executa o downloadAndInstall se o jogador apertar ENTER
                     screen.onceKey(['enter'], async () => {
-                        canAcceptInput = false; // Bloqueia spam de enter
                         await downloadAndInstall(CURRENT_VERSION, statusWin, true);
                     });
                 }
@@ -374,6 +369,8 @@ async function showUpdateStatus() {
 
     screen.key(['escape'], function escUpdate() {
         if (blockMenuInput && statusWin.getContent().includes('█')) return;
+        screen.unkey('enter', onEnter);
+        screen.unkey('enter', onRepair);
         playback();
         bgOverlay.destroy();
         isUpdateInterfaceActive = false;
