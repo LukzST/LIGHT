@@ -159,15 +159,16 @@ function checkUpdates(callback) {
 }
 
 async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
+    const authHeader = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'; 'User-Agent'='LIGHT-Updater'}` : "-Headers @{'User-Agent'='LIGHT-Updater'}";
     const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
-    const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' -Headers @{'User-Agent'='LIGHT-Updater'}).tree | ConvertTo-Json -Compress"`;
+    const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' ${authHeader}).tree | ConvertTo-Json -Compress"`;
 
     statusWin.setContent(forceIntegrity ? t('VERIFYING_INTEGRITY') : t('UPDATE_MAPPING'));
     screen.render();
 
     exec(getTreeCmd, { maxBuffer: 1024 * 1024 * 10 }, async (error, stdout) => {
         if (error) {
-            statusWin.setContent(t('UPDATE_ERROR'));
+            statusWin.setContent(t('UPDATE_ERROR') + "\n(Rate Limit or Connection)");
             return screen.render();
         }
 
@@ -198,19 +199,10 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
                     continue;
                 }
 
-                const checkHashCmd = `certutil -hashfile "${destPath}" SHA1`;
-
-                await new Promise((res) => {
-                    exec(checkHashCmd, (err, hashOut) => {
-                        if (!err) {
-                            const stats = fs.statSync(destPath);
-                            if (stats.size !== item.size) {
-                                filesToUpdate.push(item);
-                            }
-                        }
-                        res();
-                    });
-                });
+                const stats = fs.statSync(destPath);
+                if (stats.size !== item.size) {
+                    filesToUpdate.push(item);
+                }
             }
 
             if (filesToUpdate.length === 0) {
@@ -223,9 +215,7 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
             }
 
             blockMenuInput = true;
-            const totalFiles = filesToUpdate.length;
-
-            for (let i = 0; i < totalFiles; i++) {
+            for (let i = 0; i < filesToUpdate.length; i++) {
                 const fileMetadata = filesToUpdate[i];
                 const relPath = fileMetadata.path.replace(targetPrefix, '');
                 const destPath = path.join(__dirname, '..', relPath);
@@ -235,19 +225,19 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
                     try { fs.unlinkSync(destPath); } catch (e) {}
                 }
 
-                const percentage = Math.round(((i) / totalFiles) * 100);
+                const percentage = Math.round(((i) / filesToUpdate.length) * 100);
                 const bar = "█".repeat(Math.floor(percentage / 3.3)) + "░".repeat(30 - Math.floor(percentage / 3.3));
 
                 statusWin.setContent(t('UPDATE_INSTALLING', { version: version.replace('V', ''), bar, percentage }));
-                descriptionBox.setContent(t('UPDATE_SECTOR', { current: i + 1, total: totalFiles, file: relPath }));
+                descriptionBox.setContent(t('UPDATE_SECTOR', { current: i + 1, total: filesToUpdate.length, file: relPath }));
                 screen.render();
 
                 if (!fs.existsSync(path.dirname(destPath))) fs.mkdirSync(path.dirname(destPath), { recursive: true });
+                
                 const dlCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iwr -Uri '${fileUrl}' -OutFile '${destPath}'"`;
                 await new Promise((res) => { exec(dlCmd, () => res()); });
             }
 
-            descriptionBox.setContent(t('UPDATE_COMPLETE_MSG'));
             statusWin.style.border.fg = 'green';
             statusWin.setContent(t('UPDATE_COMPLETE', { version: version.replace('V', '') }));
             screen.render();
@@ -304,9 +294,9 @@ async function showUpdateStatus() {
             screen.render();
         } else if (hasUpdate) {
             global.latestVersionFound = version;
-            
+            const authHeader = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'; 'User-Agent'='LIGHT-Updater'}` : "-Headers @{'User-Agent'='LIGHT-Updater'}";
             const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
-            const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' -Headers @{'User-Agent'='LIGHT-Updater'}).tree | ConvertTo-Json -Compress"`;
+            const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' ${authHeader}).tree | ConvertTo-Json -Compress"`;
 
             exec(getTreeCmd, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout) => {
                 let estimatedTime = "CALCULATING...";
