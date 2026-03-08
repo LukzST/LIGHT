@@ -251,7 +251,7 @@ const strings = {
         'CHECKPOINT_FOOTER': '{center}[ESC] TO RETURN{/center}',
         
         'CREDITS_SLIDE1': '{center}{bold}{logo}{/bold}\n\nA TERMINAL HORROR GAME{/center}',
-        'CREDITS_SLIDE2': '{center}{yellow-fg}AN ORIGINAL STORY BY{/yellow-fg}\n\n{bold}Lucas Eduardo{/bold}{/center}',
+        'CREDITS_SLIDE2': '{center}{yellow-fg}AN ORIGINAL STORY BY{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}',
         'CREDITS_SLIDE3': '{center}{yellow-fg}DIRECTOR{/yellow-fg}\n\n{bold}{name}{/bold}{/center}',
         'CREDITS_SLIDE4': '{center}{yellow-fg}LEAD PROGRAMMER{/yellow-fg}\n\n{bold}{name}{/bold}{/center}',
         'CREDITS_SLIDE5': '{center}{yellow-fg}SYSTEM ARCHITECT{/yellow-fg}\n\n{bold}{name}{/bold}{/center}',

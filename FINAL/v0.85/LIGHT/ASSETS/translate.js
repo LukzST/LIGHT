@@ -757,7 +757,7 @@ const strings = {
         'CHECKPOINT_FOOTER': '{center}[ESC] PARA VOLTAR{/center}',
         
         'CREDITS_SLIDE1': '{center}{bold}{logo}{/bold}\n\nUM JOGO DE TERROR EM TERMINAL{/center}',
-        'CREDITS_SLIDE2': '{center}{yellow-fg}UMA HISTÓRIA ORIGINAL DE{/yellow-fg}\n\n{bold}LUKZXDD{/bold}{/center}',
+        'CREDITS_SLIDE2': '{center}{yellow-fg}UMA HISTÓRIA ORIGINAL DE{/yellow-fg}\n\n{bold}Lucas Eduardo{/bold}{/center}',
         'CREDITS_SLIDE3': '{center}{yellow-fg}DIRETOR{/yellow-fg}\n\n{bold}{name}{/bold}{/center}',
         'CREDITS_SLIDE4': '{center}{yellow-fg}PROGRAMADOR PRINCIPAL{/yellow-fg}\n\n{bold}{name}{/bold}{/center}',
         'CREDITS_SLIDE5': '{center}{yellow-fg}ARQUITETO DO SISTEMA{/yellow-fg}\n\n{bold}{name}{/bold}{/center}',
@@ -771,7 +771,7 @@ const strings = {
         'CREDITS_SLIDE13': '{center}{yellow-fg}AGRADECIMENTOS ESPECIAIS{/yellow-fg}\n\n{bold}{testers}{/bold}{/center}',
         'CREDITS_SLIDE14': '{center}{yellow-fg}LÍDER DE PROJETO{/yellow-fg}\n\n{bold}{name}{/bold}{/center}',
         'CREDITS_THANKS': '{center}{yellow-fg}OBRIGADO POR JOGAR{/yellow-fg}',
-        'CREDITS_COPYRIGHT': '{center}LUKZXDD\n\n{year} © TODOS OS DIREITOS RESERVADOS{/center}',
+        'CREDITS_COPYRIGHT': '{center}PALE LUNA DEVELOPER\n\n{year} © TODOS OS DIREITOS RESERVADOS{/center}',
         'CREDITS_INSTAGRAM': '{center}INSTAGRAM{/center}',
         'CREDITS_CLOSE': '{center}FECHAR{/center}',
         'CREDITS_EXIT_TO_MENU': '{center}VOLTAR AO MENU{/center}',
