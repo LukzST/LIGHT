@@ -205,6 +205,14 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
                 const destPath = path.join(__dirname, '..', relPath);
                 const fileUrl = `https://raw.githubusercontent.com/lukzst/LIGHT/main/${fileMetadata.path}`;
 
+   
+                if (fs.existsSync(destPath)) {
+                    try {
+                        fs.unlinkSync(destPath);
+                    } catch (e) {
+                    }
+                }
+
                 const percentage = Math.round(((i) / totalFiles) * 100);
                 const bar = "█".repeat(Math.floor(percentage / 3.3)) + "░".repeat(30 - Math.floor(percentage / 3.3));
 
@@ -213,8 +221,14 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
                 screen.render();
 
                 if (!fs.existsSync(path.dirname(destPath))) fs.mkdirSync(path.dirname(destPath), { recursive: true });
-                const dlCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iwr -Uri '${fileUrl}' -OutFile '${destPath}'"`;
-                await new Promise((res) => { exec(dlCmd, () => { res(); }); });
+                
+                const dlCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iwr -Uri '${fileUrl}' -OutFile '${destPath}' -ErrorAction Stop"`;
+                
+                await new Promise((res) => { 
+                    exec(dlCmd, (err) => {
+                        res(); 
+                    }); 
+                });
             }
 
             descriptionBox.setContent(t('UPDATE_COMPLETE_MSG'));
@@ -225,13 +239,11 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
             
             screen.onceKey(['enter'], () => {
                 const exePath = path.join(__dirname, '..', 'LIGHT.exe');
-                
                 const child = spawn(exePath, [], {
                     stdio: 'ignore',
                     detached: true,
                     windowsHide: false
                 });
-                
                 child.unref();
                 process.exit(0);
             });
@@ -1379,7 +1391,7 @@ function credits() {
         t('CREDITS_SLIDE10', { name: 'LUIZ OTÁVIO' }),
         t('CREDITS_SLIDE11', { theme: 'THE LAST CHOICE - LIGHT OST' }),
         t('CREDITS_SLIDE12', { studio: 'LUKZXDD' }),
-        t('CREDITS_SLIDE13', { testers: 'HAGRAJAG' }),
+        t('CREDITS_SLIDE13', { testers: 'HAGRAJAG (ROSE)' }),
         t('CREDITS_SLIDE14', { name: 'LUCAS EDUARDO' }),
         t('CREDITS_THANKS'),
         t('CREDITS_COPYRIGHT', { year: currentYear })

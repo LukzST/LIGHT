@@ -174,26 +174,45 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
         try {
             const tree = JSON.parse(stdout);
             const targetPrefix = `FINAL/${version}/LIGHT/`;
+            const filesToUpdate = [];
 
-            const filesToUpdate = tree.filter(item => {
-                const isTarget = item.type === 'blob' && item.path.startsWith(targetPrefix) &&
-                    !item.path.includes('/CONFIG/') && !item.path.includes('/Achievements/');
-                if (!isTarget) return false;
-                
+            const remoteFiles = tree.filter(item => 
+                item.type === 'blob' && item.path.startsWith(targetPrefix) &&
+                !item.path.includes('/CONFIG/') && !item.path.includes('/Achievements/')
+            );
+
+            statusWin.setContent(t('VERIFYING_INTEGRITY'));
+            screen.render();
+
+            for (const item of remoteFiles) {
                 const relPath = item.path.replace(targetPrefix, '');
                 const destPath = path.join(__dirname, '..', relPath);
-                
-                if (!fs.existsSync(destPath)) return true; 
-                const stats = fs.statSync(destPath);
-                return stats.size !== item.size; 
-            });
+
+                if (!fs.existsSync(destPath)) {
+                    filesToUpdate.push(item);
+                    continue;
+                }
+
+
+                const checkHashCmd = `powershell -NoProfile -Command "$size = (Get-Item '${destPath}').Length; $header = 'blob ' + $size + [char]0; $content = [System.IO.File]::ReadAllBytes('${destPath}'); $combined = [System.Text.Encoding]::Default.GetBytes($header) + $content; $sha1 = New-Object System.Security.Cryptography.SHA1CryptoServiceProvider; [System.BitConverter]::ToString($sha1.ComputeHash($combined)).Replace('-', '').ToLower()"`;
+
+                await new Promise((res) => {
+                    exec(checkHashCmd, (err, hashOut) => {
+                        const localHash = hashOut ? hashOut.trim() : "";
+                        if (localHash !== item.sha) {
+                            filesToUpdate.push(item);
+                        }
+                        res();
+                    });
+                });
+            }
 
             if (filesToUpdate.length === 0) {
                 statusWin.style.border.fg = 'green';
                 statusWin.setContent(forceIntegrity ? t('INTEGRITY_OK') : t('UPDATE_COMPLETE', { version: version.replace('V', '') }));
                 screen.render();
                 blockMenuInput = false;
-                return; 
+                return;
             }
 
             blockMenuInput = true;
@@ -204,13 +223,8 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
                 const relPath = fileMetadata.path.replace(targetPrefix, '');
                 const destPath = path.join(__dirname, '..', relPath);
                 const fileUrl = `https://raw.githubusercontent.com/lukzst/LIGHT/main/${fileMetadata.path}`;
-
-   
                 if (fs.existsSync(destPath)) {
-                    try {
-                        fs.unlinkSync(destPath);
-                    } catch (e) {
-                    }
+                    try { fs.unlinkSync(destPath); } catch (e) {}
                 }
 
                 const percentage = Math.round(((i) / totalFiles) * 100);
@@ -223,15 +237,9 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
                 if (!fs.existsSync(path.dirname(destPath))) fs.mkdirSync(path.dirname(destPath), { recursive: true });
                 
                 const dlCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iwr -Uri '${fileUrl}' -OutFile '${destPath}' -ErrorAction Stop"`;
-                
-                await new Promise((res) => { 
-                    exec(dlCmd, (err) => {
-                        res(); 
-                    }); 
-                });
+                await new Promise((res) => { exec(dlCmd, () => res()); });
             }
 
-            descriptionBox.setContent(t('UPDATE_COMPLETE_MSG'));
             statusWin.style.border.fg = 'green';
             statusWin.setContent(t('UPDATE_COMPLETE', { version: version.replace('V', '') }));
             screen.render();
@@ -239,11 +247,7 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
             
             screen.onceKey(['enter'], () => {
                 const exePath = path.join(__dirname, '..', 'LIGHT.exe');
-                const child = spawn(exePath, [], {
-                    stdio: 'ignore',
-                    detached: true,
-                    windowsHide: false
-                });
+                const child = spawn(exePath, [], { stdio: 'ignore', detached: true, windowsHide: false });
                 child.unref();
                 process.exit(0);
             });
