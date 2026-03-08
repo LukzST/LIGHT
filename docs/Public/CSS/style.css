@@ -416,7 +416,7 @@ body {
     .navegationHeader:hover, 
     .navegationHeader:active,
     .navegationHeader:focus-within {
-        max-height: 500px;
+        max-height: 700px;
         border-color: var(--primary-color);
     }
 
