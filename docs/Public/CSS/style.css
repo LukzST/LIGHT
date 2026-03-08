@@ -305,6 +305,50 @@ body {
     transition: all 0.3s ease;
 }
 
+.team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 50px;
+    padding: 50px 20px;
+    background-color: var(--background-color);
+}
+
+.title-team {
+    font-family: 'boldfont';
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.box-team {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    align-items: center;
+}
+
+.team-member {
+    display: flex;
+    color: var(--text-color-2);
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.team-member img {
+    width: 150px;
+    height: auto;
+    border-radius: 50%;
+    border: 2px solid var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.team-member img:hover {
+    border-color: var(--secondary-color);
+    transform: scale(1.1);
+}
+
 .footer {
     display: flex;
     justify-content: center;
