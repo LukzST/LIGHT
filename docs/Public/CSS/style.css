@@ -373,7 +373,7 @@ body {
     }
 
     .logo {
-        width: 45px;
+        width: 55px;
         order: 1;
     }
 
@@ -416,7 +416,7 @@ body {
     .navegationHeader:hover, 
     .navegationHeader:active,
     .navegationHeader:focus-within {
-        max-height: 700px;
+        max-height: 900px;
         border-color: var(--primary-color);
     }
 
@@ -424,7 +424,7 @@ body {
         width: 100%;
         padding: 15px;
         text-align: center;
-        font-size: 1rem;
+        font-size: 1.3rem;
         border-top: 1px solid rgba(255, 255, 255, 0.05);
     }
 
@@ -477,7 +477,7 @@ body {
     }
 
     .galeria-grid {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
         padding: 0;
     }
 
@@ -500,8 +500,10 @@ body {
     }
 
     .footer {
-        padding: 40px 20px;
+        padding: 20px 20px;
         flex-direction: column;
+        text-align: center;
+        font-size: 0.7rem;
         gap: 10px;
     }
 }
