@@ -473,10 +473,11 @@ body {
     .title-about, .title-screen, .title-download, .title-g, .title-others, .title-team {
         font-size: 1.8rem;
         text-align: center;
+        max-width: 300px;
     }
 
     .galeria-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         padding: 0;
     }
 
@@ -490,7 +491,7 @@ body {
     }
 
     .itch-link img, .github-link img, .cyg-6 img, .PL img, .PL-web img {
-        width: 85%;
+        width: 100%;
         max-width: 260px;
     }
 
