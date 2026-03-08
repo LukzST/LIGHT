@@ -757,7 +757,7 @@ const strings = {
         'CHECKPOINT_FOOTER': '{center}[ESC] PARA VOLTAR{/center}',
         
         'CREDITS_SLIDE1': '{center}{bold}{logo}{/bold}\n\nUM JOGO DE TERROR EM TERMINAL{/center}',
-        'CREDITS_SLIDE2': '{center}{yellow-fg}UMA HISTÓRIA ORIGINAL DE{/yellow-fg}\n\n{bold}Lucas Eduardo{/bold}{/center}',
+        'CREDITS_SLIDE2': '{center}{yellow-fg}UMA HISTÓRIA ORIGINAL DE{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}',
         'CREDITS_SLIDE3': '{center}{yellow-fg}DIRETOR{/yellow-fg}\n\n{bold}{name}{/bold}{/center}',
         'CREDITS_SLIDE4': '{center}{yellow-fg}PROGRAMADOR PRINCIPAL{/yellow-fg}\n\n{bold}{name}{/bold}{/center}',
         'CREDITS_SLIDE5': '{center}{yellow-fg}ARQUITETO DO SISTEMA{/yellow-fg}\n\n{bold}{name}{/bold}{/center}',
