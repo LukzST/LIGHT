@@ -768,7 +768,7 @@ const strings = {
         'CREDITS_SLIDE10': '{center}{yellow-fg}GARANTIA DE QUALIDADE{/yellow-fg}\n\n{bold}{name}{/bold}{/center}',
         'CREDITS_SLIDE11': '{center}{yellow-fg}TEMA DE ENCERRAMENTO{/yellow-fg}\n\n{bold}{theme}{/bold}{/center}',
         'CREDITS_SLIDE12': '{center}{yellow-fg}PUBLICADOR{/yellow-fg}\n\n{bold}{studio}{/bold}{/center}',
-        'CREDITS_SLIDE13': '{center}{yellow-fg}SPECIAL THANKS{/yellow-fg}\n\n{bold}{testers}{/bold}{/center}',
+        'CREDITS_SLIDE13': '{center}{yellow-fg}AGRADECIMENTOS ESPECIAIS{/yellow-fg}\n\n{bold}{testers}{/bold}{/center}',
         'CREDITS_SLIDE14': '{center}{yellow-fg}LÍDER DE PROJETO{/yellow-fg}\n\n{bold}{name}{/bold}{/center}',
         'CREDITS_THANKS': '{center}{yellow-fg}OBRIGADO POR JOGAR{/yellow-fg}',
         'CREDITS_COPYRIGHT': '{center}LUKZXDD\n\n{year} © TODOS OS DIREITOS RESERVADOS{/center}',
