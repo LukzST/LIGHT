@@ -5,7 +5,7 @@ const path = require('path');
 
 const strings = {
     'EN': {
-        'MENU_START': '{center}START NEW SURVEY{/center}',
+        'MENU_START': '{center}START GAME{/center}',
         'MENU_CONTINUE': '{center}CONTINUE MISSION{/center}',
         'MENU_EXIT': '{center}EXIT{/center}',
         'MENU_MINIGAME': '{center}MINIGAME{/center}',
@@ -412,7 +412,7 @@ const strings = {
 'MAIN_FADE_SYNCED': "{center}{bold}1999 MEMORY SYNCED.{/bold}\n\nYOU ARE NOW PART OF THE FADE.\nSYSTEM IN CONFLICT.\n\n{blink}Press [ENTER] to clear cache and retry the Survey...{/blink}{/center}",
 'MAIN_AUTH_FAILED': 'AUTHENTICATION FAILED.',
 'MAIN_CONNECTION_LOST': 'CONNECTION LOST: Survey terminal was closed abruptly.',
-'MAIN_MENU_START': ' START NEW SURVEY ',
+'MAIN_MENU_START': ' START GAME ',
 'MAIN_MENU_CONTINUE': ' CONTINUE MISSION ',
 'MAIN_MENU_EXIT': ' EXIT ',
 'MAIN_CONGRATS_TITLE': ' {bold}CONGRATULATIONS{/bold} ',
@@ -428,7 +428,7 @@ const strings = {
         'SURVEY_OP1': 'OP_06: Are you listening? The clock stopped at 00:00.',
         'SURVEY_OP2': "OP_06: 'The Fade' was not a technical glitch. It was a cleanup.",
         'SURVEY_OP3': 'OP_06: In 1999, the world forgot how to breathe for 10 seconds.',
-        'SURVEY_OP4': 'Welcome to the void, operator_07.',
+        'SURVEY_OP4': 'Welcome to the void, {red-fg}operator_07{/red-fg}.',
         'SURVEY_OVERLOAD': '{red-fg}[SYSTEM OVERLOAD. REBOOTING...]{/red-fg}',
         'SURVEY_ACCEPT': 'PRESS [ENTER] TO ACCEPT YOUR DESTINY',
         'SURVEY_Q1': 'ARE YOU ALONE?',
@@ -499,6 +499,15 @@ const strings = {
         'LEAKS_TITLE': ' CLASSIFIED: PROJECT FADE (1999) ',
         'LEAKS_CONTENT': '{red-fg}LUX-4 ENERGY CORP - INTERNAL AUDIT - OCTOBER 1999{/red-fg}\n--------------------------------------------------\n{bold}SUBJECT:{/bold} Artificial Energy Scarcity via "The Fade" Protocol.\n\n{bold}EXECUTIVE SUMMARY:{/bold}\nThe "Fade" was not an accident. It was a calculated release of high-frequency\nnecro-static into the city grid.\n\n{bold}THE STRATEGY:{/bold}\n1. Create global panic where electricity feels "haunted".\n2. Market LUX-4 "Anti-Fade Shielding" as the only solution.\n3. Subscription-based life. Pay for light. Forever.\n\n{bold}CASUALTIES:{/bold}\nApprox. 450,000 citizens "digitally evaporated" during the first pulse.\nTheir neural patterns are used as {yellow-fg}Processing Power{/yellow-fg}.\n\n{bold}CONCLUSION:{/bold}\nTotal success. Profit margins increased by 4,000%.\nThe souls in the grid are stable batteries.\n\n[END OF FILE]\n--------------------------------------------------\n{center}PRESS [S] TO EXPORT | [ESC] TO EXIT{/center}',
         'LEAKS_EXPORTED': '\n\n{yellow-fg}DATA EXPORTED TO DESKTOP.{/yellow-fg}',
+
+        'VERIFYING_INTEGRITY': '{center}\n{yellow-fg}VERIFYING SYSTEM INTEGRITY...{/}\nComparing local sectors with repository.{/center}',
+        'INTEGRITY_OK': '{center}\n{green-fg}INTEGRITY VERIFIED{/green-fg}\n\nAll local sectors match the master record.\n\n{grey-fg}PRESS [ESC] TO CLOSE{/grey-fg}{/center}',
+        'INTEGRITY_FAIL': '{center}\n{red-fg}INTEGRITY COMPROMISED{/red-fg}\n\nOne or more local sectors do not match the master record.\n\n{yellow-fg}PRESS [ENTER] TO APPLY RESOLUTION | PRESS [ESC] TO EXIT{/yellow-fg}{/center}',
+        'SUPPORT_WARNING': '\n{center}{bold}WARNING{/bold}{/center}',
+        'SUPPORT_AUDIO_SAVED': '{center}Audio settings saved.{/center}',
+        'SUPPORT_AUDIO_INIT': '{center}System audio initialized.{/center}',
+        'SUPPORT_ESC_RETURN': '\n\n{center}[ESC] TO RETURN{/center}',
+        'LANGUAGE_CHANGED': '{center}{bold}LANGUAGE CHANGED{/bold}\n\nThe system needs to reboot to apply the new linguistic protocols.{/center}',
     },
 
     'PT': {
@@ -925,14 +934,14 @@ const strings = {
         'SURVEY_OP1': 'OP_06: Está ouvindo? O relógio parou em 00:00.',
         'SURVEY_OP2': "OP_06: 'O Fade' não foi uma falha. Foi uma limpeza.",
         'SURVEY_OP3': 'OP_06: Em 1999, o mundo esqueceu como respirar por 10 segundos.',
-        'SURVEY_OP4': 'Bem-vindo ao vazio, operador_07.',
+        'SURVEY_OP4': 'Bem-vindo ao vazio, {red-fg}operator_07{/red-fg}.',
         'SURVEY_OVERLOAD': '{red-fg}[SOBRECARGA. REINICIANDO...]{/red-fg}',
         'SURVEY_ACCEPT': 'PRESSIONE [ENTER] PARA ACEITAR SEU DESTINO',
         'SURVEY_Q1': 'VOCÊ ESTÁ SOZINHO?',
         'SURVEY_Q2': 'ALGUÉM SENTIRIA SUA FALTA SE VOCÊ... DESAPARECESSE?',
         'SURVEY_Q3': 'VOCÊ SABE QUEM É?',
         'SURVEY_PROVE': 'PROVE. DIGITE SEU NOME DE REGISTRO:',
-        'SURVEY_VESSEL': 'Sua ausência de laços faz de você o vaso perfeito.',
+        'SURVEY_VESSEL': 'Sua ausência de laços faz de você o receptáculo perfeito.',
         'SURVEY_OPENING': 'Abrindo arquivos de 1999...',
         'SURVEY_NOISE': 'Você ainda tem muito ruído ao redor.',
         'SURVEY_ANSWER': 'S̶U̶A̶ ̶R̶E̶S̶P̶O̶S̶T̶A̶ não nos serve.',
@@ -996,6 +1005,15 @@ const strings = {
         'LEAKS_TITLE': ' CONFIDENCIAL: PROJETO FADE (1999) ',
         'LEAKS_CONTENT': '{red-fg}LUX-4 ENERGY CORP - AUDITORIA INTERNA - OUTUBRO 1999{/red-fg}\n--------------------------------------------------\n{bold}ASSUNTO:{/bold} Escassez Artificial via Protocolo "The Fade".\n\n{bold}RESUMO:{/bold}\nO "Fade" não foi acidente. Foi uma liberação calculada\nde necro-estática na rede elétrica.\n\n{bold}ESTRATÉGIA:{/bold}\n1. Criar pânico onde a eletricidade pareça "assombrada".\n2. Vender o "Escudo Anti-Fade" como única solução.\n3. Vida por assinatura. Pagar pela luz. Para sempre.\n\n{bold}VÍTIMAS:{/bold}\nAprox. 450.000 cidadãos "evaporados digitalmente".\nSeus padrões neurais são usados como {yellow-fg}Poder de Processamento{/yellow-fg}.\n\n{bold}CONCLUSÃO:{/bold}\nSucesso total. Lucro aumentou 4.000%.\nAs almas na rede são baterias estáveis.\n\n[FIM DO ARQUIVO]\n--------------------------------------------------\n{center}[S] EXPORTAR | [ESC] SAIR{/center}',
         'LEAKS_EXPORTED': '\n\n{yellow-fg}DADOS EXPORTADOS PARA ÁREA DE TRABALHO.{/yellow-fg}',
+
+    'VERIFYING_INTEGRITY': '{center}\n{yellow-fg}VERIFICANDO INTEGRIDADE DO SISTEMA...{/}\nComparando setores locais com o repositório.{/center}',
+    'INTEGRITY_OK': '{center}\n{green-fg}INTEGRIDADE VERIFICADA{/green-fg}\n\nTodos os setores locais coincidem com o registro mestre.\n\n{grey-fg}PRESSIONE [ESC] PARA FECHAR{/grey-fg}{/center}',
+    'INTEGRITY_FAIL': '{center}\n{red-fg}INTEGRIDADE COMPROMETIDA{/red-fg}\n\nUm ou mais setores não coincidem com o registro mestre.\n\n{yellow-fg}[ENTER] PARA REPARAR | [ESC] PARA SAIR{/yellow-fg}{/center}',
+    'SUPPORT_WARNING': '\n{center}{bold}AVISO{/bold}{/center}',
+    'SUPPORT_AUDIO_SAVED': '{center}Configurações de áudio salvas.{/center}',
+    'SUPPORT_AUDIO_INIT': '{center}Áudio do sistema inicializado.{/center}',
+    'SUPPORT_ESC_RETURN': '\n\n{center}[ESC] PARA VOLTAR{/center}',
+    'LANGUAGE_CHANGED': '{center}{bold}IDIOMA ALTERADO{/bold}\n\nO sistema precisa reiniciar para aplicar os novos protocolos linguísticos.{/center}',
     }
 };
 
