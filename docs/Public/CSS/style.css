@@ -395,11 +395,13 @@ body {
         background-color: var(--background-color);
         max-height: 45px;
         overflow: hidden;
-        transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         margin-top: 10px;
         border: 1px solid rgba(245, 241, 185, 0.2);
         border-radius: 4px;
+        cursor: pointer;
     }
+
 
     .navegationHeader::before {
         content: "MENU ☰";
@@ -409,15 +411,21 @@ body {
         color: var(--primary-color);
         font-weight: bold;
         letter-spacing: 2px;
-        font-size: 0.8rem;
+        font-size: 0.9rem;
         background-color: var(--background-color);
+        transition: all 0.3s ease;
     }
 
-    .navegationHeader:hover, 
-    .navegationHeader:active,
-    .navegationHeader:focus-within {
-        max-height: 900px;
+
+    .navegationHeader.active {
+        max-height: 1000px;
         border-color: var(--primary-color);
+    }
+
+    .navegationHeader.active::before {
+        content: "FECHAR ✕";
+        color: var(--primary-color);
+        background-color: var(--background-color);
     }
 
     .text_header {
@@ -432,6 +440,7 @@ body {
         background-color: var(--background-color-2);
         transform: none;
     }
+
 
     .home {
         height: auto;
@@ -477,7 +486,7 @@ body {
     }
 
     .galeria-grid {
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-template-columns: 1fr;
         padding: 0;
     }
 
@@ -500,7 +509,7 @@ body {
     }
 
     .footer {
-        padding: 20px 20px;
+        padding: 20px;
         flex-direction: column;
         text-align: center;
         font-size: 0.7rem;

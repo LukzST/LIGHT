@@ -11,7 +11,7 @@
     
     <header>
         <div class="header_web">
-            <nav class="navegationHeader">
+            <nav class="navegationHeader" id="menuMobile">
                 <a href="#inicio">
                     <img src="./Public/IMG/light_logo_2.png" class="logo" width="60px" alt="">
                 </a>
@@ -224,6 +224,19 @@
         function itch() {
             window.open('https://lukzxdd.itch.io/light/purchase?popup=1', 'Popup', 'width=500,height=400,scrollbars=no');
         }
+
+        const menu = document.getElementById('menuMobile');
+
+        menu.addEventListener('click', function() {
+            this.classList.toggle('active');
+        });
+
+        const links = document.querySelectorAll('.text_header');
+        links.forEach(link => {
+            link.addEventListener('click', () => {
+                menu.classList.remove('active');
+            });
+        });
     </script>
 </body>
 </html>
