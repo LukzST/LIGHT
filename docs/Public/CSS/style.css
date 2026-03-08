@@ -454,6 +454,35 @@ body {
         height: auto;
     }
 
+    .team {
+        padding: 40px 15px;
+        gap: 30px;
+    }
+
+    .title-team {
+        font-size: 1.8rem;
+        text-align: center;
+    }
+
+    .box-team {
+        flex-direction: column;
+        gap: 40px;
+        width: 100%;
+    }
+
+    .team-member {
+        width: 100%;
+        text-align: center;
+    }
+
+    .team-member img {
+        width: 120px;
+    }
+
+    .team-member img:hover {
+        transform: scale(1.05);
+    }
+
     .footer {
         padding: 40px 20px;
         flex-direction: column;
