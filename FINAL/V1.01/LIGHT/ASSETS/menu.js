@@ -223,7 +223,18 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
             screen.render();
             playsucesso();
             
-            screen.onceKey(['enter'], () => process.exit(0));
+            screen.onceKey(['enter'], () => {
+                const exePath = path.join(__dirname, '..', 'LIGHT.exe');
+                
+                const child = spawn(exePath, [], {
+                    stdio: 'ignore',
+                    detached: true,
+                    windowsHide: false
+                });
+                
+                child.unref();
+                process.exit(0);
+            });
 
         } catch (err) {
             statusWin.style.border.fg = 'red';
