@@ -1,7 +1,7 @@
 # LIGHT | Terminal-Based Psychological Horror
 
 ![Status](https://img.shields.io/badge/STATUS-OPERATIONAL-green)
-![Version](https://img.shields.io/badge/VERSION-1.0.1-gold)
+![Version](https://img.shields.io/badge/VERSION-1.01-gold)
 ![OS](https://img.shields.io/badge/OS-TERMINAL_SUBSYSTEM-red)
 
 > **SYSTEM WARNING:** Access to LUX-4 incident data is restricted. 
