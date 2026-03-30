@@ -133,18 +133,20 @@ async function operator06MemorySequence() {
 }
 
 async function showOperator06Choice(container, mainBox) {
-    mainBox.destroy();
+    if (mainBox && typeof mainBox.destroy === 'function') {
+        mainBox.destroy();
+    }
     
     const choiceBox = blessed.box({
         parent: container,
         top: 'center',
         left: 'center',
-        width: 60,
-        height: 14,
+        width: 65,
+        height: 12,
         border: { type: 'line', fg: 'yellow' },
         label: t('MEMORY_CHOICE_TITLE'),
         tags: true,
-        padding: 2,
+        padding: 1,
         style: { bg: 'black' }
     });
 
@@ -152,18 +154,19 @@ async function showOperator06Choice(container, mainBox) {
         parent: choiceBox,
         top: 0,
         left: 0,
-        width: '100%',
-        height: 6,
+        width: 'shrink',
+        height: 4,
         tags: true,
-        content: t('MEMORY_CHOICE_MESSAGE')
+        content: t('MEMORY_CHOICE_MESSAGE'),
+        style: { fg: 'white' }
     });
 
     const options = blessed.list({
         parent: choiceBox,
         bottom: 1,
         left: 'center',
-        width: '80%',
-        height: 5,
+        width: '90%',
+        height: 4,
         keys: true,
         tags: true,
         items: [
@@ -184,8 +187,21 @@ async function showOperator06Choice(container, mainBox) {
         playBeep2();
         
         if (index === 0) {
-            fs.writeFileSync('./TERMINALACCESS/OPERATOR06_SAVED.status', 'SAVED');
-            fs.writeFileSync('../ACHIEVEMENTS/OPERATOR06_SAVED.ACH', 'COMPLETED');
+            try {
+                const terminalPath = path.join(__dirname, 'TERMINALACCESS');
+                if (!fs.existsSync(terminalPath)) {
+                    fs.mkdirSync(terminalPath, { recursive: true });
+                }
+                fs.writeFileSync(path.join(terminalPath, 'OPERATOR06_SAVED.status'), 'SAVED');
+                
+                const achPath = path.join(__dirname, '..', 'ACHIEVEMENTS');
+                if (!fs.existsSync(achPath)) {
+                    fs.mkdirSync(achPath, { recursive: true });
+                }
+                fs.writeFileSync(path.join(achPath, 'OPERATOR06_SAVED.ACH'), 'COMPLETED');
+            } catch (e) {
+                console.error('Erro ao salvar arquivos:', e);
+            }
             showEnding(container, 'save');
         } else if (index === 1) {
             showEnding(container, 'leave');
