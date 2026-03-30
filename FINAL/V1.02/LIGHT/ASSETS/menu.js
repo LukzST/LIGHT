@@ -780,11 +780,7 @@ function refreshMenu() {
     let items = [t('MENU_START')];
 
     if (hasPac) {
-        if (checkNewPac) {
-            items.push(t('MENU_MINIGAME_NEW'));
-        } else {
             items.push(t('MENU_MINIGAME'));
-        }
     }
 
     items.push(t('MENU_CHECKPOINTS'));
