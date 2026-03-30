@@ -112,7 +112,9 @@ async function operator06MemorySequence() {
         if (i === steps.length - 1) {
             await new Promise(resolve => {
                 setTimeout(resolve, 3000);
-                screen.key(['enter', 'escape'], () => resolve());
+                screen.once('keypress', (ch, key) => {
+                    if (key.name === 'enter') resolve();
+                });
             });
         } else {
             await new Promise(resolve => {
@@ -127,10 +129,10 @@ async function operator06MemorySequence() {
         screen.render();
     }
 
-    await showOperator06Choice(container);
+    await showOperator06Choice(container, mainBox);
 }
 
-async function showOperator06Choice(container) {
+async function showOperator06Choice(container, mainBox) {
     mainBox.destroy();
     
     const choiceBox = blessed.box({
