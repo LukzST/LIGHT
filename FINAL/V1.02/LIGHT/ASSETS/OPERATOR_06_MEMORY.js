@@ -141,8 +141,8 @@ async function showOperator06Choice(container, mainBox) {
         parent: container,
         top: 'center',
         left: 'center',
-        width: 65,
-        height: 12,
+        width: 45,
+        height: 8,
         border: { type: 'line', fg: 'yellow' },
         label: t('MEMORY_CHOICE_TITLE'),
         tags: true,
@@ -150,25 +150,15 @@ async function showOperator06Choice(container, mainBox) {
         style: { bg: 'black' }
     });
 
-    const message = blessed.box({
-        parent: choiceBox,
-        top: 0,
-        left: 0,
-        width: 'shrink',
-        height: 4,
-        tags: true,
-        content: t('MEMORY_CHOICE_MESSAGE'),
-        style: { fg: 'white' }
-    });
-
     const options = blessed.list({
         parent: choiceBox,
-        bottom: 1,
+        top: 'center',
         left: 'center',
         width: '90%',
-        height: 4,
+        height: 5,
         keys: true,
         tags: true,
+        align: 'center',
         items: [
             t('MEMORY_CHOICE_SAVE'),
             t('MEMORY_CHOICE_LEAVE'),
@@ -222,8 +212,8 @@ async function showEnding(container, type) {
         parent: container,
         top: 'center',
         left: 'center',
-        width: 60,
-        height: 10,
+        width: 55,
+        height: 'shrink',
         border: { type: 'line', fg: type === 'save' ? 'green' : 'red' },
         tags: true,
         padding: 2,
