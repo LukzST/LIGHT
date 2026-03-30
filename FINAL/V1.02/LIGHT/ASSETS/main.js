@@ -1033,6 +1033,7 @@ async function sublevelExploration() {
         padding: 1,
         tags: true
     });
+    
     playBeep2()
     await typeWriter(sublevelBox, t('MAIN_SUBLEVEL'));
     await new Promise(res => screen.once('keypress', (ch, key) => {
@@ -1041,17 +1042,74 @@ async function sublevelExploration() {
     
     await encounterOperator06Traces(sublevelBox);
     
+    const hasVoiceHeard = fs.existsSync('../ACHIEVEMENTS/VOICE_HEARD.ACH');
+    const hasRemembered = fs.existsSync('../ACHIEVEMENTS/REMEMBERED.ACH');
+    const hasTruthSeeker = fs.existsSync('../ACHIEVEMENTS/TRUTH_SEEKER.ACH');
+    
+    if (hasVoiceHeard && hasRemembered && hasTruthSeeker) {
+        playBeep2();
+        await typeWriter(sublevelBox, t('MEMORY_TERMINAL_FOUND'));
+        await new Promise(res => screen.once('keypress', (ch, key) => {
+            if (key.name === 'enter') res();
+        }));
+        
+        const memoryChoice = blessed.list({
+            parent: container,
+            bottom: 5,
+            left: 'center',
+            width: '50%',
+            height: 5,
+            label: t('MEMORY_TERMINAL_TITLE'),
+            items: [
+                t('MEMORY_TERMINAL_ACCESS'),
+                t('MEMORY_TERMINAL_SKIP')
+            ],
+            keys: true,
+            border: { type: 'line' },
+            style: style,
+            align: 'center'
+        });
+        
+        memoryChoice.focus();
+        screen.render();
+        
+        const choiceResult = await new Promise((resolve) => {
+            memoryChoice.on('select', (item, idx) => {
+                playBeep2();
+                memoryChoice.destroy();
+                resolve(idx === 0);
+            });
+        });
+        
+        if (choiceResult) {
+            saveCheckpoint("SUBLEVEL_7");
+            
+            screen.destroy();
+            const memoryProcess = spawn('node', ['ASSETS/OPERATOR_06_MEMORY.js'], {
+                stdio: 'inherit',
+                cwd: path.join(__dirname, '..')
+            });
+            memoryProcess.on('exit', () => {
+                process.exit(0);
+            });
+            return;
+        }
+    }
+    
     playBeep2()
     await typeWriter(sublevelBox, t('MAIN_ALARM'));
     await new Promise(res => setTimeout(res, 1000));
     playalarm()
+    
     const codeToType = "6789";
     let timeLeft = 5;
     let missionFailed = false;
+    
     const flashInterval = setInterval(() => {
         sublevelBox.style.bg = (sublevelBox.style.bg === 'black' ? 'red' : 'black');
         screen.render();
     }, 200);
+    
     const timerInterval = setInterval(() => {
         timeLeft--;
         if (timeLeft <= 0 && !missionFailed) {
@@ -1068,6 +1126,7 @@ async function sublevelExploration() {
             screen.render();
         }
     }, 1000);
+    
     const inputField = blessed.textbox({
         parent: sublevelBox,
         bottom: 3,
@@ -1083,12 +1142,15 @@ async function sublevelExploration() {
         },
         inputOnFocus: true
     });
+    
     inputField.focus();
     screen.render();
+    
     inputField.on('submit', (value) => {
         if (missionFailed) return;
         clearInterval(timerInterval);
         clearInterval(flashInterval);
+        
         if (value === codeToType) {
             stopAudio()
             setTimeout(() => {
