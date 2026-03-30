@@ -95,7 +95,10 @@ const ALL_ACHIEVEMENTS = [
     { id: 'DATA_MINER', name: t('ACHIEVEMENT_DATA_MINER_NAME'), desc: t('ACHIEVEMENT_DATA_MINER_DESC'), hint: t('ACHIEVEMENT_DATA_MINER_HINT') },
     { id: 'GLITCH_ADDICT', name: t('ACHIEVEMENT_GLITCH_ADDICT_NAME'), desc: t('ACHIEVEMENT_GLITCH_ADDICT_DESC'), hint: t('ACHIEVEMENT_GLITCH_ADDICT_HINT') },
     { id: 'TERMINAL_JUNKIE', name: t('ACHIEVEMENT_TERMINAL_JUNKIE_NAME'), desc: t('ACHIEVEMENT_TERMINAL_JUNKIE_DESC'), hint: t('ACHIEVEMENT_TERMINAL_JUNKIE_HINT') },
-    { id: 'HARD_RESET', name: t('ACHIEVEMENT_HARD_RESET_NAME'), desc: t('ACHIEVEMENT_HARD_RESET_DESC'), hint: t('ACHIEVEMENT_HARD_RESET_HINT') }
+    { id: 'HARD_RESET', name: t('ACHIEVEMENT_HARD_RESET_NAME'), desc: t('ACHIEVEMENT_HARD_RESET_DESC'), hint: t('ACHIEVEMENT_HARD_RESET_HINT') },
+    { id: 'VOICE_HEARD', name: t('ACHIEVEMENT_VOICE_HEARD_NAME'), desc: t('ACHIEVEMENT_VOICE_HEARD_DESC'), hint: t('ACHIEVEMENT_VOICE_HEARD_HINT') },
+    { id: 'REMEMBERED', name: t('ACHIEVEMENT_REMEMBERED_NAME'), desc: t('ACHIEVEMENT_REMEMBERED_DESC'), hint: t('ACHIEVEMENT_REMEMBERED_HINT') },
+    { id: 'FORGOTTEN', name: t('ACHIEVEMENT_FORGOTTEN_NAME'), desc: t('ACHIEVEMENT_FORGOTTEN_DESC'), hint: t('ACHIEVEMENT_FORGOTTEN_HINT') }
 ];
 
 const ACHIEVEMENT_NAMES = {
@@ -118,7 +121,10 @@ const ACHIEVEMENT_NAMES = {
     'DATA_MINER': t('ACHIEVEMENT_DATA_MINER_NAME'),
     'GLITCH_ADDICT': t('ACHIEVEMENT_GLITCH_ADDICT_NAME'),
     'TERMINAL_JUNKIE': t('ACHIEVEMENT_TERMINAL_JUNKIE_NAME'),
-    'HARD_RESET': t('ACHIEVEMENT_HARD_RESET_NAME')
+    'HARD_RESET': t('ACHIEVEMENT_HARD_RESET_NAME'),
+    'VOICE_HEARD': t('ACHIEVEMENT_VOICE_HEARD_NAME'),
+    'REMEMBERED': t('ACHIEVEMENT_REMEMBERED_NAME'),
+    'FORGOTTEN': t('ACHIEVEMENT_FORGOTTEN_NAME')
 };
 
 const ALL_STAGES = [
@@ -2843,7 +2849,7 @@ function Achievements() {
         if (fs.existsSync(achPath)) unlockedCount++;
     });
     const trueLightPath = path.join(__dirname, '..', 'Achievements', 'TRUELIGHT.ach');
-    if (unlockedCount === 19 && !fs.existsSync(trueLightPath)) {
+    if (unlockedCount === 22 && !fs.existsSync(trueLightPath)) {
         fs.writeFileSync(trueLightPath, 'COMPLETED');
         backdrop.destroy();
         Achievements();
