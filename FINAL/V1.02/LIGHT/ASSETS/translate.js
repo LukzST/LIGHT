@@ -649,10 +649,10 @@ The ones inside... they're not dead. They're waiting.
         'MEMORY_STEP_8': 'I\'m tired. 25 years is too long.\nI want to leave. To finally rest.\nBut I need someone to let me go.\nWill you do it? Will you free me?\n\n{cyan-fg}PRESS ENTER TO CONTINUE{/}',
 
         'MEMORY_CHOICE_TITLE': ' [ THE FINAL REQUEST ] ',
-        'MEMORY_CHOICE_MESSAGE': '{center}{yellow-fg}OPERATOR 06 LOOKS AT YOU WITH EYES THAT HAVE SEEN TOO MUCH{/}\n\n{white-fg}"Please... let me go. Let me rest."{/}{/center}',
-        'MEMORY_CHOICE_SAVE': '{green-fg}> FREE OPERATOR 06 (LET HIM REST){/}',
+        'MEMORY_CHOICE_MESSAGE': '{center}{yellow-fg}OPERATOR 06 LOOKS AT YOU{/}\n\n{white-fg}"Please... let me go. Let me rest."{/}{/center}',
+        'MEMORY_CHOICE_SAVE': '{green-fg}> FREE OPERATOR 06{/}',
         'MEMORY_CHOICE_LEAVE': '{yellow-fg}> LEAVE HIM IN THE FADE{/}',
-        'MEMORY_CHOICE_END': '{red-fg}> END THE TRANSMISSION{/}',
+        'MEMORY_CHOICE_END': '{red-fg}> END TRANSMISSION{/}',
 
         'MEMORY_ENDING_SAVE': '{center}{green-fg}{bold}OPERATOR 06 - RELEASED{/bold}{/green-fg}\n\n"You did it. I can feel the light fading.\nIt\'s warm. It\'s peaceful.\nThank you, Operator 07.\nTell them... tell them we were here.\nTell them we existed."\n\nThe static fades. A single tear falls.\nThen nothing.\n\n{cyan-fg}[OPERATOR 06 HAS BEEN FREED]{/}{/center}',
         'MEMORY_ENDING_LEAVE': '{center}{red-fg}{bold}OPERATOR 06 - FORGOTTEN{/bold}{/red-fg}\n\n"I understand. You have your own weight to carry.\nI\'ll stay here. In the static.\nWaiting. Always waiting.\nMaybe someone else will come.\nMaybe not."\n\nThe connection cuts. The silence is deafening.\n\n{red-fg}[OPERATOR 06 REMAINS IN THE FADE]{/}{/center}',
@@ -1317,10 +1317,10 @@ Os que estão dentro... não estão mortos. Estão esperando.
         'MEMORY_STEP_8': 'Estou cansado. 25 anos é tempo demais.\nQuero ir embora. Finalmente descansar.\nMas preciso que alguém me deixe ir.\nVocê vai fazer isso? Você vai me libertar?\n\n{cyan-fg}PRESSIONE ENTER PARA CONTINUAR{/}',
 
         'MEMORY_CHOICE_TITLE': ' [ O PEDIDO FINAL ] ',
-        'MEMORY_CHOICE_MESSAGE': '{center}{yellow-fg}OPERADOR 06 OLHA PARA VOCÊ COM OLHOS QUE VIERAM DEMAIS{/}\n\n{white-fg}"Por favor... me deixe ir. Me deixe descansar."{/}{/center}',
-        'MEMORY_CHOICE_SAVE': '{green-fg}> LIBERTAR OPERADOR 06 (DEIXAR ELE DESCANSAR){/}',
+        'MEMORY_CHOICE_MESSAGE': '{center}{yellow-fg}OPERADOR 06 OLHA PARA VOCÊ COM OLHOS QUE VIRAM DEMAIS{/}\n\n{white-fg}"Por favor... me deixe ir. Me deixe descansar."{/}{/center}',
+        'MEMORY_CHOICE_SAVE': '{green-fg}> LIBERTAR OPERADOR 06{/}',
         'MEMORY_CHOICE_LEAVE': '{yellow-fg}> DEIXAR ELE NO FADE{/}',
-        'MEMORY_CHOICE_END': '{red-fg}> ENCERRAR A TRANSMISSÃO{/}',
+        'MEMORY_CHOICE_END': '{red-fg}> ENCERRAR TRANSMISSÃO{/}',
 
         'MEMORY_ENDING_SAVE': '{center}{green-fg}{bold}OPERADOR 06 - LIBERTADO{/bold}{/green-fg}\n\n"Você conseguiu. Sinto a luz se apagando.\nÉ quente. É pacífico.\nObrigado, Operador 07.\nDiga a eles... diga que estivemos aqui.\nDiga que existimos."\n\nA estática desaparece. Uma única lágrima cai.\nDepois nada.\n\n{cyan-fg}[OPERADOR 06 FOI LIBERTADO]{/}{/center}',
         'MEMORY_ENDING_LEAVE': '{center}{red-fg}{bold}OPERADOR 06 - ESQUECIDO{/bold}{/red-fg}\n\n"Eu entendo. Você tem seu próprio peso para carregar.\nVou ficar aqui. Na estática.\nEsperando. Sempre esperando.\nTalvez alguém mais venha.\nTalvez não."\n\nA conexão é cortada. O silêncio ensurdecedor.\n\n{red-fg}[OPERADOR 06 PERMANECE NO FADE]{/}{/center}',
