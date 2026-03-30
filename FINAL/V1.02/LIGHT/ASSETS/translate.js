@@ -664,7 +664,7 @@ The ones inside... they're not dead. They're waiting.
         'ACHIEVEMENT_OPERATOR06_SAVED_DESC': 'Freed Operator 06 from the Fade.',
         'ACHIEVEMENT_OPERATOR06_SAVED_HINT': 'Find Operator 06 in the memory fragment and choose to free him.',
 
-        'MENU_MEMORY_FRAGMENT': '{center}MEMORY FRAGMENT{/center}',
+        'MENU_MEMORY_FRAGMENT': '{center} MEMORY FRAGMENT {/center}',
         'DESC_MEMORY_FRAGMENT': 'ACCESS THE MEMORY BANKS OF OPERATOR 06.',
     },
 
@@ -1303,7 +1303,7 @@ Os que estão dentro... não estão mortos. Estão esperando.
         'ACHIEVEMENT_FORGOTTEN_HINT': 'Quando o núcleo perguntar, escolha esquecer.',
 
 
-        
+
         'MEMORY_STEP_1': '[FRAGMENTO DE MEMÓRIA - OPERADOR 06]\n\nVejo o terminal. A luz verde pulsa como um batimento cardíaco.\nSterling me observa do outro lado do vidro.\nEle sorri. Eu sei o que ele quer.',
         'MEMORY_STEP_2': '[1999.10.14]\n\n"Não vou fazer isso, Sterling. Não vou entrar."\nEle não gritou. Ele só me mostrou a pasta.\nMinha mãe. Minha irmã. Todos que amo.\n"Você vai," ele disse. "Ou eles vão."',
         'MEMORY_STEP_3': '[1999.10.21 - ÚLTIMO DIA]\n\nA máquina está pronta. A cadeira é fria.\nJá posso ouvi-los. Milhares de vozes.\nElas não estão gritando. Estão sussurrando.\n"Não venha," elas dizem. "Não é o que você pensa."',
@@ -1329,7 +1329,7 @@ Os que estão dentro... não estão mortos. Estão esperando.
         'ACHIEVEMENT_OPERATOR06_SAVED_DESC': 'Libertou o Operador 06 do Fade.',
         'ACHIEVEMENT_OPERATOR06_SAVED_HINT': 'Encontre o Operador 06 no fragmento de memória e escolha libertá-lo.',
 
-        'MENU_MEMORY_FRAGMENT': '{center}FRAGMENTO DE MEMÓRIA{/center}',
+        'MENU_MEMORY_FRAGMENT': '{center} FRAGMENTO DE MEMÓRIA {/center}',
         'DESC_MEMORY_FRAGMENT': 'ACESSAR OS BANCOS DE MEMÓRIA DO OPERADOR 06.',
     }
 };
