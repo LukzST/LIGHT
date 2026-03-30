@@ -98,7 +98,8 @@ const ALL_ACHIEVEMENTS = [
     { id: 'HARD_RESET', name: t('ACHIEVEMENT_HARD_RESET_NAME'), desc: t('ACHIEVEMENT_HARD_RESET_DESC'), hint: t('ACHIEVEMENT_HARD_RESET_HINT') },
     { id: 'VOICE_HEARD', name: t('ACHIEVEMENT_VOICE_HEARD_NAME'), desc: t('ACHIEVEMENT_VOICE_HEARD_DESC'), hint: t('ACHIEVEMENT_VOICE_HEARD_HINT') },
     { id: 'REMEMBERED', name: t('ACHIEVEMENT_REMEMBERED_NAME'), desc: t('ACHIEVEMENT_REMEMBERED_DESC'), hint: t('ACHIEVEMENT_REMEMBERED_HINT') },
-    { id: 'FORGOTTEN', name: t('ACHIEVEMENT_FORGOTTEN_NAME'), desc: t('ACHIEVEMENT_FORGOTTEN_DESC'), hint: t('ACHIEVEMENT_FORGOTTEN_HINT') }
+    { id: 'FORGOTTEN', name: t('ACHIEVEMENT_FORGOTTEN_NAME'), desc: t('ACHIEVEMENT_FORGOTTEN_DESC'), hint: t('ACHIEVEMENT_FORGOTTEN_HINT') },
+    { id: 'MEMORY_FRAGMENT', name: t('MENU_MEMORY_FRAGMENT'), desc: t('DESC_MEMORY_FRAGMENT') }
 ];
 
 const ACHIEVEMENT_NAMES = {
@@ -124,7 +125,9 @@ const ACHIEVEMENT_NAMES = {
     'HARD_RESET': t('ACHIEVEMENT_HARD_RESET_NAME'),
     'VOICE_HEARD': t('ACHIEVEMENT_VOICE_HEARD_NAME'),
     'REMEMBERED': t('ACHIEVEMENT_REMEMBERED_NAME'),
-    'FORGOTTEN': t('ACHIEVEMENT_FORGOTTEN_NAME')
+    'FORGOTTEN': t('ACHIEVEMENT_FORGOTTEN_NAME'),
+    'OPERATOR06_SAVED': t('ACHIEVEMENT_OPERATOR06_SAVED_NAME'),
+    'MEMORY_FRAGMENT': t('MENU_MEMORY_FRAGMENT')
 };
 
 const ALL_STAGES = [
@@ -2849,7 +2852,7 @@ function Achievements() {
         if (fs.existsSync(achPath)) unlockedCount++;
     });
     const trueLightPath = path.join(__dirname, '..', 'Achievements', 'TRUELIGHT.ach');
-    if (unlockedCount === 22 && !fs.existsSync(trueLightPath)) {
+    if (unlockedCount === 24 && !fs.existsSync(trueLightPath)) {
         fs.writeFileSync(trueLightPath, 'COMPLETED');
         backdrop.destroy();
         Achievements();

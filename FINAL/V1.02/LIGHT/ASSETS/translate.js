@@ -637,7 +637,35 @@ The ones inside... they're not dead. They're waiting.
         
         'ACHIEVEMENT_FORGOTTEN_NAME': 'THE COLD HEART',
         'ACHIEVEMENT_FORGOTTEN_DESC': 'Chose to forget the trapped souls.',
-        'ACHIEVEMENT_FORGOTTEN_HINT': 'When the core asks, choose to forget.'
+        'ACHIEVEMENT_FORGOTTEN_HINT': 'When the core asks, choose to forget.',
+
+        'MEMORY_STEP_1': '[MEMORY FRAGMENT - OPERATOR 06]\n\nI see the terminal. The green light pulses like a heartbeat.\nSterling is watching me from behind the glass.\nHe smiles. I know what he wants.',
+        'MEMORY_STEP_2': '[1999.10.14]\n\n"I won\'t do it, Sterling. I won\'t go in."\nHe didn\'t yell. He just showed me the folder.\nMy mother. My sister. Everyone I love.\n"You will," he said. "Or they will."',
+        'MEMORY_STEP_3': '[1999.10.21 - LAST DAY]\n\nThe machine is ready. The chair is cold.\nI can hear them already. Thousands of voices.\nThey\'re not screaming. They\'re whispering.\n"Don\'t come," they say. "It\'s not what you think."',
+        'MEMORY_STEP_4': '[TRANSMISSION INTERRUPTED]\n\n{SYSTEM ALERT}: Unauthorized access detected.\n{FADE DETECTED}: Memory corruption in progress.\nThe voices are getting louder. They\'re calling my name.',
+        'MEMORY_STEP_5': '[ENTERING THE FADE]\n\nThe light is beautiful. Violet and blue.\nI see them now. All 450,000.\nThey\'re not dead. They\'re waiting.\nWaiting for someone to end this.\nWaiting for you, Operator 07.',
+        'MEMORY_STEP_6': 'I\'ve been here for 25 years.\nTime doesn\'t exist in the Fade.\nI\'ve watched you. I know what you did.\nYou remembered us. You chose to carry our pain.\nThat\'s why I can talk to you now.',
+        'MEMORY_STEP_7': 'Sterling wants to join us. To become the administrator.\nIf he does, we\'ll never leave. We\'ll be his batteries forever.\nYou stopped him. Thank you.\nBut I need one more thing from you, Operator 07.',
+        'MEMORY_STEP_8': 'I\'m tired. 25 years is too long.\nI want to leave. To finally rest.\nBut I need someone to let me go.\nWill you do it? Will you free me?\n\n{cyan-fg}PRESS ENTER TO CONTINUE{/}',
+
+        'MEMORY_CHOICE_TITLE': ' [ THE FINAL REQUEST ] ',
+        'MEMORY_CHOICE_MESSAGE': '{center}{yellow-fg}OPERATOR 06 LOOKS AT YOU WITH EYES THAT HAVE SEEN TOO MUCH{/}\n\n{white-fg}"Please... let me go. Let me rest."{/}{/center}',
+        'MEMORY_CHOICE_SAVE': '{green-fg}> FREE OPERATOR 06 (LET HIM REST){/}',
+        'MEMORY_CHOICE_LEAVE': '{yellow-fg}> LEAVE HIM IN THE FADE{/}',
+        'MEMORY_CHOICE_END': '{red-fg}> END THE TRANSMISSION{/}',
+
+        'MEMORY_ENDING_SAVE': '{center}{green-fg}{bold}OPERATOR 06 - RELEASED{/bold}{/green-fg}\n\n"You did it. I can feel the light fading.\nIt\'s warm. It\'s peaceful.\nThank you, Operator 07.\nTell them... tell them we were here.\nTell them we existed."\n\nThe static fades. A single tear falls.\nThen nothing.\n\n{cyan-fg}[OPERATOR 06 HAS BEEN FREED]{/}{/center}',
+        'MEMORY_ENDING_LEAVE': '{center}{red-fg}{bold}OPERATOR 06 - FORGOTTEN{/bold}{/red-fg}\n\n"I understand. You have your own weight to carry.\nI\'ll stay here. In the static.\nWaiting. Always waiting.\nMaybe someone else will come.\nMaybe not."\n\nThe connection cuts. The silence is deafening.\n\n{red-fg}[OPERATOR 06 REMAINS IN THE FADE]{/}{/center}',
+        'MEMORY_ENDING_END': '{center}{red-fg}{bold}TRANSMISSION TERMINATED{/bold}{/red-fg}\n\nThe signal is lost. Operator 06\'s voice fades.\nYou close the terminal. Your hands are shaking.\nYou did what you had to.\nBut you\'ll never forget the sound of his voice.\n\n{red-fg}[CONNECTION LOST]{/}{/center}',
+
+        'MEMORY_LOCKED': '{center}{red-fg}{bold}ACCESS DENIED{/bold}{/red-fg}\n\nYou must first:\n{white-fg}- Hear the voice of Operator 06{/}\n{white-fg}- Choose to remember the souls in the core{/}\n{white-fg}- Decrypt the Project Fade files{/}\n\n{grey-fg}This memory is locked.{/}{/center}',
+
+        'ACHIEVEMENT_OPERATOR06_SAVED_NAME': 'THE FINAL RELEASE',
+        'ACHIEVEMENT_OPERATOR06_SAVED_DESC': 'Freed Operator 06 from the Fade.',
+        'ACHIEVEMENT_OPERATOR06_SAVED_HINT': 'Find Operator 06 in the memory fragment and choose to free him.',
+
+        'MENU_MEMORY_FRAGMENT': '{center}MEMORY FRAGMENT{/center}',
+        'DESC_MEMORY_FRAGMENT': 'ACCESS THE MEMORY BANKS OF OPERATOR 06.',
     },
 
     'PT': {
@@ -1272,7 +1300,37 @@ Os que estão dentro... não estão mortos. Estão esperando.
         
         'ACHIEVEMENT_FORGOTTEN_NAME': 'O CORAÇÃO GELADO',
         'ACHIEVEMENT_FORGOTTEN_DESC': 'Escolheu esquecer as almas aprisionadas.',
-        'ACHIEVEMENT_FORGOTTEN_HINT': 'Quando o núcleo perguntar, escolha esquecer.'
+        'ACHIEVEMENT_FORGOTTEN_HINT': 'Quando o núcleo perguntar, escolha esquecer.',
+
+
+        
+        'MEMORY_STEP_1': '[FRAGMENTO DE MEMÓRIA - OPERADOR 06]\n\nVejo o terminal. A luz verde pulsa como um batimento cardíaco.\nSterling me observa do outro lado do vidro.\nEle sorri. Eu sei o que ele quer.',
+        'MEMORY_STEP_2': '[1999.10.14]\n\n"Não vou fazer isso, Sterling. Não vou entrar."\nEle não gritou. Ele só me mostrou a pasta.\nMinha mãe. Minha irmã. Todos que amo.\n"Você vai," ele disse. "Ou eles vão."',
+        'MEMORY_STEP_3': '[1999.10.21 - ÚLTIMO DIA]\n\nA máquina está pronta. A cadeira é fria.\nJá posso ouvi-los. Milhares de vozes.\nElas não estão gritando. Estão sussurrando.\n"Não venha," elas dizem. "Não é o que você pensa."',
+        'MEMORY_STEP_4': '[TRANSMISSÃO INTERROMPIDA]\n\n{ALERTA DO SISTEMA}: Acesso não autorizado detectado.\n{FADE DETECTADO}: Corrupção de memória em progresso.\nAs vozes estão ficando mais altas. Elas estão chamando meu nome.',
+        'MEMORY_STEP_5': '[ENTRANDO NO FADE]\n\nA luz é linda. Violeta e azul.\nAgora eu os vejo. Todos os 450.000.\nEles não estão mortos. Eles estão esperando.\nEsperando por alguém para acabar com isso.\nEsperando por você, Operador 07.',
+        'MEMORY_STEP_6': 'Estou aqui há 25 anos.\nO tempo não existe no Fade.\nEu te observei. Sei o que você fez.\nVocê se lembrou de nós. Você escolheu carregar nossa dor.\nÉ por isso que posso falar com você agora.',
+        'MEMORY_STEP_7': 'Sterling quer se juntar a nós. Se tornar o administrador.\nSe ele fizer, nunca vamos sair. Seremos suas baterias para sempre.\nVocê o impediu. Obrigado.\nMas preciso de mais uma coisa de você, Operador 07.',
+        'MEMORY_STEP_8': 'Estou cansado. 25 anos é tempo demais.\nQuero ir embora. Finalmente descansar.\nMas preciso que alguém me deixe ir.\nVocê vai fazer isso? Você vai me libertar?\n\n{cyan-fg}PRESSIONE ENTER PARA CONTINUAR{/}',
+
+        'MEMORY_CHOICE_TITLE': ' [ O PEDIDO FINAL ] ',
+        'MEMORY_CHOICE_MESSAGE': '{center}{yellow-fg}OPERADOR 06 OLHA PARA VOCÊ COM OLHOS QUE VIERAM DEMAIS{/}\n\n{white-fg}"Por favor... me deixe ir. Me deixe descansar."{/}{/center}',
+        'MEMORY_CHOICE_SAVE': '{green-fg}> LIBERTAR OPERADOR 06 (DEIXAR ELE DESCANSAR){/}',
+        'MEMORY_CHOICE_LEAVE': '{yellow-fg}> DEIXAR ELE NO FADE{/}',
+        'MEMORY_CHOICE_END': '{red-fg}> ENCERRAR A TRANSMISSÃO{/}',
+
+        'MEMORY_ENDING_SAVE': '{center}{green-fg}{bold}OPERADOR 06 - LIBERTADO{/bold}{/green-fg}\n\n"Você conseguiu. Sinto a luz se apagando.\nÉ quente. É pacífico.\nObrigado, Operador 07.\nDiga a eles... diga que estivemos aqui.\nDiga que existimos."\n\nA estática desaparece. Uma única lágrima cai.\nDepois nada.\n\n{cyan-fg}[OPERADOR 06 FOI LIBERTADO]{/}{/center}',
+        'MEMORY_ENDING_LEAVE': '{center}{red-fg}{bold}OPERADOR 06 - ESQUECIDO{/bold}{/red-fg}\n\n"Eu entendo. Você tem seu próprio peso para carregar.\nVou ficar aqui. Na estática.\nEsperando. Sempre esperando.\nTalvez alguém mais venha.\nTalvez não."\n\nA conexão é cortada. O silêncio ensurdecedor.\n\n{red-fg}[OPERADOR 06 PERMANECE NO FADE]{/}{/center}',
+        'MEMORY_ENDING_END': '{center}{red-fg}{bold}TRANSMISSÃO ENCERRADA{/bold}{/red-fg}\n\nO sinal se perde. A voz do Operador 06 desaparece.\nVocê fecha o terminal. Suas mãos tremem.\nVocê fez o que tinha que fazer.\nMas nunca esquecerá o som da voz dele.\n\n{red-fg}[CONEXÃO PERDIDA]{/}{/center}',
+
+        'MEMORY_LOCKED': '{center}{red-fg}{bold}ACESSO NEGADO{/bold}{/red-fg}\n\nVocê precisa primeiro:\n{white-fg}- Ouvir a voz do Operador 06{/}\n{white-fg}- Escolher lembrar das almas no núcleo{/}\n{white-fg}- Decodificar os arquivos do Projeto Fade{/}\n\n{grey-fg}Esta memória está bloqueada.{/}{/center}',
+
+        'ACHIEVEMENT_OPERATOR06_SAVED_NAME': 'O ÚLTIMO ADEUS',
+        'ACHIEVEMENT_OPERATOR06_SAVED_DESC': 'Libertou o Operador 06 do Fade.',
+        'ACHIEVEMENT_OPERATOR06_SAVED_HINT': 'Encontre o Operador 06 no fragmento de memória e escolha libertá-lo.',
+
+        'MENU_MEMORY_FRAGMENT': '{center}FRAGMENTO DE MEMÓRIA{/center}',
+        'DESC_MEMORY_FRAGMENT': 'ACESSAR OS BANCOS DE MEMÓRIA DO OPERADOR 06.',
     }
 };
 
