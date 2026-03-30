@@ -1085,10 +1085,10 @@ async function sublevelExploration() {
             saveCheckpoint("SUBLEVEL_7");
             
             screen.destroy();
-            const memoryProcess = spawn('node', ['ASSETS/OPERATOR_06_MEMORY.js'], {
-                stdio: 'inherit',
-                cwd: path.join(__dirname, '..')
-            });
+                const memoryProcess = spawn('node', ['OPERATOR_06_MEMORY.js'], {
+                    stdio: 'inherit',
+                    cwd: __dirname
+                });
             memoryProcess.on('exit', () => {
                 process.exit(0);
             });
