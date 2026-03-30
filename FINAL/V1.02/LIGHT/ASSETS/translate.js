@@ -510,7 +510,7 @@ const strings = {
         'LANGUAGE_CHANGED': '{center}{yellow-fg}LANGUAGE CHANGED{/}\n\nRestart required to apply all translations.{/center}',
 
 
-                'ENCOUNTER_01': "[SYSTEM]: Detecting residual neural pattern...",
+        'ENCOUNTER_01': "[SYSTEM]: Detecting residual neural pattern...",
         'ENCOUNTER_02': "[PATTERN]: Op... Operator 07... is that you?",
         'ENCOUNTER_03': "[YOU]: Who is this?",
         'ENCOUNTER_04': "[PATTERN]: I was... before. Number 06. I've been here since 1999.",
@@ -1172,8 +1172,11 @@ The ones inside... they're not dead. They're waiting.
         'SUPPORT_AUDIO_SAVED': '{center}Configurações de áudio salvas.{/center}',
         'SUPPORT_AUDIO_INIT': '{center}Áudio do sistema inicializado.{/center}',
         'SUPPORT_ESC_RETURN': '\n\n{center}[ESC] PARA VOLTAR{/center}',
-        'LANGUAGE_CHANGED': '{center}{yellow-fg}IDIOMA ALTERADO{/}\n\nReiniciar o jogo para aplicar todas as traduções.{/center}',
-                'ENCOUNTER_01': "[SISTEMA]: Detectando padrão neural residual...",
+        'LANGUAGE_CHANGED': '{center}{yellow-fg}IDIOMA ALTERADO{/}\n\nReiniciando para aplicar todas as traduções.{/center}',
+
+
+
+        'ENCOUNTER_01': "[SISTEMA]: Detectando padrão neural residual...",
         'ENCOUNTER_02': "[PADRÃO]: Op... Operador 07... é você?",
         'ENCOUNTER_03': "[VOCÊ]: Quem é?",
         'ENCOUNTER_04': "[PADRÃO]: Eu era... antes. Número 06. Estou aqui desde 1999.",
