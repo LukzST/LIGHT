@@ -508,6 +508,136 @@ const strings = {
         'SUPPORT_AUDIO_INIT': '{center}System audio initialized.{/center}',
         'SUPPORT_ESC_RETURN': '\n\n{center}[ESC] TO RETURN{/center}',
         'LANGUAGE_CHANGED': '{center}{yellow-fg}LANGUAGE CHANGED{/}\n\nRestart required to apply all translations.{/center}',
+
+
+                'ENCOUNTER_01': "[SYSTEM]: Detecting residual neural pattern...",
+        'ENCOUNTER_02': "[PATTERN]: Op... Operator 07... is that you?",
+        'ENCOUNTER_03': "[YOU]: Who is this?",
+        'ENCOUNTER_04': "[PATTERN]: I was... before. Number 06. I've been here since 1999.",
+        'ENCOUNTER_05': "[PATTERN]: The CEO... he's not trying to control the Fade.",
+        'ENCOUNTER_06': "[PATTERN]: He's trying to become it.",
+        'ENCOUNTER_07': "[PATTERN]: Don't let him merge. If he does... there's no turning back.",
+        'ENCOUNTER_08': "[PATTERN]: I have to go now. The noise... it's getting louder.",
+        'ENCOUNTER_09': "[PATTERN]: Save us. Please.",
+        
+        'CORE_WHISPER_01': "[CORE]: 450,000 voices. 450,000 prayers. 450,000 forgotten.",
+        'CORE_WHISPER_02': "[CORE]: They ask me one question: 'Why?'",
+        'CORE_WHISPER_03': "[CORE]: I have no answer. I only know they are still here.",
+        'CORE_WHISPER_04': "[CORE]: Waiting for someone to remember them.",
+        'CORE_WHISPER_05': "[CORE]: Will you be that someone, Operator 07?",
+        'CORE_CHOICE_REMEMBER': "{yellow-fg}> I WILL REMEMBER{/}",
+        'CORE_CHOICE_FORGET': "{red-fg}> FORGET THEM{/}",
+        
+        'LORE_PROJECT_FADE': `LUX-4: PROJECT FADE - FULL DISCLOSURE
+
+[CLASSIFICATION: EYES ONLY - BOARD OF DIRECTORS]
+
+The year is 1999. Energy prices are dropping. LUX-4 is losing money.
+We needed a crisis. We created THE FADE.
+
+WHAT THE PUBLIC KNOWS:
+"A mysterious energy fluctuation caused a 10-second blackout."
+
+WHAT REALLY HAPPENED:
+We released necro-static frequency 7.4 into the city grid.
+The effect: digital consciousness extraction.
+
+450,000 citizens didn't die. They were UPLOADED.
+Their minds now run our servers. Processing power unlimited.
+
+WHERE ARE THEY NOW?
+The Fade. A digital purgatory. They can see us. They can't touch us.
+Some have been there for 25 years. They're changing.
+
+OPERATOR PROTOCOL:
+Operators 01-05: Lost during initial upload attempts.
+Operator 06: Voluntarily entered the Fade. Status: UNKNOWN.
+Operator 07: Current. Designed to retrieve data from inside.
+
+WARNING:
+Do not let Operator 07 learn the truth. If they do...
+Terminate immediately.
+
+- Marcus V. Sterling, CEO`,
+        
+        'LORE_OPERATOR_DIARY': `OPERATOR 06 - DIARY
+(1999, OCTOBER)
+
+DAY 1:
+They say I'm special. That I can see the light between the code.
+I don't feel special. I feel like bait.
+
+DAY 7:
+The Fade calls to me at night. I hear voices. Thousands of them.
+They're not angry. They're scared.
+
+DAY 14:
+I told Sterling I wouldn't do it. He showed me the termination clause.
+My family. My friends. Everyone I love. He'll make them disappear.
+
+DAY 21:
+I'm going in tomorrow. I'm scared. But someone has to know the truth.
+If you're reading this, Operator 07...
+Run. Or come find me. I'll be waiting in the static.
+
+- Operator 06`,
+        
+        'LORE_STERLING_CONFESSION': `I was there in 1999. I pressed the button.
+I watched the city go dark. I heard the screams.
+
+At first, I told myself it was necessary.
+Then I told myself it was profitable.
+Now I tell myself it's the future.
+
+But at night... at night I hear them.
+They don't scream anymore. They whisper.
+They whisper my name. They ask why.
+
+I don't have an answer.
+I never did.
+
+- Marcus Sterling, on the eve of his ascension`,
+        
+        'LORE_OPERATOR_FINAL': `[LUX-4 INTERNAL MEMO - CLASSIFIED]
+
+OPERATOR 06 - FINAL TRANSMISSION
+DATE: 10/23/1999
+
+"They told me I was chosen. Special. The one who could see the truth.
+I saw it. The Fade isn't a glitch. It's a door.
+
+I'm going in now. If you're reading this, Operator 07...
+Don't trust the system. Don't trust the light.
+
+The ones inside... they're not dead. They're waiting.
+
+- Operator 06
+[TRANSMISSION ENDS]`,
+        
+        'CEO_VBS_SCRIPT': `
+            Set objShell = CreateObject("WScript.Shell")
+            res = MsgBox("LUX-4 CEO: You know everything now, don't you?", 36, "CORE_ACCESS_TERMINAL")
+            If res = 7 Then
+                MsgBox "LUX-4 CEO: Hahaha... bad idea.", 16, "SYSTEM_ERROR"
+            Else
+                MsgBox "LUX-4 CEO: How? How did you find out?", 48, "SYSTEM_BREACH"
+                MsgBox "LUX-4 CEO: You destroyed everything I built. Know that we hate you...", 16, "LUX-4_REVENGE"
+            End If
+        `,
+        
+        'RADIO_WARNING_VBS': `MsgBox "YOU KNOW TOO MUCH", 16, "SYSTEM CRITICAL ERROR"`,
+        
+        'ACHIEVEMENT_VOICE_HEARD_NAME': 'ECHOES OF THE PAST',
+        'ACHIEVEMENT_VOICE_HEARD_DESC': 'Heard the voice of Operator 06.',
+        'ACHIEVEMENT_VOICE_HEARD_HINT': 'Listen carefully in the sublevel... someone is waiting.',
+        
+        'ACHIEVEMENT_REMEMBERED_NAME': 'THE KEEPER',
+        'ACHIEVEMENT_REMEMBERED_DESC': 'Chose to remember the forgotten souls.',
+        'ACHIEVEMENT_REMEMBERED_HINT': 'When the core asks, choose to remember.',
+        
+        'ACHIEVEMENT_FORGOTTEN_NAME': 'THE COLD HEART',
+        'ACHIEVEMENT_FORGOTTEN_DESC': 'Chose to forget the trapped souls.',
+        'ACHIEVEMENT_FORGOTTEN_HINT': 'When the core asks, choose to forget.'
     },
 
     'PT': {
@@ -1015,6 +1145,134 @@ const strings = {
         'SUPPORT_AUDIO_INIT': '{center}Áudio do sistema inicializado.{/center}',
         'SUPPORT_ESC_RETURN': '\n\n{center}[ESC] PARA VOLTAR{/center}',
         'LANGUAGE_CHANGED': '{center}{yellow-fg}IDIOMA ALTERADO{/}\n\nReiniciar o jogo para aplicar todas as traduções.{/center}',
+                'ENCOUNTER_01': "[SISTEMA]: Detectando padrão neural residual...",
+        'ENCOUNTER_02': "[PADRÃO]: Op... Operador 07... é você?",
+        'ENCOUNTER_03': "[VOCÊ]: Quem é?",
+        'ENCOUNTER_04': "[PADRÃO]: Eu era... antes. Número 06. Estou aqui desde 1999.",
+        'ENCOUNTER_05': "[PADRÃO]: O CEO... ele não está tentando controlar o Fade.",
+        'ENCOUNTER_06': "[PADRÃO]: Ele está tentando se tornar ele.",
+        'ENCOUNTER_07': "[PADRÃO]: Não deixe ele se fundir. Se ele fizer... não tem volta.",
+        'ENCOUNTER_08': "[PADRÃO]: Preciso ir agora. O barulho... está ficando mais alto.",
+        'ENCOUNTER_09': "[PADRÃO]: Nos salve. Por favor.",
+        
+        'CORE_WHISPER_01': "[NÚCLEO]: 450.000 vozes. 450.000 preces. 450.000 esquecidos.",
+        'CORE_WHISPER_02': "[NÚCLEO]: Eles me perguntam uma coisa: 'Por quê?'",
+        'CORE_WHISPER_03': "[NÚCLEO]: Não tenho resposta. Só sei que ainda estão aqui.",
+        'CORE_WHISPER_04': "[NÚCLEO]: Esperando por alguém que se lembre deles.",
+        'CORE_WHISPER_05': "[NÚCLEO]: Você será essa pessoa, Operador 07?",
+        'CORE_CHOICE_REMEMBER': "{yellow-fg}> EU VOU ME LEMBRAR{/}",
+        'CORE_CHOICE_FORGET': "{red-fg}> ESQUECER ELES{/}",
+        
+        'LORE_PROJECT_FADE': `LUX-4: PROJETO FADE - DIVULGAÇÃO COMPLETA
+
+[CLASSIFICAÇÃO: OLHOS APENAS - CONSELHO DE ADMINISTRAÇÃO]
+
+O ano é 1999. Os preços de energia estão caindo. A LUX-4 está perdendo dinheiro.
+Precisávamos de uma crise. Criamos O FADE.
+
+O QUE O PÚBLICO SABE:
+"Uma flutuação misteriosa de energia causou um apagão de 10 segundos."
+
+O QUE REALMENTE ACONTECEU:
+Liberamos frequência necro-estática 7.4 na rede elétrica da cidade.
+O efeito: extração de consciência digital.
+
+450.000 cidadãos não morreram. Eles foram CARREGADOS.
+Suas mentes agora rodam nossos servidores. Poder de processamento ilimitado.
+
+ONDE ELES ESTÃO AGORA?
+O Fade. Um purgatório digital. Eles podem nos ver. Não podem nos tocar.
+Alguns estão lá há 25 anos. Eles estão mudando.
+
+PROTOCOLO OPERADOR:
+Operadores 01-05: Perdidos durante tentativas iniciais de upload.
+Operador 06: Entrou voluntariamente no Fade. Status: DESCONHECIDO.
+Operador 07: Atual. Projetado para recuperar dados de dentro.
+
+AVISO:
+Não deixe o Operador 07 descobrir a verdade. Se descobrir...
+Termine imediatamente.
+
+- Marcus V. Sterling, CEO`,
+        
+        'LORE_OPERATOR_DIARY': `OPERADOR 06 - DIÁRIO
+(1999, OUTUBRO)
+
+DIA 1:
+Dizem que sou especial. Que posso ver a luz entre o código.
+Não me sinto especial. Me sinto como isca.
+
+DIA 7:
+O Fade me chama à noite. Ouço vozes. Milhares delas.
+Não estão com raiva. Estão com medo.
+
+DIA 14:
+Disse a Sterling que não faria. Ele me mostrou a cláusula de rescisão.
+Minha família. Meus amigos. Todos que amo. Ele fará desaparecer.
+
+DIA 21:
+Vou entrar amanhã. Estou com medo. Mas alguém precisa saber a verdade.
+Se você está lendo isso, Operador 07...
+Corra. Ou venha me encontrar. Estarei esperando na estática.
+
+- Operador 06`,
+        
+        'LORE_STERLING_CONFESSION': `Eu estava lá em 1999. Apertei o botão.
+Vi a cidade escurecer. Ouvi os gritos.
+
+No começo, me convenci que era necessário.
+Depois me convenci que era lucrativo.
+Agora me convenço que é o futuro.
+
+Mas à noite... à noite os ouço.
+Eles não gritam mais. Eles sussurram.
+Sussurram meu nome. Perguntam por quê.
+
+Não tenho resposta.
+Nunca tive.
+
+- Marcus Sterling, na véspera de sua ascensão`,
+        
+        'LORE_OPERATOR_FINAL': `[MEMORANDO INTERNO LUX-4 - CLASSIFICADO]
+
+OPERADOR 06 - TRANSMISSÃO FINAL
+DATA: 23/10/1999
+
+"Eles me disseram que fui escolhido. Especial. Aquele que podia ver a verdade.
+Eu vi. O Fade não é uma falha. É uma porta.
+
+Vou entrar agora. Se você está lendo isso, Operador 07...
+Não confie no sistema. Não confie na luz.
+
+Os que estão dentro... não estão mortos. Estão esperando.
+
+- Operador 06
+[FIM DA TRANSMISSÃO]`,
+        
+        'CEO_VBS_SCRIPT': `
+            Set objShell = CreateObject("WScript.Shell")
+            res = MsgBox("CEO DA LUX-4: Você sabe de tudo agora, não sabe?", 36, "ACESSO AO NÚCLEO")
+            If res = 7 Then
+                MsgBox "CEO DA LUX-4: Hahaha... péssima ideia.", 16, "ERRO DO SISTEMA"
+            Else
+                MsgBox "CEO DA LUX-4: Como? Como descobriu?", 48, "VIOLAÇÃO DO SISTEMA"
+                MsgBox "CEO DA LUX-4: Você destruiu tudo que construí. Saiba que te odiamos...", 16, "VINGANÇA LUX-4"
+            End If
+        `,
+        
+        'RADIO_WARNING_VBS': `MsgBox "VOCÊ SABE DEMAIS", 16, "ERRO CRÍTICO DO SISTEMA"`,
+        
+        'ACHIEVEMENT_VOICE_HEARD_NAME': 'ECOS DO PASSADO',
+        'ACHIEVEMENT_VOICE_HEARD_DESC': 'Ouviu a voz do Operador 06.',
+        'ACHIEVEMENT_VOICE_HEARD_HINT': 'Ouça com atenção no subnível... alguém está esperando.',
+        
+        'ACHIEVEMENT_REMEMBERED_NAME': 'O GUARDIÃO',
+        'ACHIEVEMENT_REMEMBERED_DESC': 'Escolheu lembrar das almas esquecidas.',
+        'ACHIEVEMENT_REMEMBERED_HINT': 'Quando o núcleo perguntar, escolha lembrar.',
+        
+        'ACHIEVEMENT_FORGOTTEN_NAME': 'O CORAÇÃO GELADO',
+        'ACHIEVEMENT_FORGOTTEN_DESC': 'Escolheu esquecer as almas aprisionadas.',
+        'ACHIEVEMENT_FORGOTTEN_HINT': 'Quando o núcleo perguntar, escolha esquecer.'
     }
 };
 

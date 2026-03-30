@@ -315,7 +315,10 @@ const ACHIEVEMENT_NAMES = {
     'DATA_MINER': t('ACHIEVEMENT_DATA_MINER_NAME'),
     'GLITCH_ADDICT': t('ACHIEVEMENT_GLITCH_ADDICT_NAME'),
     'TERMINAL_JUNKIE': t('ACHIEVEMENT_TERMINAL_JUNKIE_NAME'),
-    'HARD_RESET': t('ACHIEVEMENT_HARD_RESET_NAME')
+    'HARD_RESET': t('ACHIEVEMENT_HARD_RESET_NAME'),
+    'VOICE_HEARD': t('ACHIEVEMENT_VOICE_HEARD_NAME'),
+    'REMEMBERED': t('ACHIEVEMENT_REMEMBERED_NAME'),
+    'FORGOTTEN': t('ACHIEVEMENT_FORGOTTEN_NAME')
 };
 
 function showLoadToast() {
@@ -394,6 +397,27 @@ if (fs.existsSync('../CONFIG/DIFFICULTY.txt')) {
 } else {
     var DIFFICULTY = 'NORMAL';
     fs.writeFileSync('../CONFIG/DIFFICULTY.txt', DIFFICULTY, 'utf8');
+}
+
+function generateLoreFiles() {
+    const lorePath = path.join(os.homedir(), 'Desktop', 'LUX-4_LORE');
+    if (!fs.existsSync(lorePath)) fs.mkdirSync(lorePath, { recursive: true });
+    
+    if (!fs.existsSync(path.join(lorePath, 'PROJECT_FADE_DETAILED.txt'))) {
+        fs.writeFileSync(path.join(lorePath, 'PROJECT_FADE_DETAILED.txt'), t('LORE_PROJECT_FADE'));
+    }
+    
+    if (!fs.existsSync(path.join(lorePath, 'OPERATOR_06_DIARY.txt'))) {
+        fs.writeFileSync(path.join(lorePath, 'OPERATOR_06_DIARY.txt'), t('LORE_OPERATOR_DIARY'));
+    }
+    
+    if (!fs.existsSync(path.join(lorePath, 'STERLING_CONFESSION.txt'))) {
+        fs.writeFileSync(path.join(lorePath, 'STERLING_CONFESSION.txt'), t('LORE_STERLING_CONFESSION'));
+    }
+    
+    if (!fs.existsSync(path.join(lorePath, 'OPERATOR_06_FINAL.txt'))) {
+        fs.writeFileSync(path.join(lorePath, 'OPERATOR_06_FINAL.txt'), t('LORE_OPERATOR_FINAL'));
+    }
 }
 
 function credits() {
@@ -842,6 +866,90 @@ async function typeWriter(box, text, delay = 30) {
         }, delay);
     });
 }
+
+async function encounterOperator06Traces(box) {
+    playBeep2();
+    await typeWriter(box, t('ENCOUNTER_01'));
+    await new Promise(res => setTimeout(res, 800));
+    await typeWriter(box, t('ENCOUNTER_02'));
+    await new Promise(res => screen.once('keypress', (ch, key) => { if (key.name === 'enter') res(); }));
+    await typeWriter(box, t('ENCOUNTER_03'));
+    await new Promise(res => screen.once('keypress', (ch, key) => { if (key.name === 'enter') res(); }));
+    await typeWriter(box, t('ENCOUNTER_04'));
+    await new Promise(res => screen.once('keypress', (ch, key) => { if (key.name === 'enter') res(); }));
+    await typeWriter(box, t('ENCOUNTER_05'));
+    await new Promise(res => screen.once('keypress', (ch, key) => { if (key.name === 'enter') res(); }));
+    await typeWriter(box, t('ENCOUNTER_06'));
+    await new Promise(res => screen.once('keypress', (ch, key) => { if (key.name === 'enter') res(); }));
+    await typeWriter(box, t('ENCOUNTER_07'));
+    await new Promise(res => screen.once('keypress', (ch, key) => { if (key.name === 'enter') res(); }));
+    await typeWriter(box, t('ENCOUNTER_08'));
+    await new Promise(res => screen.once('keypress', (ch, key) => { if (key.name === 'enter') res(); }));
+    await typeWriter(box, t('ENCOUNTER_09'));
+    
+    fs.writeFileSync('./TERMINALACCESS/OPERATOR06_MESSAGE.txt', 'Heard the voice of Operator 06');
+    
+    if (!fs.existsSync('../ACHIEVEMENTS/VOICE_HEARD.ACH')) {
+        fs.writeFileSync('../ACHIEVEMENTS/VOICE_HEARD.ACH', 'COMPLETED');
+        showAchievementToast('VOICE_HEARD');
+    }
+    
+    await new Promise(res => setTimeout(res, 2000));
+}
+
+async function coreWhisperSequence(box) {
+    playBeep2();
+    await typeWriter(box, t('CORE_WHISPER_01'));
+    await new Promise(res => setTimeout(res, 800));
+    await typeWriter(box, t('CORE_WHISPER_02'));
+    await new Promise(res => setTimeout(res, 800));
+    await typeWriter(box, t('CORE_WHISPER_03'));
+    await new Promise(res => setTimeout(res, 800));
+    await typeWriter(box, t('CORE_WHISPER_04'));
+    await new Promise(res => setTimeout(res, 800));
+    await typeWriter(box, t('CORE_WHISPER_05'));
+    
+    const response = blessed.list({
+        parent: box,
+        bottom: 3,
+        left: 'center',
+        width: '50%',
+        height: 4,
+        items: [
+            t('CORE_CHOICE_REMEMBER'),
+            t('CORE_CHOICE_FORGET')
+        ],
+        keys: true,
+        border: { type: 'line' },
+        style: style
+    });
+    
+    response.focus();
+    screen.render();
+    
+    return new Promise((resolve) => {
+        response.on('select', (item, idx) => {
+            response.destroy();
+            if (idx === 0) {
+                fs.writeFileSync('./TERMINALACCESS/REMEMBERED.status', '1');
+                if (!fs.existsSync('../ACHIEVEMENTS/REMEMBERED.ACH')) {
+                    fs.writeFileSync('../ACHIEVEMENTS/REMEMBERED.ACH', 'COMPLETED');
+                    showAchievementToast('REMEMBERED');
+                }
+                playwin();
+            } else {
+                fs.writeFileSync('./TERMINALACCESS/FORGOTTEN.status', '1');
+                if (!fs.existsSync('../ACHIEVEMENTS/FORGOTTEN.ACH')) {
+                    fs.writeFileSync('../ACHIEVEMENTS/FORGOTTEN.ACH', 'COMPLETED');
+                    showAchievementToast('FORGOTTEN');
+                }
+                playwarning();
+            }
+            resolve();
+        });
+    });
+}
+
 async function accessLuxFiles(box) {
     stopAudio()
     box.setContent("");
@@ -895,6 +1003,7 @@ async function accessLuxFiles(box) {
                     screen.key(['enter', 'escape'], () => setTimeout(() => {
                         stopAudio()
                         setTimeout(() => {
+                            generateLoreFiles();
                             credits()
                         },200)
                     },300)
@@ -929,6 +1038,9 @@ async function sublevelExploration() {
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
+    
+    await encounterOperator06Traces(sublevelBox);
+    
     playBeep2()
     await typeWriter(sublevelBox, t('MAIN_ALARM'));
     await new Promise(res => setTimeout(res, 1000));
@@ -1030,6 +1142,9 @@ async function coreFinalSequence(box) {
     await new Promise(res => screen.once('keypress', (ch, key) => {
         if (key.name === 'enter') res();
     }));
+    
+    await coreWhisperSequence(box);
+    
     box.setContent(t('MAIN_CHAIR_LOCKED'));
     screen.render();
     const balancerProc = spawn('cmd.exe', ['/c', 'start', '/wait', 'node', 'BALANCER.js'], {
@@ -1197,16 +1312,7 @@ async function ceoConfrontation() {
         screen.render();
 
         const vbsPath = path.join(os.tmpdir(), 'ceo_chat.vbs');
-        fs.writeFileSync(vbsPath, `
-            Set objShell = CreateObject("WScript.Shell")
-            res = MsgBox("LUX-4 CEO: You know everything now, don't you?", 36, "CORE_ACCESS_TERMINAL")
-            If res = 7 Then
-                MsgBox "LUX-4 CEO: Hahaha... bad idea.", 16, "SYSTEM_ERROR"
-            Else
-                MsgBox "LUX-4 CEO: How? How did you find out?", 48, "SYSTEM_BREACH"
-                MsgBox "LUX-4 CEO: You destroyed everything I built. Know that we hate you...", 16, "LUX-4_REVENGE"
-            End If
-        `, { encoding: 'latin1' });
+        fs.writeFileSync(vbsPath, t('CEO_VBS_SCRIPT'), { encoding: 'latin1' });
 
         exec(`cscript //nologo ${vbsPath}`, () => {
             try { fs.unlinkSync(vbsPath); } catch (e) {}
@@ -1221,6 +1327,7 @@ async function ceoConfrontation() {
                 fs.writeFileSync('../ACHIEVEMENTS/THE_END.ACH', 'COMPLETED');
             }
 
+            generateLoreFiles();
             container.children.forEach(c => c.hide());
             credits();
         });
@@ -1430,7 +1537,7 @@ async function officeChaosPhase() {
                                             if (key.name === 'enter') res();
                                         }));
                                         const vbsPath = path.join(os.tmpdir(), 'warning.vbs');
-                                        fs.writeFileSync(vbsPath, `MsgBox "${t('MAIN_RADIO_WARNING')}", 16, "SYSTEM CRITICAL ERROR"`);
+                                        fs.writeFileSync(vbsPath, t('RADIO_WARNING_VBS'));
                                         exec(`cscript //nologo ${vbsPath}`, () => {
                                             try {
                                                 fs.unlinkSync(vbsPath);
