@@ -668,8 +668,8 @@ The ones inside... they're not dead. They're waiting.
         'DESC_MEMORY_FRAGMENT': 'ACCESS THE MEMORY BANKS OF OPERATOR 06.',
         'MEMORY_TERMINAL_FOUND': '[SYSTEM]: Additional memory bank detected.\nA terminal with residual data from Operator 06 is nearby.\n\n{green-fg}[PRESS ENTER TO CONTINUE]{/}',
         'MEMORY_TERMINAL_TITLE': ' [ OPERATOR 06 MEMORY BANK ] ',
-        'MEMORY_TERMINAL_ACCESS': '{yellow-fg}> ACCESS MEMORY FRAGMENT{/}',
-        'MEMORY_TERMINAL_SKIP': '{grey-fg}> SKIP{/}',
+        'MEMORY_TERMINAL_ACCESS': '{yellow-fg} > ACCESS MEMORY FRAGMENT {/yellow-fg}',
+        'MEMORY_TERMINAL_SKIP': '{grey-fg} > SKIP {/grey-fg}',
     },
 
     'PT': {
@@ -1340,8 +1340,8 @@ Os que estão dentro... não estão mortos. Estão esperando.
         'DESC_MEMORY_FRAGMENT': 'ACESSAR OS BANCOS DE MEMÓRIA DO OPERADOR 06.',
         'MEMORY_TERMINAL_FOUND': '[SISTEMA]: Banco de memória adicional detectado.\nUm terminal com dados residuais do Operador 06 está próximo.\n\n{green-fg}[PRESSIONE ENTER PARA CONTINUAR]{/}',
         'MEMORY_TERMINAL_TITLE': ' [ BANCO DE MEMÓRIA - OPERADOR 06 ] ',
-        'MEMORY_TERMINAL_ACCESS': '{yellow-fg}> ACESSAR FRAGMENTO DE MEMÓRIA{/}',
-        'MEMORY_TERMINAL_SKIP': '{grey-fg}> PULAR{/}',
+        'MEMORY_TERMINAL_ACCESS': '{yellow-fg} > ACESSAR FRAGMENTO DE MEMÓRIA {/yellow-fg}',
+        'MEMORY_TERMINAL_SKIP': '{grey-fg} > PULAR {/grey-fg}',
     }
 };
 
