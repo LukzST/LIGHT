@@ -207,6 +207,10 @@ const strings = {
         'ACHIEVEMENT_HARD_RESET_NAME': 'FRESH START',
         'ACHIEVEMENT_HARD_RESET_DESC': 'Reset all configurations to default.',
         'ACHIEVEMENT_HARD_RESET_HINT': 'Use the Reset to Defaults option in Settings.',
+
+        'ACHIEVEMENT_MEMORY_FRAGMENT_NAME': 'MEMORY SEEKER',
+        'ACHIEVEMENT_MEMORY_FRAGMENT_DESC': 'Accessed Operator 06\'s memory fragment.',
+        'ACHIEVEMENT_MEMORY_FRAGMENT_HINT': 'Find the hidden terminal in SUBLEVEL 7 after unlocking VOICE_HEARD, REMEMBERED, and TRUTH_SEEKER.',
         
         'RARE_BOOT_UNLOCKED': '{center}\n{yellow-fg}{bold}SYSTEM ANOMALY DETECTED{/bold}{/}\n\nThe rare boot sequence has been\npermanently synchronized.\n\n{white-fg}This protocol is now your default.{/}\n\n{cyan-fg}[ENTER] TO CONTINUE{/center}',
         
@@ -876,6 +880,11 @@ The ones inside... they're not dead. They're waiting.
         'ACHIEVEMENT_HARD_RESET_NAME': 'RECOMEÇO',
         'ACHIEVEMENT_HARD_RESET_DESC': 'Resetou todas as configurações para o padrão.',
         'ACHIEVEMENT_HARD_RESET_HINT': 'Use a opção Restaurar Padrões nas Configurações.',
+
+
+        'ACHIEVEMENT_MEMORY_FRAGMENT_NAME': 'BUSCADOR DE MEMÓRIAS',
+        'ACHIEVEMENT_MEMORY_FRAGMENT_DESC': 'Acessou o fragmento de memória do Operador 06.',
+        'ACHIEVEMENT_MEMORY_FRAGMENT_HINT': 'Encontre o terminal escondido no SUBLEVEL 7 após desbloquear ECOS DO PASSADO, O GUARDIÃO e DECODIFICADOR.',
         
         'RARE_BOOT_UNLOCKED': '{center}\n{yellow-fg}{bold}ANOMALIA DETECTADA{/bold}{/}\n\nA sequência de inicialização rara foi\npermanentemente sincronizada.\n\n{white-fg}Este protocolo agora é seu padrão.{/}\n\n{cyan-fg}[ENTER] PARA CONTINUAR{/center}',
         
@@ -1336,7 +1345,7 @@ Os que estão dentro... não estão mortos. Estão esperando.
         'ACHIEVEMENT_OPERATOR06_SAVED_DESC': 'Libertou o Operador 06 do Fade.',
         'ACHIEVEMENT_OPERATOR06_SAVED_HINT': 'Encontre o Operador 06 no fragmento de memória e escolha libertá-lo.',
 
-        'MENU_MEMORY_FRAGMENT': '{center} FRAGMENTO DE MEMÓRIA {/center}',
+        'MENU_MEMORY_FRAGMENT': 'FRAGMENTO DE MEMÓRIA',
         'DESC_MEMORY_FRAGMENT': 'ACESSAR OS BANCOS DE MEMÓRIA DO OPERADOR 06.',
         'MEMORY_TERMINAL_FOUND': '[SISTEMA]: Banco de memória adicional detectado.\nUm terminal com dados residuais do Operador 06 está próximo.\n\n{green-fg}[PRESSIONE ENTER PARA CONTINUAR]{/}',
         'MEMORY_TERMINAL_TITLE': ' [ BANCO DE MEMÓRIA - OPERADOR 06 ] ',
