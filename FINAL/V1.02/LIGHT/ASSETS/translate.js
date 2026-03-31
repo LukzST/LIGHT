@@ -529,8 +529,8 @@ const strings = {
         'CORE_WHISPER_03': "[CORE]: I have no answer. I only know they are still here.",
         'CORE_WHISPER_04': "[CORE]: Waiting for someone to remember them.",
         'CORE_WHISPER_05': "[CORE]: Will you be that someone, Operator 07?",
-        'CORE_CHOICE_REMEMBER': "{yellow-fg} > I WILL REMEMBER {/yellow-fg}",
-        'CORE_CHOICE_FORGET': "{red-fg} > FORGET THEM {/red-fg}",
+        'CORE_CHOICE_REMEMBER': " > I WILL REMEMBER",
+        'CORE_CHOICE_FORGET': " > FORGET THEM",
         
         'LORE_PROJECT_FADE': `LUX-4: PROJECT FADE - FULL DISCLOSURE
 
@@ -1204,8 +1204,8 @@ The ones inside... they're not dead. They're waiting.
         'CORE_WHISPER_03': "[NÚCLEO]: Não tenho resposta. Só sei que ainda estão aqui.",
         'CORE_WHISPER_04': "[NÚCLEO]: Esperando por alguém que se lembre deles.",
         'CORE_WHISPER_05': "[NÚCLEO]: Você será essa pessoa, Operador 07?",
-        'CORE_CHOICE_REMEMBER': "{yellow-fg} > EU VOU ME LEMBRAR {/yellow-fg}",
-        'CORE_CHOICE_FORGET': "{red-fg} > ESQUECER ELES {/red-fg}",
+        'CORE_CHOICE_REMEMBER': " > EU VOU ME LEMBRAR",
+        'CORE_CHOICE_FORGET': " > ESQUECER ELES",
         
         'LORE_PROJECT_FADE': `LUX-4: PROJETO FADE - DIVULGAÇÃO COMPLETA
 
