@@ -225,74 +225,41 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
             const gameRoot = path.join(__dirname, '..');
             const updateScriptPath = path.join(os.tmpdir(), 'lux4_update.bat');
             
-            const scriptContent = `
-            @echo off
-setlocal enabledelayedexpansion
-
-echo ========================================
-echo     LIGHT UPDATER - PLEASE WAIT
-echo ========================================
+const scriptContent = `
+@echo off
+cls
+echo LIGHT UPDATER
 echo.
-
-rem Aguarda o jogo fechar
-timeout /t 2 /nobreak > nul
-
-echo [1/4] Preparing update...
-timeout /t 1 /nobreak > nul
-
-echo.
-echo [2/4] Copying new files...
-echo.
-
-set "progress=0"
-set "total=100"
-
-for /l %%i in (0,10,100) do (
-    cls
-    echo ========================================
-    echo     LIGHT UPDATER - PLEASE WAIT
-    echo ========================================
-    echo.
-    echo [2/4] Copying new files...
-    echo.
-    set /a "bars=%%i/5"
-    set "bar="
-    for /l %%b in (1,1,!bars!) do set "bar=!bar!█"
-    for /l %%b in (!bars!,1,19) do set "bar=!bar!░"
-    echo [!bar!] %%i%%
-    echo.
-    echo Estimated time: 15 seconds remaining...
-    timeout /t 1 /nobreak > nul 2>&1
-)
-
-xcopy "%~dp0new-version\*" "%~dp0" /E /H /C /Y /Q > nul
-
-echo.
-echo [3/4] Cleaning temporary files...
-rmdir /S /Q "%~dp0new-version" 2> nul
-
-echo.
-echo [4/4] Finalizing...
+echo Waiting for game to close...
 timeout /t 2 /nobreak > nul
 
 cls
-echo ========================================
-echo     UPDATE COMPLETED SUCCESSFULLY!
-echo ========================================
+echo LIGHT UPDATER
 echo.
-echo The game will now start...
-echo.
-echo [████████████████████] 100%%
-echo.
-echo This window will close in 15 seconds...
+echo Copying new files...
+xcopy "%~dp0new-version\\*" "%~dp0" /E /H /C /Y /Q > nul
+timeout /t 1 /nobreak > nul
 
+cls
+echo LIGHT UPDATER
+echo.
+echo Cleaning temporary files...
+rmdir /S /Q "%~dp0new-version" 2> nul
+timeout /t 1 /nobreak > nul
+
+cls
+echo LIGHT UPDATER
+echo.
+echo Update completed successfully!
+echo.
+echo Starting LIGHT in 15 seconds...
 timeout /t 15 /nobreak > nul
 
 cd /d "%~dp0"
 start "" "LIGHT.exe"
 
 exit
-            `;
+`;
             
             fs.writeFileSync(updateScriptPath, scriptContent, 'utf8');
             
