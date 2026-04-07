@@ -216,7 +216,7 @@ const strings = {
         
         'UPDATE_TITLE': '{center}\nCONNECTING TO REPOSITORY...{/center}',
         'UPDATE_MAPPING': '{center}\n{yellow-fg}MAPPING REPOSITORY...{/}\nEstablishing secure link via PowerShell.{/center}',
-        'UPDATE_INSTALLING': '{center}\n{yellow-fg}INSTALLING UPDATE...{/}\n\nVersion: {version}\n\n[{bar}] {percentage}%\n\n{white-fg}Do not close the application.{/white-fg}{/center}',
+        'UPDATE_INSTALLING': '{center}\n{yellow-fg}INSTALLING UPDATE{/}\n\nVersion: {version}\n\n[{bar}] {percentage}%\n\n{white-fg}Do not close the application.{/white-fg}{/center}',
         'UPDATE_SECTOR': '{center}{grey-fg}{bold}Sector {current} of {total} | Synchronizing: {file}{/bold}{/grey-fg}{/center}',
         'UPDATE_COMPLETE_MSG': '{center}{bold}UPDATE SEQUENCE COMPLETE{/bold}{/center}',
         'UPDATE_COMPLETE': '{center}\n{green-fg}UPDATE INSTALLED{/green-fg}\n\nVersion: {version} is ready.\n\n{blink}PRESS [ENTER] TO RESTART{/center}',
@@ -892,7 +892,7 @@ The ones inside... they're not dead. They're waiting.
         
         'UPDATE_TITLE': '{center}\nCONECTANDO AO REPOSITÓRIO...{/center}',
         'UPDATE_MAPPING': '{center}\n{yellow-fg}MAPEANDO REPOSITÓRIO...{/}\nEstabelecendo link seguro via PowerShell.{/center}',
-        'UPDATE_INSTALLING': '{center}\n{yellow-fg}INSTALANDO ATUALIZAÇÃO...{/}\n\nVersão: {version}\n\n[{bar}] {percentage}%\n\n{white-fg}Não feche o jogo.{/white-fg}{/center}',
+        'UPDATE_INSTALLING': '{center}\n{yellow-fg}INSTALANDO ATUALIZAÇÃO{/}\n\nVersão: {version}\n\n[{bar}] {percentage}%\n\n{white-fg}Não feche o jogo.{/white-fg}{/center}',
         'UPDATE_SECTOR': '{center}{grey-fg}{bold}Setor {current} de {total} | Sincronizando: {file}{/bold}{/grey-fg}{/center}',
         'UPDATE_COMPLETE_MSG': '{center}{bold}SEQUÊNCIA DE ATUALIZAÇÃO CONCLUÍDA{/bold}{/center}',
         'UPDATE_COMPLETE': '{center}\n{green-fg}ATUALIZAÇÃO INSTALADA{/green-fg}\n\nVersão {version} está pronta.\n\n{blink}PRESSIONE [ENTER] PARA REINICIAR{/center}',
