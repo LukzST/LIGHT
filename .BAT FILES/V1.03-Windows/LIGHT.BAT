@@ -49,51 +49,51 @@ if exist "%STATUS_FILE%" (
 
 :DEPENDENCY_CHECKER
 cls
-echo CHECKER DE DEPENDENCIAS
+echo DEPENDENCY CHECKER
 echo.
 
-echo [1/3] Verificando Windows Package Manager...
+echo [1/3] Verifying Windows Package Manager...
 winget --version >nul 2>&1
 if %errorlevel% equ 0 (
     for /f "tokens=*" %%a in ('winget --version') do set W_VER=%%a
-    echo Versao detectada: !W_VER! [Compativel]
+    echo Version detected: !W_VER! [Compatible]
     timeout /t 3 >nul
 ) else (
-    echo [FALHA] Winget nao encontrado ou nao compativel.
+    echo [FAILED] Winget not found or not compatible.
     echo FALSE > "%STATUS_FILE%"
-    echo Por favor, instale o App Installer na Microsoft Store.
+    echo Please install the App Installer from the Microsoft Store.
     pause
     exit
 )
 
 cls
-echo [2/3] VERIFICANDO NODE.JS
+echo [2/3] VERIFYING NODE.JS
 echo.
 node -v >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [AVISO] Instalacao do Node.js nao encontrada.
+    echo [WARNING] Node.js installation not found.
     echo.
-    set /p choice="Deseja instalar Node.js agora via Winget? [Y/N]: "
+    set /p choice="Would you like to install Node.js now via Winget? [Y/N]: "
     
     if /i "!choice!"=="Y" (
         cls
-        echo Instalando Node.js...
+        echo Installing Node.js...
         winget install OpenJS.NodeJS
         if !errorlevel! equ 0 (
             echo.
-            echo Instalacao concluida! O sistema precisa reiniciar este script.
+            echo Installation complete! The system needs to restart this script.
             echo FALSE > "%STATUS_FILE%"
             timeout /t 3
             start "" "%SCRIPT_NAME%"
             exit
         ) else (
             cls
-            echo A instalacao automatica falhou.
+            echo Automatic installation failed.
             echo FALSE > "%STATUS_FILE%"
-            set /p browser="Abrir site oficial para download manual? [Y/N]: "
+            set /p browser="Open official website for manual download? [Y/N]: "
             if /i "!browser!"=="Y" (
                 start https://nodejs.org/en/download
-                echo Fechando em 10 segundos...
+                echo Closing in 10 seconds...
                 timeout /t 10
                 exit
             ) else (
@@ -101,46 +101,46 @@ if %errorlevel% neq 0 (
             )
         )
     ) else (
-        echo [INFO] Usuario recusou a instalacao. O jogo nao pode rodar.
+        echo [INFO] User declined installation. The game cannot run.
         echo FALSE > "%STATUS_FILE%"
         pause
         exit
     )
 ) else (
     for /f "tokens=*" %%v in ('node -v') do set NODE_VER=%%v
-    echo Node.js detectado: !NODE_VER!
+    echo Node.js detected: !NODE_VER!
     timeout /t 2 >nul
 )
 
 cls
-echo [3/3] VERIFICANDO BIBLIOTECAS (NPM)
+echo [3/3] VERIFYING LIBRARIES (NPM)
 echo.
 
 set "DEPS=blessed play-sound prompt-sync"
 set "NEEDS_RESTART=0"
 
 for %%d in (%DEPS%) do (
-    echo Verificando existencia da dependencia: %%d...
+    echo Verifying existence of dependency: %%d...
     if exist "ASSETS\node_modules\%%d" (
-        echo [OK] %%d ja esta presente.
+        echo [OK] %%d is already present.
         echo.
     ) else (
-        echo [AVISO] Dependencia %%d nao encontrada.
-        set /p dep_choice="Instalar %%d agora via NPM? [Y/N]: "
+        echo [WARNING] Dependency %%d not found.
+        set /p dep_choice="Install %%d now via NPM? [Y/N]: "
         if /i "!dep_choice!"=="Y" (
-            echo Instalando %%d... Aguarde.
+            echo Installing %%d... Please wait.
             call npm install %%d --silent --no-progress >nul 2>&1
             if !errorlevel! equ 0 (
-                echo [SUCESSO] %%d instalada com exito.
+                echo [SUCCESS] %%d installed successfully.
                 set "NEEDS_RESTART=1"
             ) else (
-                echo [ERRO] Falha critica ao instalar %%d.
+                echo [ERROR] Critical failure while installing %%d.
                 echo FALSE > "%STATUS_FILE%"
                 pause
                 exit
             )
         ) else (
-            echo [!] Sem as bibliotecas o jogo ira crashar.
+            echo [!] Without these libraries, the game will crash.
             echo FALSE > "%STATUS_FILE%"
             pause
             exit
@@ -152,7 +152,7 @@ for %%d in (%DEPS%) do (
 
 if "!NEEDS_RESTART!"=="1" (
     echo TRUE > "%STATUS_FILE%"
-    echo Bibliotecas configuradas. Reiniciando Boot...
+    echo Libraries configured. Restarting Boot...
     timeout /t 3
     start "" "%SCRIPT_NAME%"
     exit
@@ -162,12 +162,12 @@ echo TRUE > "%STATUS_FILE%"
 
 :BOOT_APPLICATION
 cls
-echo [SISTEMA] STATUS: TRUE
-echo [SISTEMA] Iniciando LIGHT...
+echo [SYSTEM] STATUS: TRUE
+echo [SYSTEM] Starting LIGHT...
 timeout /t 3 /nobreak >nul
 echo.
 
-where node >nul 2>&1 || (echo Erro: Node nao reconhecido no sistema. & pause & exit)
+where node >nul 2>&1 || (echo Error: Node not recognized by the system. & pause & exit)
 
 for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v CurrentBuild') do set BUILD=%%a
 set BUILD=!BUILD: =!
@@ -175,7 +175,7 @@ set BUILD=!BUILD: =!
 if exist "ASSETS" (
     cd /d "%ROOT%ASSETS"
 ) else (
-    echo [ERRO] Pasta ASSETS nao encontrada. Verifique os arquivos do jogo.
+    echo [ERROR] ASSETS folder not found. Please check game files.
     pause
     exit
 )
