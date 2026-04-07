@@ -1,7 +1,7 @@
 ::[Bat To Exe Converter]
 ::
 ::YAwzoRdxOk+EWAjk
-::fBw5plQjdCyDJGyX8VAjFDp4eSqtb0mGIrof/eX+4f6Unn44esMWRKX0/Zu9HMw6zW3QSbAE+Ft2pP1dQksLQj6CSScAlUJrkUyxCO6/nCGvQ0uGhg==
+::fBw5plQjdCyDJGqh2mMZFDd9ayy2AE2TKJQw1N6qobrUnmE0c8oLRKPy/Zy6H8kwxWuqfJUitg==
 ::YAwzuBVtJxjWCl3EqQJgSA==
 ::ZR4luwNxJguZRRnk
 ::Yhs/ulQjdF+5
@@ -26,13 +26,14 @@
 ::ZQ0/vhVqMQ3MEVWAtB9wSA==
 ::Zg8zqx1/OA3MEVWAtB9wSA==
 ::dhA7pRFwIByZRRnk
-::Zh4grVQjdCyDJGyX8VAjFDp4eSqtb0mGIrof/eX+4f6Unn44esMWRKX0/Zu9HMw6zW3QSbAE+Ft2pP1dQksLQj6CSScAlUJrkUyxecKEtm8=
+::Zh4grVQjdCyDJGqh2mMZFDd9ayy2AE2TKJQw1N6qobrUnmE0c8oLRKPy/Zy6buUL7yU=
 ::YB416Ek+ZG8=
 ::
 ::
 ::978f952a14a936cc963da21a135fa983
 @echo off
 setlocal enabledelayedexpansion
+
 set "ROOT=%~dp0"
 set "STATUS_DIR=%ROOT%ASSETS\STATUS"
 set "STATUS_FILE=%STATUS_DIR%\status.txt"
@@ -121,7 +122,7 @@ set "NEEDS_RESTART=0"
 
 for %%d in (%DEPS%) do (
     echo Verifying existence of dependency: %%d...
-    if exist "ASSETS\node_modules\%%d" (
+    if exist "%ROOT%ASSETS\node_modules\%%d" (
         echo [OK] %%d is already present.
         echo.
     ) else (
@@ -129,7 +130,9 @@ for %%d in (%DEPS%) do (
         set /p dep_choice="Install %%d now via NPM? [Y/N]: "
         if /i "!dep_choice!"=="Y" (
             echo Installing %%d... Please wait.
+            cd /d "%ROOT%ASSETS"
             call npm install %%d --silent --no-progress >nul 2>&1
+            cd /d "%ROOT%"
             if !errorlevel! equ 0 (
                 echo [SUCCESS] %%d installed successfully.
                 set "NEEDS_RESTART=1"
@@ -154,6 +157,7 @@ if "!NEEDS_RESTART!"=="1" (
     echo TRUE > "%STATUS_FILE%"
     echo Libraries configured. Restarting Boot...
     timeout /t 3
+    cd /d "%ROOT%"
     start "" "%SCRIPT_NAME%"
     exit
 )
@@ -172,16 +176,17 @@ where node >nul 2>&1 || (echo Error: Node not recognized by the system. & pause 
 for /f "tokens=3" %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v CurrentBuild') do set BUILD=%%a
 set BUILD=!BUILD: =!
 
-if exist "ASSETS" (
+if exist "%ROOT%ASSETS" (
     cd /d "%ROOT%ASSETS"
 ) else (
-    echo [ERROR] ASSETS folder not found. Please check game files.
+    echo [ERROR] ASSETS folder not found at %ROOT%ASSETS
+    echo Please check game files or run from correct location.
     pause
     exit
 )
 
 if %BUILD% GEQ 22000 (
-    node MENU.JS 
+    node MENU.JS
     exit
 ) else if %BUILD% GEQ 10240 (
     if exist "TERMINALPORTATIL\WT\wt.exe" (
