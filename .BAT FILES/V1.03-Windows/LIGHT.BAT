@@ -121,7 +121,7 @@ set "NEEDS_RESTART=0"
 
 for %%d in (%DEPS%) do (
     echo Verificando existencia da dependencia: %%d...
-    if exist "assets\node_modules\%%d" (
+    if exist "ASSETS\node_modules\%%d" (
         echo [OK] %%d ja esta presente.
         echo.
     ) else (
