@@ -506,7 +506,7 @@ const strings = {
 
         'VERIFYING_INTEGRITY': '{center}\n{yellow-fg}VERIFYING SYSTEM INTEGRITY...{/}\nComparing local sectors with repository.{/center}',
         'INTEGRITY_OK': '{center}\n{green-fg}INTEGRITY VERIFIED{/green-fg}\n\nAll local sectors match the master record.\n\n{grey-fg}PRESS [ESC] TO CLOSE{/grey-fg}{/center}',
-        'INTEGRITY_FAIL': '{center}\n{red-fg}INTEGRITY COMPROMISED{/red-fg}\n\nOne or more local sectors do not match the master record.\n\n{yellow-fg}PRESS [ENTER] TO APPLY RESOLUTION | PRESS [ESC] TO EXIT{/yellow-fg}{/center}',
+        'INTEGRITY_FAIL': '\n{center}{red-fg}INTEGRITY COMPROMISED{/red-fg}{/center}\n\n{center}One or more local sectors do not match the master record.{/center}\n\n{center}{yellow-fg}PRESS [ENTER] TO APPLY RESOLUTION | PRESS [ESC] TO EXIT{/yellow-fg}{/center}',
         'SUPPORT_WARNING': '\n{center}{bold}WARNING{/bold}{/center}',
         'SUPPORT_AUDIO_SAVED': '{center}Audio settings saved.{/center}',
         'SUPPORT_AUDIO_INIT': '{center}System audio initialized.{/center}',
@@ -674,6 +674,8 @@ The ones inside... they're not dead. They're waiting.
         'MEMORY_TERMINAL_TITLE': ' [ OPERATOR 06 MEMORY BANK ] ',
         'MEMORY_TERMINAL_ACCESS': ' > ACCESS MEMORY FRAGMENT ',
         'MEMORY_TERMINAL_SKIP': ' > SKIP ',
+
+        'UPDATE_ERROR': '{center}\n{red-fg}NETWORK ERROR{/red-fg}\n\nFailed to connect to GitHub repository.\n\n{yellow-fg}Try logging into your GitHub account{/yellow-fg}\nin the ACCOUNT menu to increase rate limit.\n\nCheck your internet connection and try again.{/center}',
     },
 
     'PT': {
@@ -1351,6 +1353,10 @@ Os que estão dentro... não estão mortos. Estão esperando.
         'MEMORY_TERMINAL_TITLE': ' [ BANCO DE MEMÓRIA - OPERADOR 06 ] ',
         'MEMORY_TERMINAL_ACCESS': ' > ACESSAR FRAGMENTO DE MEMÓRIA ',
         'MEMORY_TERMINAL_SKIP': ' > PULAR ',
+
+
+
+        'UPDATE_ERROR': '{center}\n{red-fg}ERRO DE REDE{/red-fg}\n\nFalha ao conectar ao repositório do GitHub.\n\n{yellow-fg}Tente fazer login na sua conta GitHub{/yellow-fg}\nno menu CONTA para aumentar o limite de requisições.\n\nVerifique sua conexão e tente novamente.{/center}',
     }
 };
 

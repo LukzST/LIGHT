@@ -165,11 +165,10 @@ function checkUpdates(callback) {
             }
         } catch (e) { callback(null); }
     });
-    
 }
 
 async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
-    const authHeader = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'; 'User-Agent'='LIGHT-Updater'}` : "-Headers @{'User-Agent'='LIGHT-Updater'}";
+    const authHeader = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'; 'User-Agent'='LIGHT-Updater'}` : "-Headers @{'Authorization'='token ${githubToken}'; 'User-Agent'='LIGHT-Updater'}";
     const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
     const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' ${authHeader}).tree | ConvertTo-Json -Compress"`;
 
@@ -178,71 +177,41 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
 
     exec(getTreeCmd, { maxBuffer: 1024 * 1024 * 10 }, async (error, stdout) => {
         if (error) {
-            statusWin.setContent(t('UPDATE_ERROR') + "\n(Rate Limit or Connection)");
+            statusWin.setContent(t('UPDATE_ERROR'));
             return screen.render();
         }
 
         try {
             const tree = JSON.parse(stdout);
             const targetPrefix = `FINAL/${version}/LIGHT/`;
-            const filesToUpdate = [];
-
             const remoteFiles = tree.filter(item => 
                 item.type === 'blob' && item.path.startsWith(targetPrefix) &&
-                !item.path.includes('/CONFIG/') && !item.path.includes('/Achievements/')
+                !item.path.includes('/CONFIG/') && !item.path.includes('/Achievements/') &&
+                !item.path.includes('/AUDIO/') && !item.path.includes('/TERMINALPORTATIL/')
             );
 
+            const newVersionPath = path.join(__dirname, '..', 'new-version');
+            if (fs.existsSync(newVersionPath)) {
+                try { fs.rmSync(newVersionPath, { recursive: true, force: true }); } catch(e) {}
+            }
+            fs.mkdirSync(newVersionPath, { recursive: true });
+
             for (let i = 0; i < remoteFiles.length; i++) {
-                const item = remoteFiles[i];
-                const relPath = item.path.replace(targetPrefix, '');
-                const destPath = path.join(__dirname, '..', relPath);
-
-                const checkPercentage = Math.round(((i + 1) / remoteFiles.length) * 100);
-                const checkBar = "█".repeat(Math.floor(checkPercentage / 3.3)) + "░".repeat(30 - Math.floor(checkPercentage / 3.3));
-                
-                statusWin.setContent(`${t('VERIFYING_INTEGRITY')}\n\n[${checkBar}] ${checkPercentage}%`);
-                descriptionBox.setContent(`{grey-fg}{bold}CHECKING: ${relPath}{/bold}{/grey-fg}`);
-                screen.render();
-
-                if (!fs.existsSync(destPath)) {
-                    filesToUpdate.push(item);
-                    continue;
-                }
-
-                const stats = fs.statSync(destPath);
-                if (stats.size !== item.size) {
-                    filesToUpdate.push(item);
-                }
-            }
-
-            if (filesToUpdate.length === 0) {
-                statusWin.style.border.fg = 'green';
-                statusWin.setContent(forceIntegrity ? t('INTEGRITY_OK') : t('UPDATE_COMPLETE', { version: version.replace('V', '') }));
-                descriptionBox.setContent(t('DESC_DEFAULT'));
-                screen.render();
-                blockMenuInput = false;
-                return;
-            }
-
-            blockMenuInput = true;
-            for (let i = 0; i < filesToUpdate.length; i++) {
-                const fileMetadata = filesToUpdate[i];
+                const fileMetadata = remoteFiles[i];
                 const relPath = fileMetadata.path.replace(targetPrefix, '');
-                const destPath = path.join(__dirname, '..', relPath);
+                const destPath = path.join(newVersionPath, relPath);
                 const fileUrl = `https://raw.githubusercontent.com/lukzst/LIGHT/main/${fileMetadata.path}`;
 
-                if (fs.existsSync(destPath)) {
-                    try { fs.unlinkSync(destPath); } catch (e) {}
-                }
-
-                const percentage = Math.round(((i) / filesToUpdate.length) * 100);
+                const percentage = Math.round(((i + 1) / remoteFiles.length) * 100);
                 const bar = "█".repeat(Math.floor(percentage / 3.3)) + "░".repeat(30 - Math.floor(percentage / 3.3));
 
                 statusWin.setContent(t('UPDATE_INSTALLING', { version: version.replace('V', ''), bar, percentage }));
-                descriptionBox.setContent(t('UPDATE_SECTOR', { current: i + 1, total: filesToUpdate.length, file: relPath }));
+                descriptionBox.setContent(t('UPDATE_SECTOR', { current: i + 1, total: remoteFiles.length, file: relPath }));
                 screen.render();
 
-                if (!fs.existsSync(path.dirname(destPath))) fs.mkdirSync(path.dirname(destPath), { recursive: true });
+                if (!fs.existsSync(path.dirname(destPath))) {
+                    fs.mkdirSync(path.dirname(destPath), { recursive: true });
+                }
                 
                 const dlCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iwr -Uri '${fileUrl}' -OutFile '${destPath}'"`;
                 await new Promise((res) => { exec(dlCmd, () => res()); });
@@ -253,9 +222,24 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
             screen.render();
             playsucesso();
             
+            const gameRoot = path.join(__dirname, '..');
+            const updateScriptPath = path.join(os.tmpdir(), 'lux4_update.bat');
+            
+            const scriptContent = `@echo off
+timeout /t 2 /nobreak > nul
+xcopy "${newVersionPath}\\*" "${gameRoot}\\" /E /H /C /Y /Q > nul
+rmdir /S /Q "${newVersionPath}" 2> nul
+start "" "${gameRoot}\\LIGHT.exe"
+exit`;
+            
+            fs.writeFileSync(updateScriptPath, scriptContent, 'utf8');
+            
             screen.onceKey(['enter'], () => {
-                const exePath = path.join(__dirname, '..', 'LIGHT.exe');
-                const child = spawn(exePath, [], { stdio: 'ignore', detached: true, windowsHide: false });
+                const child = spawn('cmd.exe', ['/c', 'start', '/min', updateScriptPath], {
+                    stdio: 'ignore',
+                    detached: true,
+                    windowsHide: true
+                });
                 child.unref();
                 process.exit(0);
             });
@@ -266,6 +250,157 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
             screen.render();
             blockMenuInput = false;
         }
+    });
+}
+
+async function showUpdateStatus() {
+    isupdating = true;
+    if (isUpdateInterfaceActive) return;
+    isUpdateInterfaceActive = true;
+
+    playwarning();
+    let canAcceptInput = false;
+    blockMenuInput = true;
+
+    const bgOverlay = blessed.box({
+        parent: screen,
+        top: 0, left: 0,
+        width: '100%', height: '100%',
+        style: { bg: 'black' },
+        index: 200
+    });
+
+    const statusWin = blessed.box({
+        parent: bgOverlay,
+        top: 'center', left: 'center',
+        width: 60, height: 12,
+        border: 'line',
+        tags: true,
+        content: t('UPDATE_TITLE'),
+        style: { border: { fg: COLORDEFAULT }, label: { fg: COLORDEFAULT, bold: true } }
+    });
+
+    screen.render();
+
+    async function handleRepair() {
+        screen.unkey('enter', handleRepair);
+        global.currentRepairFunc = null;
+        await downloadAndInstall(CURRENT_VERSION, statusWin, true);
+    }
+
+    async function handleNewUpdate() {
+        screen.unkey('enter', handleNewUpdate);
+        global.currentUpdateFunc = null;
+        await downloadAndInstall(global.latestVersionFound, statusWin, false);
+    }
+
+    async function handleIntegrityFix() {
+        screen.unkey('enter', handleIntegrityFix);
+        global.currentIntegrityFunc = null;
+        await downloadAndInstall(CURRENT_VERSION, statusWin, true);
+    }
+
+    checkUpdates(async (hasUpdate, version) => {
+        if (hasUpdate === null) {
+            statusWin.setContent(t('UPDATE_ERROR'));
+            screen.render();
+        } else if (hasUpdate) {
+            global.latestVersionFound = version;
+            statusWin.style.border.fg = 'magenta';
+            statusWin.setContent(t('UPDATE_DETECTED', { version, time: "CALCULATING..." }));
+            screen.render();
+
+            canAcceptInput = true;
+            global.currentUpdateFunc = handleNewUpdate;
+            screen.onceKey(['enter'], handleNewUpdate);
+
+        } else {
+            statusWin.setContent(t('VERIFYING_INTEGRITY'));
+            screen.render();
+
+            const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
+            const authHeader = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'}` : "";
+            const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' ${authHeader}).tree | Where-Object {$_.path -like 'FINAL/${CURRENT_VERSION}/LIGHT/*'} | ConvertTo-Json -Compress"`;
+
+            exec(getTreeCmd, { maxBuffer: 1024 * 1024 * 10 }, async (error, stdout) => {
+                if (error) {
+                    statusWin.setContent(t('UPDATE_ERROR'));
+                    return screen.render();
+                }
+
+                const tree = JSON.parse(stdout);
+                const targetPrefix = `FINAL/${CURRENT_VERSION}/LIGHT/`;
+                let corruptedFiles = [];
+
+                for (const item of tree) {
+                    if (item.type !== 'blob' || item.path.includes('/CONFIG/') || item.path.includes('/Achievements/')) continue;
+                    const relPath = item.path.replace(targetPrefix, '');
+                    const destPath = path.join(__dirname, '..', relPath);
+                    
+                    if (!fs.existsSync(destPath)) {
+                        corruptedFiles.push(item);
+                    } else {
+                        const stats = fs.statSync(destPath);
+                        if (stats.size !== item.size) {
+                            corruptedFiles.push(item);
+                        }
+                    }
+                }
+
+                if (corruptedFiles.length === 0) {
+                    statusWin.style.border.fg = 'green';
+                    statusWin.setContent(t('INTEGRITY_OK'));
+                    descriptionBox.setContent(t('PRESS_ENTER_TO_CONTINUE'));
+                    screen.render();
+                    
+                    canAcceptInput = true;
+                    global.currentIntegrityFunc = () => {
+                        bgOverlay.destroy();
+                        isUpdateInterfaceActive = false;
+                        isupdating = false;
+                        blockMenuInput = false;
+                        mainList.focus();
+                        screen.render();
+                    };
+                    screen.onceKey(['enter'], global.currentIntegrityFunc);
+                } else {
+                    statusWin.style.border.fg = 'red';
+                    statusWin.setContent(t('INTEGRITY_FAIL', { count: corruptedFiles.length }));
+                    descriptionBox.setContent(t('PRESS_ENTER_TO_REPAIR'));
+                    screen.render();
+                    
+                    canAcceptInput = true;
+                    global.currentRepairFunc = handleIntegrityFix;
+                    screen.onceKey(['enter'], handleIntegrityFix);
+                }
+                screen.render();
+            });
+        }
+    });
+
+    screen.key(['escape'], function escUpdate() {
+        if (blockMenuInput && statusWin.getContent().includes('█')) return;
+
+        if (global.currentRepairFunc) {
+            screen.unkey('enter', global.currentRepairFunc);
+            global.currentRepairFunc = null;
+        }
+        if (global.currentUpdateFunc) {
+            screen.unkey('enter', global.currentUpdateFunc);
+            global.currentUpdateFunc = null;
+        }
+        if (global.currentIntegrityFunc) {
+            screen.unkey('enter', global.currentIntegrityFunc);
+            global.currentIntegrityFunc = null;
+        }
+
+        playback();
+        bgOverlay.destroy();
+        isUpdateInterfaceActive = false;
+        isupdating = false;
+        blockMenuInput = false;
+        mainList.focus();
+        screen.render();
     });
 }
 
