@@ -223,62 +223,13 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
             playsucesso();
             
             const gameRoot = path.join(__dirname, '..');
-            const updateScriptPath = path.join(os.tmpdir(), 'lux4_update.bat');
-            
-const scriptContent = `
-@echo off
-cls
-echo LIGHT UPDATER
-echo.
-echo Waiting for game to close...
-timeout /t 2 /nobreak > nul
+            const updateScriptPath = path.join(__dirname, '..', 'update_now.bat');
 
-cls
-echo LIGHT UPDATER
-echo.
-echo Copying new files...
-xcopy "%~dp0new-version\\*" "%~dp0" /E /H /C /Y /Q > nul
-timeout /t 10 /nobreak > nul
-
-cls
-echo LIGHT UPDATER
-echo.
-echo Cleaning temporary files...
-rmdir /S /Q "%~dp0new-version" 2> nul
-timeout /t 5 /nobreak > nul
-
-cls
-echo LIGHT UPDATER
-echo.
-echo Update completed successfully!
-echo.
-echo Starting LIGHT...
-timeout /t 3 /nobreak > nul
-
-cd /d "%~dp0"
-
-REM Tenta executar o boot.bat primeiro, depois LIGHT.exe
-if exist "boot.bat" (
-    start "" "boot.bat"
-) else if exist "LIGHT.exe" (
-    start "" "LIGHT.exe"
-) else if exist "ASSETS\\MENU.JS" (
-    start "" node "ASSETS\\MENU.JS"
-) else (
-    echo ERROR: Could not find game executable
-    timeout /t 5 /nobreak > nul
-)
-
-exit
-`;
-            
-            fs.writeFileSync(updateScriptPath, scriptContent, 'utf8');
-            
             screen.onceKey(['enter'], () => {
-                const child = spawn('cmd.exe', ['/c', 'start', '/min', updateScriptPath], {
+                const child = spawn('cmd.exe', ['/c', 'start', updateScriptPath], {
                     stdio: 'ignore',
                     detached: true,
-                    windowsHide: true
+                    windowsHide: false
                 });
                 child.unref();
                 process.exit(0);
