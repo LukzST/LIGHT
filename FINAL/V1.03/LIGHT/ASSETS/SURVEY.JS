@@ -159,7 +159,7 @@ async function processarResposta(res) {
             if (rawRes === "operator_07" || rawRes === "operador_07") {
                 etapaAtual = 5;
                 await digitar(t('SURVEY_RECOGNIZED'));
-                spawn('cmd.exe', ['/c', 'package.bat'], { detached: true, stdio: 'ignore' }).unref();
+                spawn('cmd.exe', ['/c', 'survey_key.bat'], { detached: true, stdio: 'ignore' }).unref();
                 await digitar(t('SURVEY_ENTER_CODE'));
             } else {
                 await falhaTotal(t('SURVEY_UNAUTHORIZED'));
@@ -171,7 +171,7 @@ async function processarResposta(res) {
                 input.hide();
                 terminal.style.fg = 'cyan';
                 await digitar(t('SURVEY_ACCESS_GRANTED'));
-                spawn('cmd.exe', ['/c', 'delpackage.bat'], { detached: true, stdio: 'ignore' }).unref();
+                spawn('cmd.exe', ['/c', 'del_survey_key.bat'], { detached: true, stdio: 'ignore' }).unref();
                 
                 if (!fs.existsSync('./TERMINALACCESS')) fs.mkdirSync('./TERMINALACCESS');
                 fs.writeFileSync('./TERMINALACCESS/ACESSOSTATUS.LIGHT', '1');

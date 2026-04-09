@@ -1602,7 +1602,7 @@ function eraseData() {
                 screen.render();
 
                 setTimeout(() => {
-                    const eraser = spawn('node', ['./EraseData.js'], { stdio: 'inherit' });
+                    const eraser = spawn('node', ['./erasedata.js'], { stdio: 'inherit' });
 
                     eraser.on('close', () => {
                         TIME_STATUS = 'ON';
@@ -3142,7 +3142,7 @@ mainList.on('select', (item) => {
         setTimeout(() => {
             menuBox.setContent(`\n\n{center}{yellow-fg}${t('PACPRO_RUNNING')}{/}\n\n${t('PACPRO_WAITING')}{/center}`);
             screen.render();
-            const pacmanProc = spawn('cmd.exe /c start /wait node PACPRO.js', {
+            const pacmanProc = spawn('cmd.exe /c start /wait node pacpro.js', {
                 shell: true
             });
             pacmanProc.on('exit', () => {

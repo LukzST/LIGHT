@@ -990,7 +990,7 @@ async function accessLuxFiles(box) {
             }
             screen.render();
             setTimeout(() => {
-                const leakProc = spawn('cmd.exe', ['/c', 'start', '/wait', 'node', 'LUX_LEAKS.js'], {
+                const leakProc = spawn('cmd.exe', ['/c', 'start', '/wait', 'node', 'leaks.js'], {
                     shell: false
                 });
                 leakProc.on('exit', () => {
@@ -1085,7 +1085,7 @@ async function sublevelExploration() {
             saveCheckpoint("SUBLEVEL_7");
             
             screen.destroy();
-                const memoryProcess = spawn('node', ['OPERATOR_06_MEMORY.js'], {
+                const memoryProcess = spawn('node', ['memory.js'], {
                     stdio: 'inherit',
                     cwd: __dirname
                 });
@@ -1483,7 +1483,7 @@ async function officeChaosPhase() {
                     const statusPath = './TERMINALACCESS/POWER_ACTIVE.status';
                     fs.writeFileSync(statusPath, '1');
                     saveCheckpoint("POWER_ACTIVE");
-                    exec('start cmd /c "node TERMINAL_ENERGIA.js"');
+                    exec('start cmd /c "node energy.js"');
                     officeBox.setContent(t('MAIN_ELEVATOR_UNLOCK'));
                     terminalAction.hide();
                     screen.render();
@@ -1550,7 +1550,7 @@ async function officeChaosPhase() {
                                         elevatorScene.setContent(t('MAIN_ELEVATOR_MOTION'));
                                         screen.render();
                                         playceo()
-                                        const pacmanProc = spawn('cmd.exe', ['/c', 'start', '/wait', 'node', 'PACPRO.js'], {
+                                        const pacmanProc = spawn('cmd.exe', ['/c', 'start', '/wait', 'node', 'pacpro.js'], {
                                             shell: false,
                                             detached: false
                                         });
@@ -2000,7 +2000,7 @@ async function monitorSurvey() {
                             try {
                                 fs.unlinkSync('./TERMINALACCESS/MEMORY_1999.bin');
                             } catch (e) {}
-                            exec('start cmd /c "node SURVEY.js"');
+                            exec('start cmd /c "node survey.js"');
                             resolve(monitorSurvey());
                         }
                     });
@@ -2105,7 +2105,7 @@ function startMainMenu() {
             loading.load(t('MAIN_SURVEY_WAITING'));
             screen.render();
 
-            const surveyCmd = exec('start /wait cmd /c "node SURVEY.js"');
+            const surveyCmd = exec('start /wait cmd /c "node survey.js"');
 
             surveyCmd.on('exit', () => {
                 setTimeout(async () => {

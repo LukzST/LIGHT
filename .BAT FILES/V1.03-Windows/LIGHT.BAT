@@ -1,7 +1,7 @@
 ::[Bat To Exe Converter]
 ::
 ::YAwzoRdxOk+EWAjk
-::fBw5plQjdCyDJGqh2mMZFDd9ayy2AE2TKJQw1N6qobrUnmE0c8oLRKPy/Zy6H8kwxWuqfJUitg==
+::fBw5plQjdCyDJGqh2mMZFDd9ayy2AE2TKJQw1N6qobrUnmE0c8oLRKb49Zq9HMw6zW3QSr8O+VRlrppCXEgWdxGkDg==
 ::YAwzuBVtJxjWCl3EqQJgSA==
 ::ZR4luwNxJguZRRnk
 ::Yhs/ulQjdF+5
