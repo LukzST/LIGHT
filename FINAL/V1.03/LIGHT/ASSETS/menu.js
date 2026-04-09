@@ -5,7 +5,6 @@ const { spawn } = require('child_process');
 const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
 const { t, setLanguage, getLanguage } = require('./translate.js');
 
 let isBooting = true;
@@ -188,9 +187,7 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
             const remoteFiles = tree.filter(item => 
                 item.type === 'blob' && item.path.startsWith(targetPrefix) &&
                 !item.path.includes('/CONFIG/') && !item.path.includes('/Achievements/') &&
-                !item.path.includes('/AUDIO/') && !item.path.includes('/TERMINALPORTATIL/') &&
-                !item.path.includes('/_update/') && !item.path.includes('/backup_old/') &&
-                !item.path.includes('/node_modules/')
+                !item.path.includes('/AUDIO/') && !item.path.includes('/TERMINALPORTATIL/')
             );
 
             const newVersionPath = path.join(__dirname, '..', '_update');
@@ -350,35 +347,16 @@ async function showUpdateStatus() {
                 let corruptedFiles = [];
 
                 for (const item of tree) {
-                    if (item.type !== 'blob' || 
-                        item.path.includes('/CONFIG/') || 
-                        item.path.includes('/Achievements/') || 
-                        item.path.includes('/AUDIO/') || 
-                        item.path.includes('/TERMINALPORTATIL/') || 
-                        item.path.includes('/_update/') || 
-                        item.path.includes('/backup_old/') || 
-                        item.path.includes('/node_modules/') ||
-                        item.path.includes('/ASSETS/STATUS/')) continue;
-                    
+                    if (item.type !== 'blob' || item.path.includes('/CONFIG/') || item.path.includes('/Achievements/') || item.path.includes('/AUDIO/') || item.path.includes('/TERMINALPORTATIL/')) continue;
                     const relPath = item.path.replace(targetPrefix, '');
                     const destPath = path.join(__dirname, '..', relPath);
                     
                     if (!fs.existsSync(destPath)) {
-                        corruptedFiles.push(relPath);
+                        corruptedFiles.push(item);
                     } else {
                         const stats = fs.statSync(destPath);
-                        // Primeiro verifica tamanho (rápido)
                         if (stats.size !== item.size) {
-                            // Se tamanho diferente, verifica SHA para confirmar
-                            try {
-                                const fileBuffer = fs.readFileSync(destPath);
-                                const hash = crypto.createHash('sha1').update(fileBuffer).digest('hex');
-                                if (hash !== item.sha) {
-                                    corruptedFiles.push(relPath);
-                                }
-                            } catch (e) {
-                                corruptedFiles.push(relPath);
-                            }
+                            corruptedFiles.push(item);
                         }
                     }
                 }
@@ -400,19 +378,8 @@ async function showUpdateStatus() {
                     };
                     screen.onceKey(['enter'], global.currentIntegrityFunc);
                 } else {
-                    let errorMsg = t('INTEGRITY_FAIL', { count: corruptedFiles.length });
-                    
-                    // Mostra os primeiros 5 arquivos corrompidos
-                    errorMsg += `\n\n{yellow-fg}Corrupted files:{/yellow-fg}\n`;
-                    corruptedFiles.slice(0, 5).forEach(f => {
-                        errorMsg += `{white-fg}  - ${f}{/white-fg}\n`;
-                    });
-                    if (corruptedFiles.length > 5) {
-                        errorMsg += `  ... and ${corruptedFiles.length - 5} more\n`;
-                    }
-                    
                     statusWin.style.border.fg = 'red';
-                    statusWin.setContent(errorMsg);
+                    statusWin.setContent(t('INTEGRITY_FAIL', { count: corruptedFiles.length }));
                     descriptionBox.setContent(t('PRESS_ENTER_TO_REPAIR'));
                     screen.render();
                     
