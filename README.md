@@ -45,5 +45,5 @@
    ### Boot Protocol
    1. Clone the repository:
       ```bash
-      git clone https://github.com/LukzST/LIGHT.git
+      git clone https://github.com/Lukzxdd/LIGHT.git
    
