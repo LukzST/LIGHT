@@ -221,6 +221,9 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
             statusWin.setContent(t('UPDATE_COMPLETE', { version: version.replace('V', '') }));
             screen.render();
             playsucesso();
+            
+            const gameRoot = path.join(__dirname, '..');
+            const updateScriptPath = path.join(__dirname, '..', 'update_now.bat');
 
             const backupPath = path.join(__dirname, '..', 'backup_old');
             if (fs.existsSync(backupPath)) {
@@ -244,9 +247,6 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
                     } catch(e) {}
                 }
             }
-            
-            const gameRoot = path.join(__dirname, '..');
-            const updateScriptPath = path.join(__dirname, '..', 'update_now.bat');
 
             screen.onceKey(['enter'], () => {
                 const child = spawn('cmd.exe', ['/c', 'start', updateScriptPath], {
