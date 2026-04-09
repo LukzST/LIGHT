@@ -190,7 +190,7 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
                 !item.path.includes('/AUDIO/') && !item.path.includes('/TERMINALPORTATIL/')
             );
 
-            const newVersionPath = path.join(__dirname, '..', 'new-version');
+            const newVersionPath = path.join(__dirname, '..', '_update');
             if (fs.existsSync(newVersionPath)) {
                 try { fs.rmSync(newVersionPath, { recursive: true, force: true }); } catch(e) {}
             }
@@ -221,6 +221,29 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
             statusWin.setContent(t('UPDATE_COMPLETE', { version: version.replace('V', '') }));
             screen.render();
             playsucesso();
+
+            const backupPath = path.join(__dirname, '..', 'backup_old');
+            if (fs.existsSync(backupPath)) {
+                try { fs.rmSync(backupPath, { recursive: true, force: true }); } catch(e) {}
+            }
+            fs.mkdirSync(backupPath, { recursive: true });
+
+            const excludeFromBackup = ['CONFIG', 'Achievements', 'AUDIO', 'TERMINALPORTATIL', '_update', 'backup_old'];
+            const filesToBackup = fs.readdirSync(gameRoot);
+            
+            for (const file of filesToBackup) {
+                if (!excludeFromBackup.includes(file)) {
+                    const src = path.join(gameRoot, file);
+                    const dest = path.join(backupPath, file);
+                    try {
+                        if (fs.statSync(src).isDirectory()) {
+                            fs.cpSync(src, dest, { recursive: true, force: true });
+                        } else {
+                            fs.copyFileSync(src, dest);
+                        }
+                    } catch(e) {}
+                }
+            }
             
             const gameRoot = path.join(__dirname, '..');
             const updateScriptPath = path.join(__dirname, '..', 'update_now.bat');

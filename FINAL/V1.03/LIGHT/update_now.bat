@@ -9,14 +9,14 @@ cls
 echo LIGHT UPDATER
 echo.
 echo Copying new files...
-xcopy "%~dp0new-version\*" "%~dp0" /E /H /C /Y /Q > nul
+xcopy "%~dp0_update\*" "%~dp0" /E /H /C /Y /Q > nul
 timeout /t 10 /nobreak > nul
 
 cls
 echo LIGHT UPDATER
 echo.
 echo Cleaning temporary files...
-rmdir /S /Q "%~dp0new-version" 2> nul
+rmdir /S /Q "%~dp0_update" 2> nul
 timeout /t 5 /nobreak > nul
 
 cls
