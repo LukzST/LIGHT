@@ -5,6 +5,7 @@ const { spawn } = require('child_process');
 const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { t, setLanguage, getLanguage } = require('./translate.js');
 
 let isBooting = true;
@@ -363,11 +364,21 @@ async function showUpdateStatus() {
                     const destPath = path.join(__dirname, '..', relPath);
                     
                     if (!fs.existsSync(destPath)) {
-                        corruptedFiles.push(item);
+                        corruptedFiles.push(relPath);
                     } else {
                         const stats = fs.statSync(destPath);
+                        // Primeiro verifica tamanho (rápido)
                         if (stats.size !== item.size) {
-                            corruptedFiles.push(item);
+                            // Se tamanho diferente, verifica SHA para confirmar
+                            try {
+                                const fileBuffer = fs.readFileSync(destPath);
+                                const hash = crypto.createHash('sha1').update(fileBuffer).digest('hex');
+                                if (hash !== item.sha) {
+                                    corruptedFiles.push(relPath);
+                                }
+                            } catch (e) {
+                                corruptedFiles.push(relPath);
+                            }
                         }
                     }
                 }
@@ -389,8 +400,19 @@ async function showUpdateStatus() {
                     };
                     screen.onceKey(['enter'], global.currentIntegrityFunc);
                 } else {
+                    let errorMsg = t('INTEGRITY_FAIL', { count: corruptedFiles.length });
+                    
+                    // Mostra os primeiros 5 arquivos corrompidos
+                    errorMsg += `\n\n{yellow-fg}Corrupted files:{/yellow-fg}\n`;
+                    corruptedFiles.slice(0, 5).forEach(f => {
+                        errorMsg += `{white-fg}  - ${f}{/white-fg}\n`;
+                    });
+                    if (corruptedFiles.length > 5) {
+                        errorMsg += `  ... and ${corruptedFiles.length - 5} more\n`;
+                    }
+                    
                     statusWin.style.border.fg = 'red';
-                    statusWin.setContent(t('INTEGRITY_FAIL', { count: corruptedFiles.length }));
+                    statusWin.setContent(errorMsg);
                     descriptionBox.setContent(t('PRESS_ENTER_TO_REPAIR'));
                     screen.render();
                     
