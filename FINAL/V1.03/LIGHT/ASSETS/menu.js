@@ -349,7 +349,16 @@ async function showUpdateStatus() {
                 let corruptedFiles = [];
 
                 for (const item of tree) {
-                    if (item.type !== 'blob' || item.path.includes('/CONFIG/') || item.path.includes('/Achievements/') || item.path.includes('/AUDIO/') || item.path.includes('/TERMINALPORTATIL/') || item.path.includes('/_update/') || item.path.includes('/backup_old/') || item.path.includes('/node_modules/')) continue;
+                    if (item.type !== 'blob' || 
+                        item.path.includes('/CONFIG/') || 
+                        item.path.includes('/Achievements/') || 
+                        item.path.includes('/AUDIO/') || 
+                        item.path.includes('/TERMINALPORTATIL/') || 
+                        item.path.includes('/_update/') || 
+                        item.path.includes('/backup_old/') || 
+                        item.path.includes('/node_modules/') ||
+                        item.path.includes('/ASSETS/STATUS/')) continue;
+                    
                     const relPath = item.path.replace(targetPrefix, '');
                     const destPath = path.join(__dirname, '..', relPath);
                     
