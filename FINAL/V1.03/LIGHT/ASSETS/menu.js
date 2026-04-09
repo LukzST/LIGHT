@@ -187,7 +187,8 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
             const remoteFiles = tree.filter(item => 
                 item.type === 'blob' && item.path.startsWith(targetPrefix) &&
                 !item.path.includes('/CONFIG/') && !item.path.includes('/Achievements/') &&
-                !item.path.includes('/AUDIO/') && !item.path.includes('/TERMINALPORTATIL/')
+                !item.path.includes('/AUDIO/') && !item.path.includes('/TERMINALPORTATIL/') &&
+                !item.path.includes('/_update/') && !item.path.includes('/backup_old/')
             );
 
             const newVersionPath = path.join(__dirname, '..', '_update');
