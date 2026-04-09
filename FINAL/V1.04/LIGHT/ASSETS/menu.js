@@ -1,4 +1,4 @@
-const CURRENT_VERSION = "V1.03";
+const CURRENT_VERSION = "V1.04";
 const blessed = require('blessed');
 const os = require('os');
 const { spawn } = require('child_process');
