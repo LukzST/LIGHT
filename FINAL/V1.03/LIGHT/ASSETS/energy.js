@@ -22,6 +22,7 @@ let energia = 85, sanidade = 100, saude = 100, passoAtual = 0;
 let audiostate = 'ON';
 let bgmProcess = null;
 
+
 const protocolosBase = [
     { id: 0, text: t('ENERGIA_PROTOCOL_0') },
     { id: 1, text: t('ENERGIA_PROTOCOL_1') },

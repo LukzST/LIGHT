@@ -26,6 +26,7 @@ const ACHIEVEMENT_NAMES = {
     'LEAK_SAVED': 'WHISTLEBLOWER'
 };
 
+
 function showAchievementToast(id) {
     const name = ACHIEVEMENT_NAMES[id] || id;
     

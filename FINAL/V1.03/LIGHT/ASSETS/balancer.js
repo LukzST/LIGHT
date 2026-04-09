@@ -68,6 +68,8 @@ const infoBox = blessed.box({
     style: { fg: 'green' }
 });
 
+
+
 const track = blessed.box({
     parent: mainBox, top: 'center', left: 'center', width: '80%', height: 3,
     style: { bg: '#111' }, border: { type: 'line', fg: '#333' }, hidden: true

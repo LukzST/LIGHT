@@ -22,6 +22,7 @@ function wipeSystem() {
             fs.unlinkSync(gameoverFile);
         }
 
+        
        
         if (fs.existsSync(terminalAccessPath)) {
             

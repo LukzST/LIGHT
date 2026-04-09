@@ -185,6 +185,7 @@ async function processarResposta(res) {
     }
     input.focus();
     screen.render();
+    
 }
 
 input.on('submit', (value) => {

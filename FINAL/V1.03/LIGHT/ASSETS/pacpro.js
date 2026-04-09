@@ -23,6 +23,7 @@ if (fs.existsSync(achFile)) {
     } catch (e) {}
 }
 
+
 function execGameOver(reason) {
     gameActive = false;
     stopAudio();
