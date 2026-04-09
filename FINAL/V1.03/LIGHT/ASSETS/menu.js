@@ -273,7 +273,6 @@ async function showUpdateStatus() {
     isUpdateInterfaceActive = true;
 
     playwarning();
-    let canAcceptInput = false;
     blockMenuInput = true;
 
     const bgOverlay = blessed.box({
@@ -296,118 +295,50 @@ async function showUpdateStatus() {
 
     screen.render();
 
-    async function handleRepair() {
-        screen.unkey('enter', handleRepair);
-        global.currentRepairFunc = null;
-        await downloadAndInstall(CURRENT_VERSION, statusWin, true);
-    }
-
     async function handleNewUpdate() {
         screen.unkey('enter', handleNewUpdate);
         global.currentUpdateFunc = null;
         await downloadAndInstall(global.latestVersionFound, statusWin, false);
     }
 
-    async function handleIntegrityFix() {
-        screen.unkey('enter', handleIntegrityFix);
-        global.currentIntegrityFunc = null;
-        await downloadAndInstall(CURRENT_VERSION, statusWin, true);
-    }
-
     checkUpdates(async (hasUpdate, version) => {
         if (hasUpdate === null) {
             statusWin.setContent(t('UPDATE_ERROR'));
             screen.render();
+            setTimeout(() => {
+                bgOverlay.destroy();
+                isUpdateInterfaceActive = false;
+                isupdating = false;
+                blockMenuInput = false;
+                mainList.focus();
+                screen.render();
+            }, 2000);
         } else if (hasUpdate) {
             global.latestVersionFound = version;
             statusWin.style.border.fg = 'magenta';
-            statusWin.setContent(t('UPDATE_DETECTED', { version, time: "CALCULATING..." }));
+            statusWin.setContent(t('UPDATE_DETECTED', { version: version.replace('V', ''), time: "CALCULATING..." }));
             screen.render();
 
-            canAcceptInput = true;
             global.currentUpdateFunc = handleNewUpdate;
             screen.onceKey(['enter'], handleNewUpdate);
-
         } else {
-            statusWin.setContent(t('VERIFYING_INTEGRITY'));
+            statusWin.style.border.fg = 'green';
+            statusWin.setContent(t('UPDATE_CURRENT', { version: CURRENT_VERSION.replace('V', '') }));
+            descriptionBox.setContent(t('PRESS_ENTER_TO_CONTINUE'));
             screen.render();
-
-            const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
-            const authHeader = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'}` : "";
-            const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' ${authHeader}).tree | Where-Object {$_.path -like 'FINAL/${CURRENT_VERSION}/LIGHT/*'} | ConvertTo-Json -Compress"`;
-
-            exec(getTreeCmd, { maxBuffer: 1024 * 1024 * 10 }, async (error, stdout) => {
-                if (error) {
-                    statusWin.setContent(t('UPDATE_ERROR'));
-                    return screen.render();
-                }
-
-                const tree = JSON.parse(stdout);
-                const targetPrefix = `FINAL/${CURRENT_VERSION}/LIGHT/`;
-                let corruptedFiles = [];
-
-                for (const item of tree) {
-                    if (item.type !== 'blob' || item.path.includes('/CONFIG/') || item.path.includes('/Achievements/') || item.path.includes('/AUDIO/') || item.path.includes('/TERMINALPORTATIL/')) continue;
-                    const relPath = item.path.replace(targetPrefix, '');
-                    const destPath = path.join(__dirname, '..', relPath);
-                    
-                    if (!fs.existsSync(destPath)) {
-                        corruptedFiles.push(item);
-                    } else {
-                        const stats = fs.statSync(destPath);
-                        if (stats.size !== item.size) {
-                            corruptedFiles.push(item);
-                        }
-                    }
-                }
-
-                if (corruptedFiles.length === 0) {
-                    statusWin.style.border.fg = 'green';
-                    statusWin.setContent(t('INTEGRITY_OK'));
-                    descriptionBox.setContent(t('PRESS_ENTER_TO_CONTINUE'));
-                    screen.render();
-                    
-                    canAcceptInput = true;
-                    global.currentIntegrityFunc = () => {
-                        bgOverlay.destroy();
-                        isUpdateInterfaceActive = false;
-                        isupdating = false;
-                        blockMenuInput = false;
-                        mainList.focus();
-                        screen.render();
-                    };
-                    screen.onceKey(['enter'], global.currentIntegrityFunc);
-                } else {
-                    statusWin.style.border.fg = 'red';
-                    statusWin.setContent(t('INTEGRITY_FAIL', { count: corruptedFiles.length }));
-                    descriptionBox.setContent(t('PRESS_ENTER_TO_REPAIR'));
-                    screen.render();
-                    
-                    canAcceptInput = true;
-                    global.currentRepairFunc = handleIntegrityFix;
-                    screen.onceKey(['enter'], handleIntegrityFix);
-                }
+            
+            screen.onceKey(['enter'], () => {
+                bgOverlay.destroy();
+                isUpdateInterfaceActive = false;
+                isupdating = false;
+                blockMenuInput = false;
+                mainList.focus();
                 screen.render();
             });
         }
     });
 
     screen.key(['escape'], function escUpdate() {
-        if (blockMenuInput && statusWin.getContent().includes('█')) return;
-
-        if (global.currentRepairFunc) {
-            screen.unkey('enter', global.currentRepairFunc);
-            global.currentRepairFunc = null;
-        }
-        if (global.currentUpdateFunc) {
-            screen.unkey('enter', global.currentUpdateFunc);
-            global.currentUpdateFunc = null;
-        }
-        if (global.currentIntegrityFunc) {
-            screen.unkey('enter', global.currentIntegrityFunc);
-            global.currentIntegrityFunc = null;
-        }
-
         playback();
         bgOverlay.destroy();
         isUpdateInterfaceActive = false;
