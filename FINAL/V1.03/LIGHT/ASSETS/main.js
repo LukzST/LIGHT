@@ -1000,6 +1000,7 @@ async function accessLuxFiles(box) {
                     box.setContent(t('MAIN_BREACH'));
                     screen.render();
                     
+                    
                     screen.key(['enter', 'escape'], () => setTimeout(() => {
                         stopAudio()
                         setTimeout(() => {
