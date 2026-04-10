@@ -223,7 +223,7 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
             playsucesso();
             
             const gameRoot = path.join(__dirname, '..');
-            const updateScriptPath = path.join(__dirname, '..', 'update_now.bat');
+            const updateScriptPath = path.join(__dirname, '..', 'Updater.exe');
 
             const backupPath = path.join(__dirname, '..', 'backup_old');
             if (fs.existsSync(backupPath)) {
