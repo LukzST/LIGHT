@@ -695,6 +695,15 @@ The ones inside... they're not dead. They're waiting.
 'UPDATE_ERROR_TITLE': ' [ UPDATE FAILED ] ',
 'UPDATE_ERROR_MSG': '{red-fg}Download failed!{/}\n\n{error}\n\nPress ENTER to continue.',
 'UPDATE_IRREVERSIBLE': 'This action is IRREVERSIBLE!',
+'UPDATE_CHECKING': '{center}{yellow-fg}CHECKING FILES...{/}{/center}',
+'UPDATE_COMPARING': '{center}{cyan-fg}COMPARING BYTE BY BYTE...{/}{/center}',
+'UPDATE_ESTIMATED_TIME': '{center}{grey-fg}Estimated time: {time}{/}{/center}',
+'UPDATE_CORRUPTED_FOUND': '{center}{red-fg}{count} CORRUPTED FILE(S) FOUND{/}{/center}',
+'UPDATE_ALL_GOOD': '{center}{green-fg}ALL FILES ARE GOOD!{/}{/center}',
+'UPDATE_REPAIR_PROMPT': '{center}{yellow-fg}PRESS ENTER TO REPAIR{/}\n{white-fg}PRESS ESC TO CANCEL{/}{/center}',
+'UPDATE_DOWNLOADING_FILE': '{center}{yellow-fg}DOWNLOADING{/} {file}{/center}',
+'UPDATE_BYTES_DOWNLOADED': '{center}{grey-fg}{current} / {total} bytes{/}{/center}',
+'UPDATE_TIME_REMAINING': '{center}{grey-fg}Time remaining: {time}{/}{/center}',
     },
 
     'PT': {
@@ -1396,6 +1405,15 @@ Os que estão dentro... não estão mortos. Estão esperando.
 'UPDATE_ERROR_TITLE': ' [ FALHA NA ATUALIZAÇÃO ] ',
 'UPDATE_ERROR_MSG': '{red-fg}Falha no download!{/}\n\n{error}\n\nPressione ENTER para continuar.',
 'UPDATE_IRREVERSIBLE': 'Esta ação é IRREVERSÍVEL!',
+'UPDATE_CHECKING': '{center}{yellow-fg}VERIFICANDO ARQUIVOS...{/}{/center}',
+'UPDATE_COMPARING': '{center}{cyan-fg}COMPARANDO BYTE A BYTE...{/}{/center}',
+'UPDATE_ESTIMATED_TIME': '{center}{grey-fg}Tempo estimado: {time}{/}{/center}',
+'UPDATE_CORRUPTED_FOUND': '{center}{red-fg}{count} ARQUIVO(S) CORROMPIDO(S){/}{/center}',
+'UPDATE_ALL_GOOD': '{center}{green-fg}TODOS OS ARQUIVOS ESTÃO OK!{/}{/center}',
+'UPDATE_REPAIR_PROMPT': '{center}{yellow-fg}PRESSIONE ENTER PARA REPARAR{/}\n{white-fg}PRESSIONE ESC PARA CANCELAR{/}{/center}',
+'UPDATE_DOWNLOADING_FILE': '{center}{yellow-fg}BAIXANDO{/} {file}{/center}',
+'UPDATE_BYTES_DOWNLOADED': '{center}{grey-fg}{current} / {total} bytes{/}{/center}',
+'UPDATE_TIME_REMAINING': '{center}{grey-fg}Tempo restante: {time}{/}{/center}',
     }
 };
 
