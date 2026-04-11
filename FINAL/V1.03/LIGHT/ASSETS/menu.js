@@ -167,6 +167,26 @@ function checkUpdates(callback) {
     });
 }
 
+// Função para calcular SHA1 (igual ao Git) de um arquivo local
+function getGitSha1(filePath) {
+    try {
+        if (!fs.existsSync(filePath)) return null;
+        const crypto = require('crypto');
+        const fileBuffer = fs.readFileSync(filePath);
+        // Git blob SHA1 = "blob " + tamanho + "\0" + conteúdo
+        const blobHeader = `blob ${fileBuffer.length}\0`;
+        const blobData = Buffer.concat([
+            Buffer.from(blobHeader, 'utf8'),
+            fileBuffer
+        ]);
+        const hashSum = crypto.createHash('sha1');
+        hashSum.update(blobData);
+        return hashSum.digest('hex');
+    } catch(e) {
+        return null;
+    }
+}
+
 async function downloadAndInstall(version, statusWin, isRepair = false) {
     const authHeader = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'; 'User-Agent'='LIGHT-Updater'}` : "-Headers @{'User-Agent'='LIGHT-Updater'}";
     const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
@@ -174,6 +194,25 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
 
     statusWin.setContent(isRepair ? t('VERIFYING_INTEGRITY') : t('UPDATE_MAPPING'));
     screen.render();
+
+    // Função para calcular SHA1 igual ao Git
+    function getGitSha1(filePath) {
+        try {
+            if (!fs.existsSync(filePath)) return null;
+            const crypto = require('crypto');
+            const fileBuffer = fs.readFileSync(filePath);
+            const blobHeader = `blob ${fileBuffer.length}\0`;
+            const blobData = Buffer.concat([
+                Buffer.from(blobHeader, 'utf8'),
+                fileBuffer
+            ]);
+            const hashSum = crypto.createHash('sha1');
+            hashSum.update(blobData);
+            return hashSum.digest('hex');
+        } catch(e) {
+            return null;
+        }
+    }
 
     exec(getTreeCmd, { maxBuffer: 1024 * 1024 * 10 }, async (error, stdout) => {
         if (error) {
@@ -227,9 +266,10 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
                 }
             }
 
-            let integrityOk = true;
+            let needsRepair = false;
+            let corruptedFiles = [];
             
-            // ========== VERIFICAÇÃO DE INTEGRIDADE (se for reparo) ==========
+            // ========== VERIFICAÇÃO DE INTEGRIDADE (comparando SHA1 do Git) ==========
             if (isRepair) {
                 statusWin.setContent(t('VERIFYING_INTEGRITY'));
                 screen.render();
@@ -238,6 +278,7 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
                     const item = remoteFiles[i];
                     const relPath = item.path.replace(targetPrefix, '');
                     const destPath = path.join(__dirname, '..', relPath);
+                    const remoteSha = item.sha; // SHA1 do Git
 
                     const checkPercentage = Math.round(((i + 1) / remoteFiles.length) * 100);
                     const checkBar = "█".repeat(Math.floor(checkPercentage / 3.3)) + "░".repeat(30 - Math.floor(checkPercentage / 3.3));
@@ -246,19 +287,15 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
                     descriptionBox.setContent(`{grey-fg}{bold}CHECKING: ${relPath}{/bold}{/grey-fg}`);
                     screen.render();
 
-                    if (!fs.existsSync(destPath)) {
-                        integrityOk = false;
-                        break;
-                    }
-
-                    const stats = fs.statSync(destPath);
-                    if (stats.size !== item.size) {
-                        integrityOk = false;
-                        break;
+                    const localSha = getGitSha1(destPath);
+                    
+                    if (localSha !== remoteSha) {
+                        needsRepair = true;
+                        corruptedFiles.push(item);
                     }
                 }
 
-                if (integrityOk) {
+                if (!needsRepair) {
                     statusWin.style.border.fg = 'green';
                     statusWin.setContent(t('INTEGRITY_OK'));
                     descriptionBox.setContent(t('PRESS_ENTER_TO_CONTINUE'));
@@ -276,20 +313,22 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
                 }
             }
 
-            // ========== BAIXA TODOS OS ARQUIVOS PARA _UPDATE ==========
+            // ========== BAIXA ARQUIVOS CORROMPIDOS (ou todos se for update) ==========
             blockMenuInput = true;
             
-            for (let i = 0; i < remoteFiles.length; i++) {
-                const fileMetadata = remoteFiles[i];
+            const filesToDownload = isRepair ? corruptedFiles : remoteFiles;
+            
+            for (let i = 0; i < filesToDownload.length; i++) {
+                const fileMetadata = filesToDownload[i];
                 const relPath = fileMetadata.path.replace(targetPrefix, '');
                 const destPath = path.join(updatePath, relPath);
                 const fileUrl = `https://raw.githubusercontent.com/lukzst/LIGHT/main/${fileMetadata.path}`;
 
-                const percentage = Math.round(((i + 1) / remoteFiles.length) * 100);
+                const percentage = Math.round(((i + 1) / filesToDownload.length) * 100);
                 const bar = "█".repeat(Math.floor(percentage / 3.3)) + "░".repeat(30 - Math.floor(percentage / 3.3));
 
                 statusWin.setContent(t('UPDATE_INSTALLING', { version: version.replace('V', ''), bar, percentage }));
-                descriptionBox.setContent(t('UPDATE_SECTOR', { current: i + 1, total: remoteFiles.length, file: relPath }));
+                descriptionBox.setContent(t('UPDATE_SECTOR', { current: i + 1, total: filesToDownload.length, file: relPath }));
                 screen.render();
 
                 if (!fs.existsSync(path.dirname(destPath))) {
@@ -301,7 +340,13 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
             }
 
             statusWin.style.border.fg = 'green';
-            statusWin.setContent(t('UPDATE_COMPLETE', { version: version.replace('V', '') }));
+            if (isRepair && filesToDownload.length > 0) {
+                statusWin.setContent(`{center}\n{green-fg}REPAIR COMPLETE{/green-fg}\n\n${filesToDownload.length} file(s) restored.\n\nRestart required.{/center}`);
+            } else if (isRepair && filesToDownload.length === 0) {
+                statusWin.setContent(t('INTEGRITY_OK'));
+            } else {
+                statusWin.setContent(t('UPDATE_COMPLETE', { version: version.replace('V', '') }));
+            }
             descriptionBox.setContent(t('PRESS_ENTER_TO_RESTART'));
             screen.render();
             playsucesso();
@@ -357,6 +402,25 @@ async function showUpdateStatus() {
     });
 
     screen.render();
+
+    // Função para calcular SHA1 igual ao Git
+    function getGitSha1(filePath) {
+        try {
+            if (!fs.existsSync(filePath)) return null;
+            const crypto = require('crypto');
+            const fileBuffer = fs.readFileSync(filePath);
+            const blobHeader = `blob ${fileBuffer.length}\0`;
+            const blobData = Buffer.concat([
+                Buffer.from(blobHeader, 'utf8'),
+                fileBuffer
+            ]);
+            const hashSum = crypto.createHash('sha1');
+            hashSum.update(blobData);
+            return hashSum.digest('hex');
+        } catch(e) {
+            return null;
+        }
+    }
 
     async function handleRepair() {
         if (isAborted) return;
@@ -446,7 +510,7 @@ async function showUpdateStatus() {
             global.currentUpdateFunc = handleNewUpdate;
             screen.onceKey(['enter'], handleNewUpdate);
         } else {
-            // Versão atual - verifica integridade
+            // Versão atual - verifica integridade comparando SHA1 do Git
             statusWin.setContent(t('VERIFYING_INTEGRITY'));
             screen.render();
 
@@ -474,27 +538,33 @@ async function showUpdateStatus() {
                     const targetPrefix = `FINAL/${CURRENT_VERSION}/LIGHT/`;
 
                     let corruptedCount = 0;
+                    let totalChecked = 0;
+                    const filesToCheck = tree.filter(item => 
+                        item.type === 'blob' &&
+                        !item.path.includes('/CONFIG/') && 
+                        !item.path.includes('/Achievements/') &&
+                        !item.path.includes('/AUDIO/') && 
+                        !item.path.includes('/TERMINALPORTATIL/')
+                    );
                     
-                    for (const item of tree) {
+                    for (const item of filesToCheck) {
                         if (item.type !== 'blob') continue;
-                        // MESMOS FILTROS: exclui CONFIG, Achievements, AUDIO, TERMINALPORTATIL
-                        if (item.path.includes('/CONFIG/')) continue;
-                        if (item.path.includes('/Achievements/')) continue;
-                        if (item.path.includes('/AUDIO/')) continue;
-                        if (item.path.includes('/TERMINALPORTATIL/')) continue;
                         
                         const relPath = item.path.replace(targetPrefix, '');
                         const destPath = path.join(__dirname, '..', relPath);
+                        const remoteSha = item.sha;
                         
-                        if (!fs.existsSync(destPath)) {
-                            corruptedCount++;
-                            continue;
-                        }
+                        const localSha = getGitSha1(destPath);
                         
-                        const stats = fs.statSync(destPath);
-                        if (stats.size !== item.size) {
+                        if (localSha !== remoteSha) {
                             corruptedCount++;
                         }
+                        
+                        totalChecked++;
+                        const checkPercentage = Math.round((totalChecked / filesToCheck.length) * 100);
+                        const checkBar = "█".repeat(Math.floor(checkPercentage / 3.3)) + "░".repeat(30 - Math.floor(checkPercentage / 3.3));
+                        statusWin.setContent(`${t('VERIFYING_INTEGRITY')}\n\n[${checkBar}] ${checkPercentage}%`);
+                        screen.render();
                     }
 
                     if (isAborted) return;
