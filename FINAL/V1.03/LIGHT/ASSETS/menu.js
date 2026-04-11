@@ -957,121 +957,187 @@ function downloadFile(url, destPath, onProgress) {
 }
 
 async function downloadAndInstall(version, statusWin, isRepair = false) {
-    const files = await getRemoteFileList(version);
-    const updatePath = path.join(__dirname, '..', '_update');
-    
-    if (fs.existsSync(updatePath)) fs.rmSync(updatePath, { recursive: true, force: true });
-    fs.mkdirSync(updatePath, { recursive: true });
+    const authHeader = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'; 'User-Agent'='LIGHT-Updater'}` : "-Headers @{'User-Agent'='LIGHT-Updater'}";
+    const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
+    const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' ${authHeader}).tree | ConvertTo-Json -Compress"`;
 
-    const backupPath = path.join(__dirname, '..', 'backup_old');
-    if (fs.existsSync(backupPath)) fs.rmSync(backupPath, { recursive: true, force: true });
-    fs.mkdirSync(backupPath, { recursive: true });
+    statusWin.setContent(`{bold}${isRepair ? t('VERIFYING_INTEGRITY') : t('UPDATE_MAPPING')}{/bold}`);
+    screen.render();
 
-    const excludeFromBackup = ['CONFIG', 'Achievements', 'AUDIO', 'TERMINALPORTATIL', '_update', 'backup_old'];
-    const filesToBackup = fs.readdirSync(path.join(__dirname, '..'));
-    for (const file of filesToBackup) {
-        if (!excludeFromBackup.includes(file)) {
-            const src = path.join(__dirname, '..', file);
-            const dest = path.join(backupPath, file);
-            try {
-                if (fs.statSync(src).isDirectory()) {
-                    fs.cpSync(src, dest, { recursive: true, force: true });
-                } else {
-                    fs.copyFileSync(src, dest);
-                }
-            } catch(e) {}
+    function getGitSha1(filePath) {
+        try {
+            if (!fs.existsSync(filePath)) return null;
+            const crypto = require('crypto');
+            let fileBuffer = fs.readFileSync(filePath);
+            fileBuffer = Buffer.from(fileBuffer.toString().replace(/\r\n/g, '\n'));
+            const blobHeader = `blob ${fileBuffer.length}\0`;
+            const blobData = Buffer.concat([
+                Buffer.from(blobHeader, 'utf8'),
+                fileBuffer
+            ]);
+            const hashSum = crypto.createHash('sha1');
+            hashSum.update(blobData);
+            return hashSum.digest('hex');
+        } catch(e) {
+            return null;
         }
     }
 
-    let corruptedFiles = [];
-    
-    if (isRepair) {
-        statusWin.setContent(t('VERIFYING_INTEGRITY'));
-        screen.render();
-        
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            const localPath = path.join(__dirname, '..', file.path);
-            
-            const percent = Math.round(((i + 1) / files.length) * 100);
-            const bar = "█".repeat(Math.floor(percent / 3.3)) + "░".repeat(30 - Math.floor(percent / 3.3));
-            statusWin.setContent(`${t('VERIFYING_INTEGRITY')}\n\n[${bar}] ${percent}%`);
-            descriptionBox.setContent(`{grey-fg}{bold}CHECKING: ${file.path}{/bold}{/grey-fg}`);
-            screen.render();
-            
-            let isSame = false;
-            await compareByteByByte(localPath, file.url, (current, total) => {
-                const pct = Math.round((current / total) * 100);
-                statusWin.setContent(`${t('VERIFYING_INTEGRITY')}\n\n[${bar}] ${percent}%\n\nComparing: ${pct}%`);
-                screen.render();
-            }).then(result => { isSame = result; });
-            
-            if (!isSame) {
-                corruptedFiles.push(file);
-            }
+    exec(getTreeCmd, { maxBuffer: 1024 * 1024 * 10 }, async (error, stdout) => {
+        if (error) {
+            statusWin.setContent(`{bold}${t('UPDATE_ERROR')}{/bold}`);
+            return screen.render();
         }
-        
-        if (corruptedFiles.length === 0) {
+
+        try {
+            const tree = JSON.parse(stdout);
+            const targetPrefix = `FINAL/${version}/LIGHT/`;
+            
+            const remoteFiles = tree.filter(item => 
+                item.type === 'blob' && 
+                item.path.startsWith(targetPrefix) &&
+                !item.path.includes('/CONFIG/') && 
+                !item.path.includes('/Achievements/') &&
+                !item.path.includes('/AUDIO/') && 
+                !item.path.includes('/TERMINALPORTATIL/') &&
+                !item.path.includes('/_update/') &&
+                !item.path.includes('/node_modules/')
+            );
+
+            const updatePath = path.join(__dirname, '..', '_update');
+            if (fs.existsSync(updatePath)) {
+                try { fs.rmSync(updatePath, { recursive: true, force: true }); } catch(e) {}
+            }
+            fs.mkdirSync(updatePath, { recursive: true });
+
+            const backupPath = path.join(__dirname, '..', 'backup_old');
+            if (fs.existsSync(backupPath)) {
+                try { fs.rmSync(backupPath, { recursive: true, force: true }); } catch(e) {}
+            }
+            fs.mkdirSync(backupPath, { recursive: true });
+
+            const excludeFromBackup = ['CONFIG', 'Achievements', 'AUDIO', 'TERMINALPORTATIL', '_update', 'backup_old'];
+            const filesToBackup = fs.readdirSync(path.join(__dirname, '..'));
+            
+            for (const file of filesToBackup) {
+                if (!excludeFromBackup.includes(file)) {
+                    const src = path.join(__dirname, '..', file);
+                    const dest = path.join(backupPath, file);
+                    try {
+                        if (fs.statSync(src).isDirectory()) {
+                            fs.cpSync(src, dest, { recursive: true, force: true });
+                        } else {
+                            fs.copyFileSync(src, dest);
+                        }
+                    } catch(e) {}
+                }
+            }
+
+            let needsRepair = false;
+            let corruptedFiles = [];
+            
+            if (isRepair) {
+                statusWin.setContent(`{bold}${t('VERIFYING_INTEGRITY')}{/bold}`);
+                screen.render();
+                
+                for (let i = 0; i < remoteFiles.length; i++) {
+                    const item = remoteFiles[i];
+                    const relPath = item.path.replace(targetPrefix, '');
+                    const destPath = path.join(__dirname, '..', relPath);
+                    const remoteSha = item.sha;
+
+                    const checkPercentage = Math.round(((i + 1) / remoteFiles.length) * 100);
+                    const barLength = 30;
+                    const filled = Math.floor(checkPercentage / 3.34);
+                    const bar = "█".repeat(filled) + "░".repeat(barLength - filled);
+                    
+                    statusWin.setContent(`{bold}${t('VERIFYING_INTEGRITY')}{/bold}\n\n{center}[${bar}] ${checkPercentage}%{/center}`);
+                    descriptionBox.setContent(`{grey-fg}{bold}CHECKING: ${relPath}{/bold}{/grey-fg}`);
+                    screen.render();
+
+                    const localSha = getGitSha1(destPath);
+                    
+                    if (localSha !== remoteSha) {
+                        needsRepair = true;
+                        corruptedFiles.push(item);
+                    }
+                }
+
+                if (!needsRepair) {
+                    statusWin.style.border.fg = 'green';
+                    statusWin.setContent(`{bold}{center}${t('INTEGRITY_OK')}{/center}{/bold}`);
+                    descriptionBox.setContent(`{bold}${t('PRESS_ENTER_TO_CONTINUE')}{/bold}`);
+                    screen.render();
+                    
+                    screen.onceKey(['enter'], () => {
+                        if (global.updateBgOverlay) global.updateBgOverlay.destroy();
+                        isUpdateInterfaceActive = false;
+                        isupdating = false;
+                        blockMenuInput = false;
+                        mainList.select(0);
+                        mainList.focus();
+                        screen.render();
+                    });
+                    return;
+                }
+            }
+
+            blockMenuInput = true;
+            
+            const filesToDownload = isRepair ? corruptedFiles : remoteFiles;
+            
+            for (let i = 0; i < filesToDownload.length; i++) {
+                const fileMetadata = filesToDownload[i];
+                const relPath = fileMetadata.path.replace(targetPrefix, '');
+                const destPath = path.join(updatePath, relPath);
+                const fileUrl = `https://raw.githubusercontent.com/lukzst/LIGHT/main/${fileMetadata.path}`;
+
+                const percentage = Math.round(((i + 1) / filesToDownload.length) * 100);
+                const barLength = 30;
+                const filled = Math.floor(percentage / 3.34);
+                const bar = "█".repeat(filled) + "░".repeat(barLength - filled);
+
+                statusWin.setContent(`{bold}${t('UPDATE_INSTALLING', { version: version.replace('V', '') })}{/bold}\n\n{center}[${bar}] ${percentage}%{/center}`);
+                descriptionBox.setContent(`{bold}${t('UPDATE_SECTOR', { current: i + 1, total: filesToDownload.length, file: relPath })}{/bold}`);
+                screen.render();
+
+                if (!fs.existsSync(path.dirname(destPath))) {
+                    fs.mkdirSync(path.dirname(destPath), { recursive: true });
+                }
+                
+                const dlCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iwr -Uri '${fileUrl}' -OutFile '${destPath}'"`;
+                await new Promise((res) => { exec(dlCmd, () => res()); });
+            }
+
             statusWin.style.border.fg = 'green';
-            statusWin.setContent(t('INTEGRITY_OK'));
-            descriptionBox.setContent(t('PRESS_ENTER_TO_CONTINUE'));
+            if (isRepair && filesToDownload.length > 0) {
+                statusWin.setContent(`{bold}{center}{green-fg}REPAIR COMPLETE{/green-fg}{/center}{/bold}\n\n{center}{bold}${filesToDownload.length} file(s) restored.\n\nRestart required.{/bold}{/center}`);
+            } else if (isRepair && filesToDownload.length === 0) {
+                statusWin.setContent(`{bold}{center}${t('INTEGRITY_OK')}{/center}{/bold}`);
+            } else {
+                statusWin.setContent(`{bold}{center}${t('UPDATE_COMPLETE', { version: version.replace('V', '') })}{/center}{/bold}`);
+            }
+            descriptionBox.setContent(`{bold}${t('PRESS_ENTER_TO_RESTART')}{/bold}`);
             screen.render();
+            playsucesso();
             
             screen.onceKey(['enter'], () => {
-                if (global.updateBgOverlay) global.updateBgOverlay.destroy();
-                isUpdateInterfaceActive = false;
-                isupdating = false;
-                blockMenuInput = false;
-                mainList.focus();
-                screen.render();
+                const updaterPath = path.join(__dirname, '..', 'Updater.exe');
+                const child = spawn('cmd.exe', ['/c', 'start', updaterPath], {
+                    stdio: 'ignore',
+                    detached: true,
+                    windowsHide: false
+                });
+                child.unref();
+                process.exit(0);
             });
-            return;
+
+        } catch (err) {
+            statusWin.style.border.fg = 'red';
+            statusWin.setContent(`{bold}${t('UPDATE_FAILED', { error: err.message })}{/bold}`);
+            screen.render();
+            blockMenuInput = false;
         }
-    }
-
-    const filesToDownload = isRepair ? corruptedFiles : files;
-    blockMenuInput = true;
-    
-    for (let i = 0; i < filesToDownload.length; i++) {
-        const file = filesToDownload[i];
-        const destPath = path.join(updatePath, file.path);
-        
-        const percent = Math.round(((i + 1) / filesToDownload.length) * 100);
-        const bar = "█".repeat(Math.floor(percent / 3.3)) + "░".repeat(30 - Math.floor(percent / 3.3));
-        
-        statusWin.setContent(t('UPDATE_INSTALLING', { version: version.replace('V', ''), bar, percentage: percent }));
-        descriptionBox.setContent(t('UPDATE_SECTOR', { current: i + 1, total: filesToDownload.length, file: file.path }));
-        screen.render();
-        
-        let lastPercent = 0;
-        await downloadFile(file.url, destPath, (current, total) => {
-            const pct = Math.round((current / total) * 100);
-            if (pct !== lastPercent) {
-                lastPercent = pct;
-                const subBar = "█".repeat(Math.floor(pct / 3.3)) + "░".repeat(30 - Math.floor(pct / 3.3));
-                statusWin.setContent(t('UPDATE_INSTALLING', { version: version.replace('V', ''), bar: subBar, percentage: pct }));
-                screen.render();
-            }
-        });
-    }
-
-    statusWin.style.border.fg = 'green';
-    if (isRepair) {
-        statusWin.setContent(`{center}\n{green-fg}REPAIR COMPLETE{/green-fg}\n\n${corruptedFiles.length} file(s) restored.\n\nRestart required.{/center}`);
-    } else {
-        statusWin.setContent(t('UPDATE_COMPLETE', { version: version.replace('V', '') }));
-    }
-    descriptionBox.setContent(t('PRESS_ENTER_TO_RESTART'));
-    screen.render();
-    playsucesso();
-    
-    screen.onceKey(['enter'], () => {
-        const updaterPath = path.join(__dirname, '..', 'Updater.exe');
-        const child = spawn('cmd.exe', ['/c', 'start', updaterPath], {
-            stdio: 'ignore', detached: true, windowsHide: false
-        });
-        child.unref();
-        process.exit(0);
     });
 }
 
@@ -1083,66 +1149,231 @@ async function showUpdateStatus() {
     playwarning();
     blockMenuInput = true;
 
+    let isAborted = false;
+    let currentProcess = null;
+    let integrityCheckActive = true;
+
     const bgOverlay = blessed.box({
-        parent: screen, top: 0, left: 0,
+        parent: screen,
+        top: 0, left: 0,
         width: '100%', height: '100%',
-        style: { bg: 'black' }, index: 200
+        style: { bg: 'black' },
+        index: 200
     });
     global.updateBgOverlay = bgOverlay;
 
     const statusWin = blessed.box({
-        parent: bgOverlay, top: 'center', left: 'center',
-        width: 60, height: 12, border: 'line', tags: true,
-        content: t('UPDATE_TITLE'),
+        parent: bgOverlay,
+        top: 'center', left: 'center',
+        width: 60, height: 12,
+        border: 'line',
+        tags: true,
+        content: `{bold}${t('UPDATE_TITLE')}{/bold}`,
         style: { border: { fg: COLORDEFAULT }, label: { fg: COLORDEFAULT, bold: true } }
     });
 
     screen.render();
 
+    function getGitSha1(filePath) {
+        try {
+            if (!fs.existsSync(filePath)) return null;
+            const crypto = require('crypto');
+            let fileBuffer = fs.readFileSync(filePath);
+            fileBuffer = Buffer.from(fileBuffer.toString().replace(/\r\n/g, '\n'));
+            const blobHeader = `blob ${fileBuffer.length}\0`;
+            const blobData = Buffer.concat([
+                Buffer.from(blobHeader, 'utf8'),
+                fileBuffer
+            ]);
+            const hashSum = crypto.createHash('sha1');
+            hashSum.update(blobData);
+            return hashSum.digest('hex');
+        } catch(e) {
+            return null;
+        }
+    }
+
     async function handleRepair() {
+        if (isAborted) return;
         screen.unkey('enter', handleRepair);
+        global.currentRepairFunc = null;
+        integrityCheckActive = false;
         await downloadAndInstall(CURRENT_VERSION, statusWin, true);
     }
 
     async function handleNewUpdate() {
+        if (isAborted) return;
         screen.unkey('enter', handleNewUpdate);
+        global.currentUpdateFunc = null;
+        integrityCheckActive = false;
         await downloadAndInstall(global.latestVersionFound, statusWin, false);
     }
 
-    checkUpdates(async (hasUpdate, version) => {
-        if (hasUpdate === null) {
-            statusWin.setContent(t('UPDATE_ERROR'));
-            screen.render();
-            setTimeout(() => {
-                bgOverlay.destroy();
-                isUpdateInterfaceActive = false;
-                isupdating = false;
-                blockMenuInput = false;
-                mainList.focus();
-                screen.render();
-            }, 2000);
-        } else if (hasUpdate) {
-            global.latestVersionFound = version;
-            statusWin.style.border.fg = 'magenta';
-            statusWin.setContent(t('UPDATE_DETECTED', { version: version.replace('V', ''), time: "CALCULATING..." }));
-            screen.render();
-            screen.onceKey(['enter'], handleNewUpdate);
-        } else {
-            statusWin.setContent(t('VERIFYING_INTEGRITY'));
-            screen.render();
-            
-            await handleRepair();
+    function abortAllOperations() {
+        isAborted = true;
+        integrityCheckActive = false;
+        
+        if (currentProcess) {
+            try {
+                exec(`taskkill /F /T /PID ${currentProcess.pid} > nul 2>&1`);
+                exec(`taskkill /F /IM powershell.exe /T > nul 2>&1`);
+            } catch(e) {}
+            currentProcess = null;
         }
-    });
+        
+        screen.unkey('enter', handleRepair);
+        screen.unkey('enter', handleNewUpdate);
+        if (global.currentRepairFunc) global.currentRepairFunc = null;
+        if (global.currentUpdateFunc) global.currentUpdateFunc = null;
+    }
 
-    screen.key(['escape'], function escUpdate() {
+    function safeClose() {
+        if (integrityCheckActive) {
+            descriptionBox.setContent(`{bold}{yellow-fg}WAIT, VERIFICATION IN PROGRESS...{/}{/bold}`);
+            playwarning();
+            screen.render();
+            return false;
+        }
+        
+        abortAllOperations();
         playback();
-        bgOverlay.destroy();
+        
+        if (bgOverlay && !bgOverlay.destroyed) {
+            bgOverlay.destroy();
+        }
+        
         isUpdateInterfaceActive = false;
         isupdating = false;
         blockMenuInput = false;
-        mainList.focus();
+        
+        if (mainList && typeof mainList.focus === 'function') {
+            mainList.select(0);
+            mainList.focus();
+        }
+        
         screen.render();
+        return true;
+    }
+
+    screen.key(['escape'], function escUpdate() {
+        safeClose();
+    });
+
+    checkUpdates(async (hasUpdate, version) => {
+        if (isAborted) return;
+        
+        if (hasUpdate === null) {
+            if (isAborted) return;
+            statusWin.setContent(`{bold}${t('UPDATE_ERROR')}{/bold}`);
+            screen.render();
+            integrityCheckActive = false;
+            setTimeout(() => {
+                if (!isAborted && bgOverlay && !bgOverlay.destroyed) {
+                    safeClose();
+                }
+            }, 2000);
+        } else if (hasUpdate) {
+            integrityCheckActive = false;
+            global.latestVersionFound = version;
+            statusWin.style.border.fg = 'magenta';
+            statusWin.setContent(`{bold}{center}${t('UPDATE_DETECTED', { version: version.replace('V', ''), time: "CALCULATING..." })}{/center}{/bold}`);
+            screen.render();
+
+            global.currentUpdateFunc = handleNewUpdate;
+            screen.onceKey(['enter'], handleNewUpdate);
+        } else {
+            statusWin.setContent(`{bold}${t('VERIFYING_INTEGRITY')}{/bold}`);
+            screen.render();
+
+            const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
+            const authHeader = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'}` : "";
+            const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' ${authHeader}).tree | Where-Object {$_.path -like 'FINAL/${CURRENT_VERSION}/LIGHT/*'} | ConvertTo-Json -Compress"`;
+
+            currentProcess = exec(getTreeCmd, { maxBuffer: 1024 * 1024 * 10 }, async (error, stdout) => {
+                if (isAborted) return;
+                currentProcess = null;
+                
+                if (error) {
+                    if (!isAborted) {
+                        statusWin.setContent(`{bold}${t('UPDATE_ERROR')}{/bold}`);
+                        screen.render();
+                        integrityCheckActive = false;
+                    }
+                    return;
+                }
+
+                if (isAborted) return;
+
+                try {
+                    const tree = JSON.parse(stdout);
+                    const targetPrefix = `FINAL/${CURRENT_VERSION}/LIGHT/`;
+
+                    let corruptedCount = 0;
+                    let totalChecked = 0;
+                    const filesToCheck = tree.filter(item => 
+                        item.type === 'blob' &&
+                        !item.path.includes('/CONFIG/') && 
+                        !item.path.includes('/Achievements/') &&
+                        !item.path.includes('/AUDIO/') && 
+                        !item.path.includes('/TERMINALPORTATIL/')
+                    );
+                    
+                    for (const item of filesToCheck) {
+                        if (item.type !== 'blob') continue;
+                        
+                        const relPath = item.path.replace(targetPrefix, '');
+                        const destPath = path.join(__dirname, '..', relPath);
+                        const remoteSha = item.sha;
+                        
+                        const localSha = getGitSha1(destPath);
+                        
+                        if (localSha !== remoteSha) {
+                            corruptedCount++;
+                        }
+                        
+                        totalChecked++;
+                        const checkPercentage = Math.round((totalChecked / filesToCheck.length) * 100);
+                        const barLength = 30;
+                        const filled = Math.floor(checkPercentage / 3.34);
+                        const bar = "█".repeat(filled) + "░".repeat(barLength - filled);
+                        statusWin.setContent(`{bold}${t('VERIFYING_INTEGRITY')}{/bold}\n\n{center}[${bar}] ${checkPercentage}%{/center}`);
+                        screen.render();
+                    }
+
+                    if (isAborted) return;
+
+                    if (corruptedCount === 0) {
+                        statusWin.style.border.fg = 'green';
+                        statusWin.setContent(`{bold}{center}${t('INTEGRITY_OK')}{/center}{/bold}`);
+                        descriptionBox.setContent(`{bold}${t('PRESS_ENTER_TO_CONTINUE')}{/bold}`);
+                        screen.render();
+                        integrityCheckActive = false;
+                        
+                        screen.onceKey(['enter'], () => {
+                            if (!isAborted && bgOverlay && !bgOverlay.destroyed) {
+                                safeClose();
+                            }
+                        });
+                    } else {
+                        statusWin.style.border.fg = 'red';
+                        statusWin.setContent(`{bold}{center}${t('INTEGRITY_FAIL')}{/center}{/bold}\n\n{center}{bold}${corruptedCount} corrupted/missing file(s) found.{/bold}{/center}`);
+                        descriptionBox.setContent(`{bold}${t('PRESS_ENTER_TO_REPAIR')}{/bold}`);
+                        screen.render();
+                        integrityCheckActive = false;
+                        
+                        global.currentRepairFunc = handleRepair;
+                        screen.onceKey(['enter'], handleRepair);
+                    }
+                } catch (err) {
+                    if (!isAborted) {
+                        statusWin.style.border.fg = 'red';
+                        statusWin.setContent(`{bold}${t('UPDATE_FAILED', { error: err.message })}{/bold}`);
+                        screen.render();
+                        integrityCheckActive = false;
+                    }
+                }
+            });
+        }
     });
 }
 
