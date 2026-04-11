@@ -146,7 +146,8 @@ const isNewPac = hasPacAch && !fs.existsSync(pacSeenPath);
 
 function checkUpdates(callback) {
     const url = 'https://api.github.com/repos/lukzst/LIGHT/contents/FINAL';
-    const cmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $res = Invoke-WebRequest -Uri '${url}' -Headers @{'User-Agent'='LIGHT-Game'} -UseBasicParsing; $res.Content"`;
+    const authHeader = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'; 'User-Agent'='LIGHT-Game'}` : "-Headers @{'User-Agent'='LIGHT-Game'}";
+    const cmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $res = Invoke-WebRequest -Uri '${url}' ${authHeader} -UseBasicParsing; $res.Content"`;
 
     exec(cmd, (error, stdout) => {
         if (error) return callback(null);
@@ -187,6 +188,15 @@ function getGitSha1(filePath) {
     }
 }
 
+/*************  ✨ Windsurf Command ⭐  *************/
+/**
+ * Download and install a new version of the game.
+ * @param {string} version - The version number to download (e.g. 'V1.0.0').
+ * @param {object} statusWin - The status window object to update.
+ * @param {boolean} [isRepair=false] - Whether to repair corrupted files or download a new version.
+ * @returns {Promise<void>} A promise that resolves when the download is complete.
+ */
+/*******  6b86e3c0-268c-4289-bec0-54772b938201  *******/
 async function downloadAndInstall(version, statusWin, isRepair = false) {
     const authHeader = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'; 'User-Agent'='LIGHT-Updater'}` : "-Headers @{'User-Agent'='LIGHT-Updater'}";
     const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
