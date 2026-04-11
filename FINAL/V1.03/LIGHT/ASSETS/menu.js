@@ -527,6 +527,7 @@ async function showUpdateStatus() {
     });
 }
 
+
 const LOCK_FILE = path.join(os.tmpdir(), 'lux4_game.lock');
 
 const releaseLock = () => {
