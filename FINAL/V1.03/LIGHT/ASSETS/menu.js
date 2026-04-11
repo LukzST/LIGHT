@@ -2665,6 +2665,8 @@ async function showUpdateUI() {
         screen.render();
 
         function confirmAndProceed(selectedVersion) {
+            console.log("confirmAndProceed called with:", selectedVersion);
+            
             const isDowngrade = selectedVersion !== CURRENT_VERSION && selectedVersion < CURRENT_VERSION;
             
             const confirmOverlay = blessed.box({
@@ -2715,9 +2717,11 @@ async function showUpdateUI() {
             screen.render();
 
             confirmList.on('select', (confirmItem, confirmIdx) => {
+                console.log("Confirm selection:", confirmIdx);
                 confirmOverlay.destroy();
                 
                 if (confirmIdx === 1) {
+                    console.log("User cancelled");
                     return;
                 }
                 
@@ -2730,6 +2734,7 @@ async function showUpdateUI() {
         }
 
         async function executeOperation(selectedVersion) {
+            console.log("executeOperation started for:", selectedVersion);
             isProcessing = true;
             versionOverlay.destroy();
 
@@ -2755,6 +2760,7 @@ async function showUpdateUI() {
 
             try {
                 if (isUpdateMode) {
+                    console.log("Starting download for version:", selectedVersion);
                     const updatePath = path.join(__dirname, '..', '_update');
                     await downloadVersion(selectedVersion, statusWin, updatePath, descriptionBox, screen);
                     
@@ -2775,6 +2781,7 @@ async function showUpdateUI() {
                         process.exit(0);
                     });
                 } else {
+                    console.log("Starting integrity verification");
                     const isOk = await verifyIntegrity(statusWin, descriptionBox, screen);
                     if (isOk) {
                         statusWin.style.border.fg = 'green';
@@ -2802,6 +2809,7 @@ async function showUpdateUI() {
                     }
                 }
             } catch (err) {
+                console.log("Error in executeOperation:", err);
                 statusWin.style.border.fg = 'red';
                 statusWin.setContent(t('UPDATE_FAILED', { error: err.message }));
                 screen.render();
