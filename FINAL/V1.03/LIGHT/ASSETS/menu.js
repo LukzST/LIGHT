@@ -743,30 +743,19 @@ const copyrightBOX1 = blessed.box({
 });
 
 
-// ========== SISTEMA DE ATUALIZAÇÃO COM BYTE POR BYTE ==========
-
-const crypto = require('crypto');
-const https = require('https');
-
-function formatBytes(bytes) {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-}
-
-function formatTime(seconds) {
-    if (seconds < 60) return Math.ceil(seconds) + 's';
-    if (seconds < 3600) return Math.ceil(seconds / 60) + 'm ' + Math.ceil(seconds % 60) + 's';
-    return Math.ceil(seconds / 3600) + 'h ' + Math.ceil((seconds % 3600) / 60) + 'm';
-}
+// ========== FUNÇÕES DE ATUALIZAÇÃO ==========
 
 function getGitSha1(filePath) {
     try {
         if (!fs.existsSync(filePath)) return null;
+        const crypto = require('crypto');
         let fileBuffer = fs.readFileSync(filePath);
         fileBuffer = Buffer.from(fileBuffer.toString().replace(/\r\n/g, '\n'));
         const blobHeader = `blob ${fileBuffer.length}\0`;
-        const blobData = Buffer.concat([Buffer.from(blobHeader, 'utf8'), fileBuffer]);
+        const blobData = Buffer.concat([
+            Buffer.from(blobHeader, 'utf8'),
+            fileBuffer
+        ]);
         const hashSum = crypto.createHash('sha1');
         hashSum.update(blobData);
         return hashSum.digest('hex');
@@ -788,6 +777,7 @@ function checkUpdates(callback) {
                 .filter(file => file.type === 'dir' && file.name.startsWith('V'))
                 .map(file => file.name)
                 .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
             const latestVersion = versions[versions.length - 1];
             if (latestVersion && latestVersion !== CURRENT_VERSION) {
                 callback(true, latestVersion);
@@ -798,210 +788,28 @@ function checkUpdates(callback) {
     });
 }
 
-async function getRemoteFileList(version) {
-    return new Promise((resolve, reject) => {
-        const url = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
-        const auth = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'}` : '';
-        const cmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${url}' ${auth}).tree | ConvertTo-Json"`;
-        
-        exec(cmd, { maxBuffer: 1024 * 1024 * 10 }, (err, stdout) => {
-            if (err) return reject(err);
-            try {
-                const tree = JSON.parse(stdout);
-                const prefix = `FINAL/${version}/LIGHT/`;
-                const files = tree.filter(item => 
-                    item.type === 'blob' && 
-                    item.path.startsWith(prefix) &&
-                    !item.path.includes('/CONFIG/') &&
-                    !item.path.includes('/Achievements/') &&
-                    !item.path.includes('/AUDIO/') &&
-                    !item.path.includes('/TERMINALPORTATIL/')
-                ).map(item => ({
-                    path: item.path.replace(prefix, ''),
-                    url: `https://raw.githubusercontent.com/lukzst/LIGHT/main/${item.path}`,
-                    size: item.size,
-                    sha: item.sha
-                }));
-                resolve(files);
-            } catch(e) { reject(e); }
-        });
-    });
-}
-
-function compareByteByByte(localPath, remoteUrl, onProgress) {
-    return new Promise((resolve) => {
-        if (!fs.existsSync(localPath)) {
-            resolve(false);
-            return;
-        }
-
-        const localSize = fs.statSync(localPath).size;
-        let downloaded = 0;
-        let isSame = true;
-        let localStream = null;
-        let remoteStream = null;
-
-        const req = https.get(remoteUrl, { headers: { 'User-Agent': 'LIGHT-Updater' } }, (res) => {
-            const remoteSize = parseInt(res.headers['content-length']);
-            
-            if (localSize !== remoteSize) {
-                resolve(false);
-                return;
-            }
-
-            localStream = fs.createReadStream(localPath);
-            let localBuffer = Buffer.alloc(0);
-            let remoteBuffer = Buffer.alloc(0);
-            let localPos = 0;
-            let remotePos = 0;
-
-            const checkChunk = () => {
-                const minLen = Math.min(localBuffer.length - localPos, remoteBuffer.length - remotePos);
-                for (let i = 0; i < minLen; i++) {
-                    if (localBuffer[localPos + i] !== remoteBuffer[remotePos + i]) {
-                        isSame = false;
-                        cleanup();
-                        resolve(false);
-                        return;
-                    }
-                }
-                
-                localPos += minLen;
-                remotePos += minLen;
-                downloaded += minLen;
-                
-                if (onProgress) onProgress(downloaded, remoteSize);
-                
-                if (localPos === localBuffer.length && localPos === remoteBuffer.length && downloaded === remoteSize) {
-                    cleanup();
-                    resolve(true);
-                    return;
-                }
-                
-                if (localPos === localBuffer.length) {
-                    localBuffer = Buffer.alloc(0);
-                    localPos = 0;
-                    readLocal();
-                }
-                
-                if (remotePos === remoteBuffer.length) {
-                    remoteBuffer = Buffer.alloc(0);
-                    remotePos = 0;
-                }
-            };
-
-            const readLocal = () => {
-                if (!isSame) return;
-                const chunk = localStream.read(65536);
-                if (chunk) {
-                    localBuffer = Buffer.concat([localBuffer, chunk]);
-                    checkChunk();
-                }
-            };
-
-            localStream.on('readable', readLocal);
-            localStream.on('end', () => {
-                if (downloaded === remoteSize && isSame) {
-                    cleanup();
-                    resolve(true);
-                }
-            });
-
-            res.on('data', (chunk) => {
-                if (!isSame) return;
-                remoteBuffer = Buffer.concat([remoteBuffer, chunk]);
-                checkChunk();
-            });
-
-            res.on('end', () => {
-                if (downloaded === remoteSize && isSame) {
-                    cleanup();
-                    resolve(true);
-                }
-            });
-
-            const cleanup = () => {
-                if (localStream) localStream.destroy();
-                if (remoteStream) remoteStream.destroy();
-                req.destroy();
-            };
-        });
-
-        req.on('error', () => resolve(false));
-    });
-}
-
-function downloadFile(url, destPath, onProgress) {
-    return new Promise((resolve, reject) => {
-        const dir = path.dirname(destPath);
-        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-        
-        const file = fs.createWriteStream(destPath);
-        let downloaded = 0;
-        let total = 0;
-        
-        https.get(url, { headers: { 'User-Agent': 'LIGHT-Updater' } }, (response) => {
-            total = parseInt(response.headers['content-length']);
-            response.on('data', (chunk) => {
-                downloaded += chunk.length;
-                if (onProgress) onProgress(downloaded, total);
-                file.write(chunk);
-            });
-            response.on('end', () => {
-                file.end();
-                resolve();
-            });
-            response.on('error', reject);
-        }).on('error', reject);
-    });
-}
-
 async function downloadAndInstall(version, statusWin, isRepair = false) {
     const authHeader = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'; 'User-Agent'='LIGHT-Updater'}` : "-Headers @{'User-Agent'='LIGHT-Updater'}";
     const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
     const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' ${authHeader}).tree | ConvertTo-Json -Compress"`;
 
-    statusWin.setContent(`{bold}${isRepair ? t('VERIFYING_INTEGRITY') : t('UPDATE_MAPPING')}{/bold}`);
+    statusWin.setContent(isRepair ? t('VERIFYING_INTEGRITY') : t('UPDATE_MAPPING'));
     screen.render();
-
-    function getGitSha1(filePath) {
-        try {
-            if (!fs.existsSync(filePath)) return null;
-            const crypto = require('crypto');
-            let fileBuffer = fs.readFileSync(filePath);
-            fileBuffer = Buffer.from(fileBuffer.toString().replace(/\r\n/g, '\n'));
-            const blobHeader = `blob ${fileBuffer.length}\0`;
-            const blobData = Buffer.concat([
-                Buffer.from(blobHeader, 'utf8'),
-                fileBuffer
-            ]);
-            const hashSum = crypto.createHash('sha1');
-            hashSum.update(blobData);
-            return hashSum.digest('hex');
-        } catch(e) {
-            return null;
-        }
-    }
 
     exec(getTreeCmd, { maxBuffer: 1024 * 1024 * 10 }, async (error, stdout) => {
         if (error) {
-            statusWin.setContent(`{bold}${t('UPDATE_ERROR')}{/bold}`);
+            statusWin.setContent(t('UPDATE_ERROR'));
             return screen.render();
         }
 
         try {
             const tree = JSON.parse(stdout);
             const targetPrefix = `FINAL/${version}/LIGHT/`;
-            
             const remoteFiles = tree.filter(item => 
-                item.type === 'blob' && 
-                item.path.startsWith(targetPrefix) &&
-                !item.path.includes('/CONFIG/') && 
-                !item.path.includes('/Achievements/') &&
-                !item.path.includes('/AUDIO/') && 
-                !item.path.includes('/TERMINALPORTATIL/') &&
-                !item.path.includes('/_update/') &&
-                !item.path.includes('/node_modules/')
+                item.type === 'blob' && item.path.startsWith(targetPrefix) &&
+                !item.path.includes('/CONFIG/') && !item.path.includes('/Achievements/') &&
+                !item.path.includes('/AUDIO/') && !item.path.includes('/TERMINALPORTATIL/') &&
+                !item.path.includes('/_update/') && !item.path.includes('/node_modules/')
             );
 
             const updatePath = path.join(__dirname, '..', '_update');
@@ -1018,7 +826,6 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
 
             const excludeFromBackup = ['CONFIG', 'Achievements', 'AUDIO', 'TERMINALPORTATIL', '_update', 'backup_old'];
             const filesToBackup = fs.readdirSync(path.join(__dirname, '..'));
-            
             for (const file of filesToBackup) {
                 if (!excludeFromBackup.includes(file)) {
                     const src = path.join(__dirname, '..', file);
@@ -1035,11 +842,11 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
 
             let needsRepair = false;
             let corruptedFiles = [];
-            
+
             if (isRepair) {
-                statusWin.setContent(`{bold}${t('VERIFYING_INTEGRITY')}{/bold}`);
+                statusWin.setContent(t('VERIFYING_INTEGRITY'));
                 screen.render();
-                
+
                 for (let i = 0; i < remoteFiles.length; i++) {
                     const item = remoteFiles[i];
                     const relPath = item.path.replace(targetPrefix, '');
@@ -1050,13 +857,13 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
                     const barLength = 30;
                     const filled = Math.floor(checkPercentage / 3.34);
                     const bar = "█".repeat(filled) + "░".repeat(barLength - filled);
-                    
-                    statusWin.setContent(`{bold}${t('VERIFYING_INTEGRITY')}{/bold}\n\n{center}[${bar}] ${checkPercentage}%{/center}`);
+
+                    statusWin.setContent(t('VERIFYING_INTEGRITY'));
                     descriptionBox.setContent(`{grey-fg}{bold}CHECKING: ${relPath}{/bold}{/grey-fg}`);
                     screen.render();
 
                     const localSha = getGitSha1(destPath);
-                    
+
                     if (localSha !== remoteSha) {
                         needsRepair = true;
                         corruptedFiles.push(item);
@@ -1065,10 +872,10 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
 
                 if (!needsRepair) {
                     statusWin.style.border.fg = 'green';
-                    statusWin.setContent(`{bold}{center}${t('INTEGRITY_OK')}{/center}{/bold}`);
-                    descriptionBox.setContent(`{bold}${t('PRESS_ENTER_TO_CONTINUE')}{/bold}`);
+                    statusWin.setContent(t('INTEGRITY_OK'));
+                    descriptionBox.setContent(t('PRESS_ENTER_TO_CONTINUE'));
                     screen.render();
-                    
+
                     screen.onceKey(['enter'], () => {
                         if (global.updateBgOverlay) global.updateBgOverlay.destroy();
                         isUpdateInterfaceActive = false;
@@ -1083,9 +890,8 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
             }
 
             blockMenuInput = true;
-            
             const filesToDownload = isRepair ? corruptedFiles : remoteFiles;
-            
+
             for (let i = 0; i < filesToDownload.length; i++) {
                 const fileMetadata = filesToDownload[i];
                 const relPath = fileMetadata.path.replace(targetPrefix, '');
@@ -1097,36 +903,34 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
                 const filled = Math.floor(percentage / 3.34);
                 const bar = "█".repeat(filled) + "░".repeat(barLength - filled);
 
-                statusWin.setContent(`{bold}${t('UPDATE_INSTALLING', { version: version.replace('V', '') })}{/bold}\n\n{center}[${bar}] ${percentage}%{/center}`);
-                descriptionBox.setContent(`{bold}${t('UPDATE_SECTOR', { current: i + 1, total: filesToDownload.length, file: relPath })}{/bold}`);
+                statusWin.setContent(t('UPDATE_INSTALLING', { version: version.replace('V', ''), bar, percentage }));
+                descriptionBox.setContent(t('UPDATE_SECTOR', { current: i + 1, total: filesToDownload.length, file: relPath }));
                 screen.render();
 
                 if (!fs.existsSync(path.dirname(destPath))) {
                     fs.mkdirSync(path.dirname(destPath), { recursive: true });
                 }
-                
+
                 const dlCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iwr -Uri '${fileUrl}' -OutFile '${destPath}'"`;
                 await new Promise((res) => { exec(dlCmd, () => res()); });
             }
 
             statusWin.style.border.fg = 'green';
             if (isRepair && filesToDownload.length > 0) {
-                statusWin.setContent(`{bold}{center}{green-fg}REPAIR COMPLETE{/green-fg}{/center}{/bold}\n\n{center}{bold}${filesToDownload.length} file(s) restored.\n\nRestart required.{/bold}{/center}`);
+                statusWin.setContent(t('REPAIR_COMPLETE', { count: corruptedFiles.length }));
             } else if (isRepair && filesToDownload.length === 0) {
-                statusWin.setContent(`{bold}{center}${t('INTEGRITY_OK')}{/center}{/bold}`);
+                statusWin.setContent(t('INTEGRITY_OK'));
             } else {
-                statusWin.setContent(`{bold}{center}${t('UPDATE_COMPLETE', { version: version.replace('V', '') })}{/center}{/bold}`);
+                statusWin.setContent(t('UPDATE_COMPLETE', { version: version.replace('V', '') }));
             }
-            descriptionBox.setContent(`{bold}${t('PRESS_ENTER_TO_RESTART')}{/bold}`);
+            descriptionBox.setContent(t('PRESS_ENTER_TO_RESTART'));
             screen.render();
             playsucesso();
-            
+
             screen.onceKey(['enter'], () => {
                 const updaterPath = path.join(__dirname, '..', 'Updater.exe');
                 const child = spawn('cmd.exe', ['/c', 'start', updaterPath], {
-                    stdio: 'ignore',
-                    detached: true,
-                    windowsHide: false
+                    stdio: 'ignore', detached: true, windowsHide: false
                 });
                 child.unref();
                 process.exit(0);
@@ -1134,7 +938,7 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
 
         } catch (err) {
             statusWin.style.border.fg = 'red';
-            statusWin.setContent(`{bold}${t('UPDATE_FAILED', { error: err.message })}{/bold}`);
+            statusWin.setContent(t('UPDATE_FAILED', { error: err.message }));
             screen.render();
             blockMenuInput = false;
         }
@@ -1168,30 +972,11 @@ async function showUpdateStatus() {
         width: 60, height: 12,
         border: 'line',
         tags: true,
-        content: `{bold}${t('UPDATE_TITLE')}{/bold}`,
+        content: t('UPDATE_TITLE'),
         style: { border: { fg: COLORDEFAULT }, label: { fg: COLORDEFAULT, bold: true } }
     });
 
     screen.render();
-
-    function getGitSha1(filePath) {
-        try {
-            if (!fs.existsSync(filePath)) return null;
-            const crypto = require('crypto');
-            let fileBuffer = fs.readFileSync(filePath);
-            fileBuffer = Buffer.from(fileBuffer.toString().replace(/\r\n/g, '\n'));
-            const blobHeader = `blob ${fileBuffer.length}\0`;
-            const blobData = Buffer.concat([
-                Buffer.from(blobHeader, 'utf8'),
-                fileBuffer
-            ]);
-            const hashSum = crypto.createHash('sha1');
-            hashSum.update(blobData);
-            return hashSum.digest('hex');
-        } catch(e) {
-            return null;
-        }
-    }
 
     async function handleRepair() {
         if (isAborted) return;
@@ -1212,7 +997,7 @@ async function showUpdateStatus() {
     function abortAllOperations() {
         isAborted = true;
         integrityCheckActive = false;
-        
+
         if (currentProcess) {
             try {
                 exec(`taskkill /F /T /PID ${currentProcess.pid} > nul 2>&1`);
@@ -1220,7 +1005,7 @@ async function showUpdateStatus() {
             } catch(e) {}
             currentProcess = null;
         }
-        
+
         screen.unkey('enter', handleRepair);
         screen.unkey('enter', handleNewUpdate);
         if (global.currentRepairFunc) global.currentRepairFunc = null;
@@ -1229,28 +1014,28 @@ async function showUpdateStatus() {
 
     function safeClose() {
         if (integrityCheckActive) {
-            descriptionBox.setContent(`{bold}{yellow-fg}WAIT, VERIFICATION IN PROGRESS...{/}{/bold}`);
+            descriptionBox.setContent(t('WAIT_VERIFICATION'));
             playwarning();
             screen.render();
             return false;
         }
-        
+
         abortAllOperations();
         playback();
-        
+
         if (bgOverlay && !bgOverlay.destroyed) {
             bgOverlay.destroy();
         }
-        
+
         isUpdateInterfaceActive = false;
         isupdating = false;
         blockMenuInput = false;
-        
+
         if (mainList && typeof mainList.focus === 'function') {
             mainList.select(0);
             mainList.focus();
         }
-        
+
         screen.render();
         return true;
     }
@@ -1261,10 +1046,10 @@ async function showUpdateStatus() {
 
     checkUpdates(async (hasUpdate, version) => {
         if (isAborted) return;
-        
+
         if (hasUpdate === null) {
             if (isAborted) return;
-            statusWin.setContent(`{bold}${t('UPDATE_ERROR')}{/bold}`);
+            statusWin.setContent(t('UPDATE_ERROR'));
             screen.render();
             integrityCheckActive = false;
             setTimeout(() => {
@@ -1276,13 +1061,13 @@ async function showUpdateStatus() {
             integrityCheckActive = false;
             global.latestVersionFound = version;
             statusWin.style.border.fg = 'magenta';
-            statusWin.setContent(`{bold}{center}${t('UPDATE_DETECTED', { version: version.replace('V', ''), time: "CALCULATING..." })}{/center}{/bold}`);
+            statusWin.setContent(t('UPDATE_DETECTED', { version: version.replace('V', ''), time: "CALCULATING..." }));
             screen.render();
 
             global.currentUpdateFunc = handleNewUpdate;
             screen.onceKey(['enter'], handleNewUpdate);
         } else {
-            statusWin.setContent(`{bold}${t('VERIFYING_INTEGRITY')}{/bold}`);
+            statusWin.setContent(t('VERIFYING_INTEGRITY'));
             screen.render();
 
             const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
@@ -1292,10 +1077,10 @@ async function showUpdateStatus() {
             currentProcess = exec(getTreeCmd, { maxBuffer: 1024 * 1024 * 10 }, async (error, stdout) => {
                 if (isAborted) return;
                 currentProcess = null;
-                
+
                 if (error) {
                     if (!isAborted) {
-                        statusWin.setContent(`{bold}${t('UPDATE_ERROR')}{/bold}`);
+                        statusWin.setContent(t('UPDATE_ERROR'));
                         screen.render();
                         integrityCheckActive = false;
                     }
@@ -1317,26 +1102,26 @@ async function showUpdateStatus() {
                         !item.path.includes('/AUDIO/') && 
                         !item.path.includes('/TERMINALPORTATIL/')
                     );
-                    
+
                     for (const item of filesToCheck) {
                         if (item.type !== 'blob') continue;
-                        
+
                         const relPath = item.path.replace(targetPrefix, '');
                         const destPath = path.join(__dirname, '..', relPath);
                         const remoteSha = item.sha;
-                        
+
                         const localSha = getGitSha1(destPath);
-                        
+
                         if (localSha !== remoteSha) {
                             corruptedCount++;
                         }
-                        
+
                         totalChecked++;
                         const checkPercentage = Math.round((totalChecked / filesToCheck.length) * 100);
                         const barLength = 30;
                         const filled = Math.floor(checkPercentage / 3.34);
                         const bar = "█".repeat(filled) + "░".repeat(barLength - filled);
-                        statusWin.setContent(`{bold}${t('VERIFYING_INTEGRITY')}{/bold}\n\n{center}[${bar}] ${checkPercentage}%{/center}`);
+                        statusWin.setContent(t('VERIFYING_INTEGRITY_WITH_BAR', { bar, percentage: checkPercentage }));
                         screen.render();
                     }
 
@@ -1344,11 +1129,11 @@ async function showUpdateStatus() {
 
                     if (corruptedCount === 0) {
                         statusWin.style.border.fg = 'green';
-                        statusWin.setContent(`{bold}{center}${t('INTEGRITY_OK')}{/center}{/bold}`);
-                        descriptionBox.setContent(`{bold}${t('PRESS_ENTER_TO_CONTINUE')}{/bold}`);
+                        statusWin.setContent(t('INTEGRITY_OK'));
+                        descriptionBox.setContent(t('PRESS_ENTER_TO_CONTINUE'));
                         screen.render();
                         integrityCheckActive = false;
-                        
+
                         screen.onceKey(['enter'], () => {
                             if (!isAborted && bgOverlay && !bgOverlay.destroyed) {
                                 safeClose();
@@ -1356,18 +1141,18 @@ async function showUpdateStatus() {
                         });
                     } else {
                         statusWin.style.border.fg = 'red';
-                        statusWin.setContent(`{bold}{center}${t('INTEGRITY_FAIL')}{/center}{/bold}\n\n{center}{bold}${corruptedCount} corrupted/missing file(s) found.{/bold}{/center}`);
-                        descriptionBox.setContent(`{bold}${t('PRESS_ENTER_TO_REPAIR')}{/bold}`);
+                        statusWin.setContent(t('INTEGRITY_FAIL_WITH_COUNT', { count: corruptedCount }));
+                        descriptionBox.setContent(t('PRESS_ENTER_TO_REPAIR'));
                         screen.render();
                         integrityCheckActive = false;
-                        
+
                         global.currentRepairFunc = handleRepair;
                         screen.onceKey(['enter'], handleRepair);
                     }
                 } catch (err) {
                     if (!isAborted) {
                         statusWin.style.border.fg = 'red';
-                        statusWin.setContent(`{bold}${t('UPDATE_FAILED', { error: err.message })}{/bold}`);
+                        statusWin.setContent(t('UPDATE_FAILED', { error: err.message }));
                         screen.render();
                         integrityCheckActive = false;
                     }
