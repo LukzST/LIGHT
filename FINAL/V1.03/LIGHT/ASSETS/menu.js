@@ -195,24 +195,25 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
     statusWin.setContent(isRepair ? t('VERIFYING_INTEGRITY') : t('UPDATE_MAPPING'));
     screen.render();
 
-    // Função para calcular SHA1 igual ao Git
-    function getGitSha1(filePath) {
-        try {
-            if (!fs.existsSync(filePath)) return null;
-            const crypto = require('crypto');
-            const fileBuffer = fs.readFileSync(filePath);
-            const blobHeader = `blob ${fileBuffer.length}\0`;
-            const blobData = Buffer.concat([
-                Buffer.from(blobHeader, 'utf8'),
-                fileBuffer
-            ]);
-            const hashSum = crypto.createHash('sha1');
-            hashSum.update(blobData);
-            return hashSum.digest('hex');
-        } catch(e) {
-            return null;
-        }
+    // Função para calcular SHA1 (igual ao Git) de um arquivo local
+function getGitSha1(filePath) {
+    try {
+        if (!fs.existsSync(filePath)) return null;
+        const crypto = require('crypto');
+        const fileBuffer = fs.readFileSync(filePath);
+        // Git blob SHA1 = "blob " + tamanho + "\0" + conteúdo
+        const blobHeader = `blob ${fileBuffer.length}\0`;
+        const blobData = Buffer.concat([
+            Buffer.from(blobHeader, 'utf8'),
+            fileBuffer
+        ]);
+        const hashSum = crypto.createHash('sha1');
+        hashSum.update(blobData);
+        return hashSum.digest('hex');
+    } catch(e) {
+        return null;
     }
+}
 
     exec(getTreeCmd, { maxBuffer: 1024 * 1024 * 10 }, async (error, stdout) => {
         if (error) {
