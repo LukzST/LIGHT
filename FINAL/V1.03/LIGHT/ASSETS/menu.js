@@ -185,27 +185,31 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
             const tree = JSON.parse(stdout);
             const targetPrefix = `FINAL/${version}/LIGHT/`;
             
-            // PEGA TODOS OS ARQUIVOS DA VERSÃO (excluindo pastas de dados do usuário)
+            // FILTRO: Exclui pastas de dados do usuário
             const remoteFiles = tree.filter(item => 
-                item.type === 'blob' && item.path.startsWith(targetPrefix) &&
-                !item.path.includes('/CONFIG/') && !item.path.includes('/Achievements/') &&
-                !item.path.includes('/AUDIO/') && !item.path.includes('/TERMINALPORTATIL/')
+                item.type === 'blob' && 
+                item.path.startsWith(targetPrefix) &&
+                !item.path.includes('/CONFIG/') && 
+                !item.path.includes('/Achievements/') &&
+                !item.path.includes('/AUDIO/') && 
+                !item.path.includes('/TERMINALPORTATIL/')
             );
 
-            // Cria pasta _update
-            const newVersionPath = path.join(__dirname, '..', '_update');
-            if (fs.existsSync(newVersionPath)) {
-                try { fs.rmSync(newVersionPath, { recursive: true, force: true }); } catch(e) {}
+            // ========== CRIA PASTA _UPDATE ==========
+            const updatePath = path.join(__dirname, '..', '_update');
+            if (fs.existsSync(updatePath)) {
+                try { fs.rmSync(updatePath, { recursive: true, force: true }); } catch(e) {}
             }
-            fs.mkdirSync(newVersionPath, { recursive: true });
+            fs.mkdirSync(updatePath, { recursive: true });
 
-            // Cria backup_old (apenas para segurança)
+            // ========== CRIA BACKUP_OLD ==========
             const backupPath = path.join(__dirname, '..', 'backup_old');
             if (fs.existsSync(backupPath)) {
                 try { fs.rmSync(backupPath, { recursive: true, force: true }); } catch(e) {}
             }
             fs.mkdirSync(backupPath, { recursive: true });
 
+            // Pastas que NÃO devem ser incluídas no backup
             const excludeFromBackup = ['CONFIG', 'Achievements', 'AUDIO', 'TERMINALPORTATIL', '_update', 'backup_old'];
             const filesToBackup = fs.readdirSync(path.join(__dirname, '..'));
             
@@ -223,9 +227,9 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
                 }
             }
 
-            let integrityCheckFailed = false;
+            let integrityOk = true;
             
-            // Se for reparo de integridade, verifica arquivos corrompidos
+            // ========== VERIFICAÇÃO DE INTEGRIDADE (se for reparo) ==========
             if (isRepair) {
                 statusWin.setContent(t('VERIFYING_INTEGRITY'));
                 screen.render();
@@ -243,18 +247,18 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
                     screen.render();
 
                     if (!fs.existsSync(destPath)) {
-                        integrityCheckFailed = true;
+                        integrityOk = false;
                         break;
                     }
 
                     const stats = fs.statSync(destPath);
                     if (stats.size !== item.size) {
-                        integrityCheckFailed = true;
+                        integrityOk = false;
                         break;
                     }
                 }
 
-                if (!integrityCheckFailed) {
+                if (integrityOk) {
                     statusWin.style.border.fg = 'green';
                     statusWin.setContent(t('INTEGRITY_OK'));
                     descriptionBox.setContent(t('PRESS_ENTER_TO_CONTINUE'));
@@ -272,13 +276,13 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
                 }
             }
 
-            // BAIXA TODOS OS ARQUIVOS (não apenas os que mudaram)
+            // ========== BAIXA TODOS OS ARQUIVOS PARA _UPDATE ==========
             blockMenuInput = true;
             
             for (let i = 0; i < remoteFiles.length; i++) {
                 const fileMetadata = remoteFiles[i];
                 const relPath = fileMetadata.path.replace(targetPrefix, '');
-                const destPath = path.join(newVersionPath, relPath);
+                const destPath = path.join(updatePath, relPath);
                 const fileUrl = `https://raw.githubusercontent.com/lukzst/LIGHT/main/${fileMetadata.path}`;
 
                 const percentage = Math.round(((i + 1) / remoteFiles.length) * 100);
@@ -303,8 +307,8 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
             playsucesso();
             
             screen.onceKey(['enter'], () => {
-                const updateScriptPath = path.join(__dirname, '..', 'Updater.exe');
-                const child = spawn('cmd.exe', ['/c', 'start', updateScriptPath], {
+                const updaterPath = path.join(__dirname, '..', 'Updater.exe');
+                const child = spawn('cmd.exe', ['/c', 'start', updaterPath], {
                     stdio: 'ignore',
                     detached: true,
                     windowsHide: false
@@ -390,7 +394,7 @@ async function showUpdateStatus() {
 
     function safeClose() {
         if (integrityCheckActive) {
-            descriptionBox.setContent(t('WAIT_VERIFICATION'));
+            descriptionBox.setContent('{yellow-fg}WAIT, VERIFICATION IN PROGRESS...{/}');
             playwarning();
             screen.render();
             return false;
@@ -469,30 +473,33 @@ async function showUpdateStatus() {
                     const tree = JSON.parse(stdout);
                     const targetPrefix = `FINAL/${CURRENT_VERSION}/LIGHT/`;
 
-                    let corruptedFiles = [];
+                    let corruptedCount = 0;
                     
                     for (const item of tree) {
                         if (item.type !== 'blob') continue;
-                        if (item.path.includes('/CONFIG/') || item.path.includes('/Achievements/')) continue;
-                        if (item.path.includes('/AUDIO/') || item.path.includes('/TERMINALPORTATIL/')) continue;
+                        // MESMOS FILTROS: exclui CONFIG, Achievements, AUDIO, TERMINALPORTATIL
+                        if (item.path.includes('/CONFIG/')) continue;
+                        if (item.path.includes('/Achievements/')) continue;
+                        if (item.path.includes('/AUDIO/')) continue;
+                        if (item.path.includes('/TERMINALPORTATIL/')) continue;
                         
                         const relPath = item.path.replace(targetPrefix, '');
                         const destPath = path.join(__dirname, '..', relPath);
                         
                         if (!fs.existsSync(destPath)) {
-                            corruptedFiles.push(item);
+                            corruptedCount++;
                             continue;
                         }
                         
                         const stats = fs.statSync(destPath);
                         if (stats.size !== item.size) {
-                            corruptedFiles.push(item);
+                            corruptedCount++;
                         }
                     }
 
                     if (isAborted) return;
 
-                    if (corruptedFiles.length === 0) {
+                    if (corruptedCount === 0) {
                         statusWin.style.border.fg = 'green';
                         statusWin.setContent(t('INTEGRITY_OK'));
                         descriptionBox.setContent(t('PRESS_ENTER_TO_CONTINUE'));
@@ -506,8 +513,8 @@ async function showUpdateStatus() {
                         });
                     } else {
                         statusWin.style.border.fg = 'red';
-                        statusWin.setContent(t('INTEGRITY_FAIL', { count: corruptedFiles.length }));
-                        descriptionBox.setContent(t('PRESS_ENTER_TO_REPAIR'));
+                        statusWin.setContent(`{center}\n{red-fg}INTEGRITY COMPROMISED{/red-fg}\n\n${corruptedCount} corrupted/missing file(s) found.{/center}`);
+                        descriptionBox.setContent('{cyan-fg}[ENTER] REPAIR FILES{/}');
                         screen.render();
                         integrityCheckActive = false;
                         
@@ -526,8 +533,6 @@ async function showUpdateStatus() {
         }
     });
 }
-
-
 
 const LOCK_FILE = path.join(os.tmpdir(), 'lux4_game.lock');
 
