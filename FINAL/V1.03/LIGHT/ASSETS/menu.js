@@ -2346,23 +2346,6 @@ screen.key(['-'], () => {
     screen.onceKey('enter', handleEnter);
     screen.render();
 });
-
-function playAudio() {
-    if (audiostate !== 'ON') {
-        stopAudio();
-        return;
-    }
-    if (bgmProcess) return;
-
-    bgmProcess = player.play(audioFile, function (err) {
-        bgmProcess = null;
-
-        if (!err || (err && !err.killed)) {
-            playAudio();
-        }
-    });
-}
-
 // ========== FUNÇÕES DE ATUALIZAÇÃO (NOVAS) ==========
 
 function getGitSha1(filePath) {
@@ -2854,6 +2837,23 @@ async function showUpdateUI() {
         if (!isProcessing) closeUI();
     });
 }
+
+function playAudio() {
+    if (audiostate !== 'ON') {
+        stopAudio();
+        return;
+    }
+    if (bgmProcess) return;
+
+    bgmProcess = player.play(audioFile, function (err) {
+        bgmProcess = null;
+
+        if (!err || (err && !err.killed)) {
+            playAudio();
+        }
+    });
+}
+
 
 function stopcreditsaudio() {
     if (vlcProcess) {
