@@ -1015,7 +1015,7 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
             descriptionBox.setContent(t('PRESS_ENTER_TO_CONTINUE'));
             screen.render();
             
-            screen.onceKey(['enter'], () => {
+            screen.onceKey(['escape'], () => {
                 if (global.updateBgOverlay) global.updateBgOverlay.destroy();
                 isUpdateInterfaceActive = false;
                 isupdating = false;
