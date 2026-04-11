@@ -1211,7 +1211,7 @@ async function coreFinalSequence(box) {
     
     box.setContent(t('MAIN_CHAIR_LOCKED'));
     screen.render();
-    const balancerProc = spawn('cmd.exe', ['/c', 'start', '/wait', 'node', 'minigame.js'], {
+    const balancerProc = spawn('cmd.exe', ['/c', 'start', '/wait', 'node', 'balancer.js'], {
         shell: false
     });
     balancerProc.on('exit', () => {
@@ -1552,7 +1552,7 @@ async function officeChaosPhase() {
                                         elevatorScene.setContent(t('MAIN_ELEVATOR_MOTION'));
                                         screen.render();
                                         playceo()
-                                        const pacmanProc = spawn('cmd.exe', ['/c', 'start', '/wait', 'node', 'elevator.js'], {
+                                        const pacmanProc = spawn('cmd.exe', ['/c', 'start', '/wait', 'node', 'pacpro.js'], {
                                             shell: false,
                                             detached: false
                                         });
@@ -2002,7 +2002,7 @@ async function monitorSurvey() {
                             try {
                                 fs.unlinkSync('./TERMINALACCESS/MEMORY_1999.bin');
                             } catch (e) {}
-                            exec('start cmd /c "node lux4.js"');
+                            exec('start cmd /c "node survey.js"');
                             resolve(monitorSurvey());
                         }
                     });
@@ -2107,7 +2107,7 @@ function startMainMenu() {
             loading.load(t('MAIN_SURVEY_WAITING'));
             screen.render();
 
-            const surveyCmd = exec('start /wait cmd /c "node lux4.js"');
+            const surveyCmd = exec('start /wait cmd /c "node survey.js"');
 
             surveyCmd.on('exit', () => {
                 setTimeout(async () => {

@@ -676,6 +676,17 @@ The ones inside... they're not dead. They're waiting.
         'MEMORY_TERMINAL_SKIP': ' > SKIP ',
 
         'UPDATE_ERROR': '{center}\n{red-fg}NETWORK ERROR{/red-fg}\n\nFailed to connect to GitHub repository.\n\n{yellow-fg}Try logging into your GitHub account{/yellow-fg}\nin the ACCOUNT menu to increase rate limit.\n\nCheck your internet connection and try again.{/center}',
+    
+        'MENU_UPDATE_TITLE': '{center}UPDATE SYSTEM{/center}',
+        'MENU_UPDATE_OPTION': '{center}UPDATE{/center}',
+        'MENU_SYNC_OPTION': '{center}SYNC VERSION{/center}',
+        'MENU_BACK_OPTION': '{center}BACK TO MENU{/center}',
+        'MENU_SELECT_VERSION': '{center}SELECT VERSION{/center}',
+        'MENU_FETCHING_VERSIONS': '{center}{yellow-fg}FETCHING VERSIONS...{/}{/center}',
+        'MENU_NO_VERSIONS': '{center}{red-fg}NO VERSIONS FOUND{/}{/center}',
+        'UPDATE_STARTING': '{center}{yellow-fg}STARTING UPDATE...{/}{/center}',
+        'SYNC_STARTING': '{center}{yellow-fg}STARTING VERSION SYNC...{/}{/center}',
+        'PRESS_ENTER_TO_RETURN': '{center}{cyan-fg}[ENTER] TO RETURN{/}{/center}',
     },
 
     'PT': {
@@ -1357,6 +1368,17 @@ Os que estão dentro... não estão mortos. Estão esperando.
 
 
         'UPDATE_ERROR': '{center}\n{red-fg}ERRO DE REDE{/red-fg}\n\nFalha ao conectar ao repositório do GitHub.\n\n{yellow-fg}Tente fazer login na sua conta GitHub{/yellow-fg}\nno menu CONTA para aumentar o limite de requisições.\n\nVerifique sua conexão e tente novamente.{/center}',
+    
+        'MENU_UPDATE_TITLE': '{center}SISTEMA DE ATUALIZAÇÃO{/center}',
+        'MENU_UPDATE_OPTION': '{center}ATUALIZAR{/center}',
+        'MENU_SYNC_OPTION': '{center}SINCRONIZAR VERSÃO{/center}',
+        'MENU_BACK_OPTION': '{center}VOLTAR AO MENU{/center}',
+        'MENU_SELECT_VERSION': '{center}SELECIONE A VERSÃO{/center}',
+        'MENU_FETCHING_VERSIONS': '{center}{yellow-fg}BUSCANDO VERSÕES...{/}{/center}',
+        'MENU_NO_VERSIONS': '{center}{red-fg}NENHUMA VERSÃO ENCONTRADA{/}{/center}',
+        'UPDATE_STARTING': '{center}{yellow-fg}INICIANDO ATUALIZAÇÃO...{/}{/center}',
+        'SYNC_STARTING': '{center}{yellow-fg}INICIANDO SINCRONIZAÇÃO...{/}{/center}',
+        'PRESS_ENTER_TO_RETURN': '{center}{cyan-fg}[ENTER] PARA VOLTAR{/}{/center}',
     }
 };
 
