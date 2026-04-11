@@ -1070,6 +1070,9 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
     descriptionBox.setContent(t('PRESS_ENTER_TO_RESTART'));
     screen.render();
     playsucesso();
+
+    screen.unkey('enter');
+    screen.unkey('escape');
     
     screen.onceKey(['enter'], () => {
         const updaterPath = path.join(__dirname, '..', 'Updater.exe');
