@@ -1014,26 +1014,23 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
         
         if (corruptedFiles.length === 0) {
             statusWin.style.border.fg = 'green';
-            statusWin.setContent(`{bold}${t('INTEGRITY_OK')}{/bold}`);
-            descriptionBox.setContent(`{bold}${t('PRESS_ENTER_TO_CONTINUE')}{/bold}`);
+            statusWin.setContent(t('INTEGRITY_OK'));
+            descriptionBox.setContent(t('PRESS_ENTER_TO_CONTINUE'));
             screen.render();
-            
+
             blockMenuInput = true;
             screen.unkey('enter');
-            const escHandler = (ch, key) => {
-                if (key.name === 'escape') {
-                    screen.removeListener('keypress', escHandler);
-                    if (global.updateBgOverlay) global.updateBgOverlay.destroy();
-                    isUpdateInterfaceActive = false;
-                    isupdating = false;
-                    blockMenuInput = false;
-                    mainList.select(0);
-                    mainList.focus();
-                    screen.render();
-                }
-            };
+            screen.unkey('escape');
             
-            screen.on('keypress', escHandler);
+            screen.onceKey(['enter'], () => {
+                if (global.updateBgOverlay) global.updateBgOverlay.destroy();
+                isUpdateInterfaceActive = false;
+                isupdating = false;
+                blockMenuInput = false;
+                mainList.focus();
+                screen.render();
+            });
+
             return;
         }
     }
