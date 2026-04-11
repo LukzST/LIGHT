@@ -1209,7 +1209,7 @@ The ones inside... they're not dead. They're waiting.
         'LEAKS_EXPORTED': '\n\n{yellow-fg}DADOS EXPORTADOS PARA A ÁREA DE TRABALHO.{/yellow-fg}',
 
         'VERIFYING_INTEGRITY': '{center}\n{yellow-fg}VERIFICANDO INTEGRIDADE DO SISTEMA...{/}\nComparando setores locais com o repositório.{/center}',
-        'INTEGRITY_OK': '{center}\n{green-fg}INTEGRIDADE VERIFICADA{/green-fg}\n\nTodos os setores locais coincidem com o registro mestre.\n\n{grey-fg}PRESSIONE [ESC] PARA FECHAR{/grey-fg}{/center}',
+        'INTEGRITY_OK': '{center}\n{green-fg}INTEGRIDADE VERIFICADA{/green-fg}\n\nTodos os setores locais coincidem com o registro mestre.\n\n{grey-fg}{bold}PRESSIONE [ESC] PARA FECHAR{/bold}{/grey-fg}{/center}',
         'INTEGRITY_FAIL': '{center}\n{red-fg}INTEGRIDADE COMPROMETIDA{/red-fg}\n\nUm ou mais setores locais não coincidem com o registro mestre.\n\n{yellow-fg}[ENTER] PARA REPARAR | [ESC] PARA SAIR{/yellow-fg}{/center}',
         'SUPPORT_WARNING': '\n{center}{bold}AVISO{/bold}{/center}',
         'SUPPORT_AUDIO_SAVED': '{center}Configurações de áudio salvas.{/center}',
