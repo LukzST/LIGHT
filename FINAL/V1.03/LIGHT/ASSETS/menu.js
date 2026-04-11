@@ -978,163 +978,233 @@ async function showUpdateUI() {
     }
 
     async function showVersionSelector(isUpdateMode) {
-        if (isProcessing) return;
-        isProcessing = true;
+    if (isProcessing) return;
+    isProcessing = true;
 
-        const versionOverlay = blessed.box({
-            parent: screen,
-            top: 0, left: 0,
-            width: '100%', height: '100%',
-            style: { bg: 'black' },
-            index: 250
-        });
+    const versionOverlay = blessed.box({
+        parent: screen,
+        top: 0, left: 0,
+        width: '100%', height: '100%',
+        style: { bg: 'black' },
+        index: 250
+    });
 
-        const versionWin = blessed.box({
-            parent: versionOverlay,
-            top: 'center', left: 'center',
-            width: 45, height: 15,
-            border: 'line',
-            tags: true,
-            label: t('MENU_SELECT_VERSION'),
-            style: { border: { fg: COLORDEFAULT }, label: { fg: COLORDEFAULT, bold: true } }
-        });
+    const versionWin = blessed.box({
+        parent: versionOverlay,
+        top: 'center', left: 'center',
+        width: 45, height: 15,
+        border: 'line',
+        tags: true,
+        label: t('MENU_SELECT_VERSION'),
+        style: { border: { fg: COLORDEFAULT }, label: { fg: COLORDEFAULT, bold: true } }
+    });
 
-        const loadingText = blessed.box({
+    const loadingText = blessed.box({
+        parent: versionWin,
+        top: 'center', left: 'center',
+        width: '90%', height: 3,
+        tags: true,
+        content: t('MENU_FETCHING_VERSIONS'),
+        align: 'center'
+    });
+    screen.render();
+
+    let versions = [];
+    checkUpdates((versionsList, error) => {
+        if (error || !versionsList || versionsList.length === 0) {
+            loadingText.setContent(t('MENU_NO_VERSIONS'));
+            screen.render();
+            setTimeout(() => {
+                versionOverlay.destroy();
+                isProcessing = false;
+                optionsList.focus();
+                screen.render();
+            }, 2000);
+            return;
+        }
+
+        versions = versionsList;
+        loadingText.destroy();
+
+        const versionList = blessed.list({
             parent: versionWin,
-            top: 'center', left: 'center',
-            width: '90%', height: 3,
+            top: 1, left: 'center',
+            width: '80%', height: 10,
+            keys: true,
             tags: true,
-            content: t('MENU_FETCHING_VERSIONS'),
-            align: 'center'
+            items: versions.map(v => ` ${v} `),
+            style: {
+                selected: { bg: COLORDEFAULT, fg: 'black' },
+                item: { fg: 'white' }
+            }
         });
+
+        versionList.focus();
         screen.render();
 
-        let versions = [];
-        checkUpdates((versionsList, error) => {
-            if (error || !versionsList || versionsList.length === 0) {
-                loadingText.setContent(t('MENU_NO_VERSIONS'));
-                screen.render();
-                setTimeout(() => {
-                    versionOverlay.destroy();
-                    isProcessing = false;
-                    optionsList.focus();
-                    screen.render();
-                }, 2000);
-                return;
+        function confirmAndProceed(selectedVersion) {
+            const isDowngrade = selectedVersion !== CURRENT_VERSION && selectedVersion < CURRENT_VERSION;
+            
+            const confirmOverlay = blessed.box({
+                parent: screen,
+                top: 0, left: 0,
+                width: '100%', height: '100%',
+                style: { bg: 'black' },
+                index: 275
+            });
+
+            let warningText = '';
+            if (isDowngrade && isUpdateMode) {
+                warningText = '{yellow-fg}{bold}WARNING: DOWNGRADE DETECTED!{/bold}{/yellow-fg}\n\nYou are about to install an OLDER version.\nThis may cause save file incompatibility.\n\nDo you want to continue?';
+            } else if (selectedVersion === CURRENT_VERSION && isUpdateMode) {
+                warningText = '{yellow-fg}{bold}WARNING: SAME VERSION{/bold}{/yellow-fg}\n\nYou are about to reinstall the current version.\nThis will overwrite your game files.\n\nDo you want to continue?';
+            } else {
+                warningText = `You are about to ${isUpdateMode ? 'update to' : 'verify'} ${selectedVersion}.\n\nDo you want to continue?`;
             }
 
-            versions = versionsList;
-            loadingText.destroy();
+            const confirmWin = blessed.box({
+                parent: confirmOverlay,
+                top: 'center', left: 'center',
+                width: 55, height: 12,
+                border: 'line',
+                tags: true,
+                label: t('CONFIRM_EXIT'),
+                content: `\n{center}${warningText}{/center}`,
+                style: { border: { fg: 'yellow' } }
+            });
 
-            const versionList = blessed.list({
-                parent: versionWin,
-                top: 1, left: 'center',
-                width: '80%', height: 10,
+            const confirmList = blessed.list({
+                parent: confirmWin,
+                bottom: 1, left: 'center',
+                width: '60%', height: 4,
                 keys: true,
                 tags: true,
-                items: versions.map(v => ` ${v} `),
+                items: [
+                    t('CONFIRM_YES'),
+                    t('CONFIRM_NO')
+                ],
                 style: {
                     selected: { bg: COLORDEFAULT, fg: 'black' },
                     item: { fg: 'white' }
                 }
             });
 
-            versionList.focus();
+            confirmList.focus();
             screen.render();
 
-            versionList.on('select', async (item, idx) => {
-                if (isProcessing) return;
-                isProcessing = true;
-                versionOverlay.destroy();
-
-                const selectedVersion = versions[idx];
+            confirmList.on('select', (confirmItem, confirmIdx) => {
+                confirmOverlay.destroy();
                 
-                const statusOverlay = blessed.box({
-                    parent: screen,
-                    top: 0, left: 0,
-                    width: '100%', height: '100%',
-                    style: { bg: 'black' },
-                    index: 300
-                });
-
-                const statusWin = blessed.box({
-                    parent: statusOverlay,
-                    top: 'center', left: 'center',
-                    width: 60, height: 12,
-                    border: 'line',
-                    tags: true,
-                    content: isUpdateMode ? t('UPDATE_STARTING') : t('SYNC_STARTING'),
-                    style: { border: { fg: COLORDEFAULT } }
-                });
-
-                screen.render();
-
-                try {
-                    if (isUpdateMode) {
-                        const updatePath = path.join(__dirname, '..', '_update');
-                        await downloadVersion(selectedVersion, statusWin, updatePath, descriptionBox, screen);
-                        
-                        statusWin.style.border.fg = 'green';
-                        statusWin.setContent(t('UPDATE_COMPLETE', { version: selectedVersion.replace('V', '') }));
-                        descriptionBox.setContent(t('PRESS_ENTER_TO_RESTART'));
-                        screen.render();
-                        playsucesso();
-                        
-                        screen.onceKey(['enter'], () => {
-                            const updaterPath = path.join(__dirname, '..', 'Updater.exe');
-                            const child = spawn('cmd.exe', ['/c', 'start', updaterPath], {
-                                stdio: 'ignore',
-                                detached: true,
-                                windowsHide: false
-                            });
-                            child.unref();
-                            process.exit(0);
-                        });
-                    } else {
-                        const isOk = await verifyIntegrity(statusWin, descriptionBox, screen);
-                        if (isOk) {
-                            statusWin.style.border.fg = 'green';
-                            statusWin.setContent(t('INTEGRITY_OK'));
-                            descriptionBox.setContent(t('PRESS_ENTER_TO_CONTINUE'));
-                            screen.render();
-                            
-                            screen.onceKey(['enter'], () => {
-                                statusOverlay.destroy();
-                                closeUI();
-                            });
-                        } else {
-                            statusWin.style.border.fg = 'red';
-                            statusWin.setContent(t('INTEGRITY_FAIL'));
-                            descriptionBox.setContent(t('PRESS_ENTER_TO_RETURN'));
-                            screen.render();
-                            
-                            screen.onceKey(['enter'], () => {
-                                statusOverlay.destroy();
-                                isProcessing = false;
-                                showVersionSelector(isUpdateMode);
-                            });
-                        }
-                    }
-                } catch (err) {
-                    statusWin.style.border.fg = 'red';
-                    statusWin.setContent(t('UPDATE_FAILED', { error: err.message }));
-                    screen.render();
-                    setTimeout(() => {
-                        statusOverlay.destroy();
-                        isProcessing = false;
-                        closeUI();
-                    }, 3000);
+                if (confirmIdx === 1) {
+                    return;
                 }
+                
+                executeOperation(selectedVersion);
             });
 
             screen.key(['escape'], () => {
-                versionOverlay.destroy();
-                isProcessing = false;
-                optionsList.focus();
-                screen.render();
+                confirmOverlay.destroy();
             });
+        }
+
+        async function executeOperation(selectedVersion) {
+            isProcessing = true;
+            versionOverlay.destroy();
+
+            const statusOverlay = blessed.box({
+                parent: screen,
+                top: 0, left: 0,
+                width: '100%', height: '100%',
+                style: { bg: 'black' },
+                index: 300
+            });
+
+            const statusWin = blessed.box({
+                parent: statusOverlay,
+                top: 'center', left: 'center',
+                width: 60, height: 12,
+                border: 'line',
+                tags: true,
+                content: isUpdateMode ? t('UPDATE_STARTING') : t('SYNC_STARTING'),
+                style: { border: { fg: COLORDEFAULT } }
+            });
+
+            screen.render();
+
+            try {
+                if (isUpdateMode) {
+                    const updatePath = path.join(__dirname, '..', '_update');
+                    await downloadVersion(selectedVersion, statusWin, updatePath, descriptionBox, screen);
+                    
+                    statusWin.style.border.fg = 'green';
+                    statusWin.setContent(t('UPDATE_COMPLETE', { version: selectedVersion.replace('V', '') }));
+                    descriptionBox.setContent(t('PRESS_ENTER_TO_RESTART'));
+                    screen.render();
+                    playsucesso();
+                    
+                    screen.onceKey(['enter'], () => {
+                        const updaterPath = path.join(__dirname, '..', 'Updater.exe');
+                        const child = spawn('cmd.exe', ['/c', 'start', updaterPath], {
+                            stdio: 'ignore',
+                            detached: true,
+                            windowsHide: false
+                        });
+                        child.unref();
+                        process.exit(0);
+                    });
+                } else {
+                    const isOk = await verifyIntegrity(statusWin, descriptionBox, screen);
+                    if (isOk) {
+                        statusWin.style.border.fg = 'green';
+                        statusWin.setContent(t('INTEGRITY_OK'));
+                        descriptionBox.setContent(t('PRESS_ENTER_TO_CONTINUE'));
+                        screen.render();
+                        
+                        screen.onceKey(['enter'], () => {
+                            statusOverlay.destroy();
+                            closeUI();
+                        });
+                    } else {
+                        statusWin.style.border.fg = 'red';
+                        statusWin.setContent(t('INTEGRITY_FAIL'));
+                        descriptionBox.setContent(t('PRESS_ENTER_TO_RETURN'));
+                        screen.render();
+                        
+                        screen.onceKey(['enter'], () => {
+                            statusOverlay.destroy();
+                            isProcessing = false;
+                            versionOverlay.destroy();
+                            optionsList.focus();
+                            screen.render();
+                        });
+                    }
+                }
+            } catch (err) {
+                statusWin.style.border.fg = 'red';
+                statusWin.setContent(t('UPDATE_FAILED', { error: err.message }));
+                screen.render();
+                setTimeout(() => {
+                    statusOverlay.destroy();
+                    isProcessing = false;
+                    closeUI();
+                }, 3000);
+            }
+        }
+
+        versionList.on('select', (item, idx) => {
+            if (isProcessing) return;
+            const selectedVersion = versions[idx];
+            confirmAndProceed(selectedVersion);
         });
-    }
+
+        screen.key(['escape'], () => {
+            versionOverlay.destroy();
+            isProcessing = false;
+            optionsList.focus();
+            screen.render();
+        });
+    });
+}
 
     optionsList.on('select', (item, idx) => {
         if (isProcessing) return;

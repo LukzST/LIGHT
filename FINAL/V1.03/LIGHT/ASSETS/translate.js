@@ -687,6 +687,11 @@ The ones inside... they're not dead. They're waiting.
         'UPDATE_STARTING': '{center}{yellow-fg}STARTING UPDATE...{/}{/center}',
         'SYNC_STARTING': '{center}{yellow-fg}STARTING VERSION SYNC...{/}{/center}',
         'PRESS_ENTER_TO_RETURN': '{center}{cyan-fg}[ENTER] TO RETURN{/}{/center}',
+        'WARNING_DOWNGRADE_TITLE': '{center}{yellow-fg}{bold}WARNING: DOWNGRADE DETECTED!{/bold}{/yellow-fg}{/center}',
+        'WARNING_DOWNGRADE_TEXT': 'You are about to install an OLDER version.\nThis may cause save file incompatibility.\n\nDo you want to continue?',
+        'WARNING_SAME_VERSION_TITLE': '{center}{yellow-fg}{bold}WARNING: SAME VERSION{/bold}{/yellow-fg}{/center}',
+        'WARNING_SAME_VERSION_TEXT': 'You are about to reinstall the current version.\nThis will overwrite your game files.\n\nDo you want to continue?',
+        'WARNING_CONFIRM': 'You are about to {action} {version}.\n\nDo you want to continue?',
     },
 
     'PT': {
@@ -1379,6 +1384,11 @@ Os que estão dentro... não estão mortos. Estão esperando.
         'UPDATE_STARTING': '{center}{yellow-fg}INICIANDO ATUALIZAÇÃO...{/}{/center}',
         'SYNC_STARTING': '{center}{yellow-fg}INICIANDO SINCRONIZAÇÃO...{/}{/center}',
         'PRESS_ENTER_TO_RETURN': '{center}{cyan-fg}[ENTER] PARA VOLTAR{/}{/center}',
+        'WARNING_DOWNGRADE_TITLE': '{center}{yellow-fg}{bold}AVISO: DOWNGRADE DETECTADO!{/bold}{/yellow-fg}{/center}',
+        'WARNING_DOWNGRADE_TEXT': 'Você está prestes a instalar uma versão ANTIGA.\nIsso pode causar incompatibilidade com saves.\n\nDeseja continuar?',
+        'WARNING_SAME_VERSION_TITLE': '{center}{yellow-fg}{bold}AVISO: MESMA VERSÃO{/bold}{/yellow-fg}{/center}',
+        'WARNING_SAME_VERSION_TEXT': 'Você está prestes a reinstalar a versão atual.\nIsso irá sobrescrever os arquivos do jogo.\n\nDeseja continuar?',
+        'WARNING_CONFIRM': 'Você está prestes a {action} {version}.\n\nDeseja continuar?',
     }
 };
 
