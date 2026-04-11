@@ -231,7 +231,9 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
                 !item.path.includes('/CONFIG/') && 
                 !item.path.includes('/Achievements/') &&
                 !item.path.includes('/AUDIO/') && 
-                !item.path.includes('/TERMINALPORTATIL/')
+                !item.path.includes('/TERMINALPORTATIL/') &&
+                !item.path.includes('/_update/') &&
+                !item.path.includes('/node_modules/')
             );
 
             // ========== CRIA PASTA _UPDATE ==========
@@ -480,7 +482,16 @@ async function showUpdateStatus() {
         }
         
         screen.render();
-        return true;
+            setTimeout(() => {
+        if (mainList && typeof mainList.focus === 'function') {
+            mainList.select(0);
+            mainList.focus();
+        }
+        screen.render();
+        isExiting = false;
+    }, 100);
+    
+    return true;
     }
 
     screen.key(['escape'], function escUpdate() {
