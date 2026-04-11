@@ -1814,7 +1814,7 @@ function eraseData() {
                 screen.render();
 
                 setTimeout(() => {
-                    const eraser = spawn('node', ['./erasedata.js'], { stdio: 'inherit' });
+                    const eraser = spawn('node', ['./erased.js'], { stdio: 'inherit' });
 
                     eraser.on('close', () => {
                         TIME_STATUS = 'ON';
@@ -1956,7 +1956,7 @@ function erasePlaytime() {
             setTimeout(() => {
                 clearInterval(logInterval);
 
-                const timerReset = spawn('node', ['./erasetime.js'], { stdio: 'inherit' });
+                const timerReset = spawn('node', ['./eraset.js'], { stdio: 'inherit' });
 
                 timerReset.on('close', () => {
                     TOTAL_PLAYTIME = 0;
@@ -3354,7 +3354,7 @@ mainList.on('select', (item) => {
         setTimeout(() => {
             menuBox.setContent(`\n\n{center}{yellow-fg}${t('PACPRO_RUNNING')}{/}\n\n${t('PACPRO_WAITING')}{/center}`);
             screen.render();
-            const pacmanProc = spawn('cmd.exe /c start /wait node pacpro.js', {
+            const pacmanProc = spawn('cmd.exe /c start /wait node elevator.js', {
                 shell: true
             });
             pacmanProc.on('exit', () => {
