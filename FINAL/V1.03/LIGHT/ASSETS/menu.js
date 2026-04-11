@@ -1021,17 +1021,17 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
 
             blockMenuInput = true;
             screen.unkey('enter');
-            screen.unkey('escape');
             
             screen.onceKey(['escape'], () => {
                 if (global.updateBgOverlay) global.updateBgOverlay.destroy();
                 isUpdateInterfaceActive = false;
                 isupdating = false;
                 blockMenuInput = false;
-                mainList.select(0);
                 mainList.focus();
                 screen.render();
             });
+
+            return;
         }
     }
 
