@@ -1017,6 +1017,7 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
             statusWin.setContent(t('INTEGRITY_OK'));
             descriptionBox.setContent(t('PRESS_ENTER_TO_CONTINUE'));
             screen.render();
+            
 
             blockMenuInput = true;
             screen.unkey('enter');
