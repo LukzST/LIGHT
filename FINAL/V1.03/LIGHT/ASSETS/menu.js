@@ -993,14 +993,14 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
             
             const percent = Math.round(((i + 1) / files.length) * 100);
             const bar = "█".repeat(Math.floor(percent / 3.3)) + "░".repeat(30 - Math.floor(percent / 3.3));
-            statusWin.setContent(`${t('VERIFYING_INTEGRITY')}\n\n[${bar}] ${percent}%`);
+            statusWin.setContent(`${t('VERIFYING_INTEGRITY')}\n\n\n\n{center}[${bar}] ${percent}%{/center}`);
             descriptionBox.setContent(`{grey-fg}{bold}CHECKING: ${file.path}{/bold}{/grey-fg}`);
             screen.render();
             
             let isSame = false;
             await compareByteByByte(localPath, file.url, (current, total) => {
                 const pct = Math.round((current / total) * 100);
-                statusWin.setContent(`${t('VERIFYING_INTEGRITY')}\n\n[${bar}] ${percent}%\n\nComparing: ${pct}%`);
+                statusWin.setContent(`${t('VERIFYING_INTEGRITY')}\n\n\n\n{center}[${bar}] ${percent}%\n\nComparing: ${pct}%{/center}`);
                 screen.render();
             }).then(result => { isSame = result; });
             
