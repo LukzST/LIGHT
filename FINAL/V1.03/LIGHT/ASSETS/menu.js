@@ -25,17 +25,8 @@ let dots = 0;
 function getGitSha1(filePath) {
     try {
         if (!fs.existsSync(filePath)) return null;
-        const crypto = require('crypto');
-        let fileBuffer = fs.readFileSync(filePath);
-        fileBuffer = Buffer.from(fileBuffer.toString().replace(/\r\n/g, '\n'));
-        const blobHeader = `blob ${fileBuffer.length}\0`;
-        const blobData = Buffer.concat([
-            Buffer.from(blobHeader, 'utf8'),
-            fileBuffer
-        ]);
-        const hashSum = crypto.createHash('sha1');
-        hashSum.update(blobData);
-        return hashSum.digest('hex');
+        const stats = fs.statSync(filePath);
+        return stats.size.toString();
     } catch(e) {
         return null;
     }
@@ -2854,7 +2845,7 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
                     const item = remoteFiles[i];
                     const relPath = item.path.replace(targetPrefix, '');
                     const destPath = path.join(__dirname, '..', relPath);
-                    const remoteSha = item.sha;
+                    const remoteSha = item.size;
 
                     const checkPercentage = Math.round(((i + 1) / remoteFiles.length) * 100);
                     const checkBar = "█".repeat(Math.floor(checkPercentage / 3.3)) + "░".repeat(30 - Math.floor(checkPercentage / 3.3));
