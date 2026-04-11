@@ -482,16 +482,7 @@ async function showUpdateStatus() {
         }
         
         screen.render();
-            setTimeout(() => {
-        if (mainList && typeof mainList.focus === 'function') {
-            mainList.select(0);
-            mainList.focus();
-        }
-        screen.render();
-        isExiting = false;
-    }, 100);
-    
-    return true;
+        return true;
     }
 
     screen.key(['escape'], function escUpdate() {
