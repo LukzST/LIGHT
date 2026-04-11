@@ -743,19 +743,28 @@ const copyrightBOX1 = blessed.box({
 });
 
 
-// ========== FUNÇÕES DE ATUALIZAÇÃO ==========
+const crypto = require('crypto');
+const https = require('https');
+
+function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function formatTime(seconds) {
+    if (seconds < 60) return Math.ceil(seconds) + 's';
+    if (seconds < 3600) return Math.ceil(seconds / 60) + 'm ' + Math.ceil(seconds % 60) + 's';
+    return Math.ceil(seconds / 3600) + 'h ' + Math.ceil((seconds % 3600) / 60) + 'm';
+}
 
 function getGitSha1(filePath) {
     try {
         if (!fs.existsSync(filePath)) return null;
-        const crypto = require('crypto');
         let fileBuffer = fs.readFileSync(filePath);
         fileBuffer = Buffer.from(fileBuffer.toString().replace(/\r\n/g, '\n'));
         const blobHeader = `blob ${fileBuffer.length}\0`;
-        const blobData = Buffer.concat([
-            Buffer.from(blobHeader, 'utf8'),
-            fileBuffer
-        ]);
+        const blobData = Buffer.concat([Buffer.from(blobHeader, 'utf8'), fileBuffer]);
         const hashSum = crypto.createHash('sha1');
         hashSum.update(blobData);
         return hashSum.digest('hex');
@@ -777,7 +786,6 @@ function checkUpdates(callback) {
                 .filter(file => file.type === 'dir' && file.name.startsWith('V'))
                 .map(file => file.name)
                 .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-
             const latestVersion = versions[versions.length - 1];
             if (latestVersion && latestVersion !== CURRENT_VERSION) {
                 callback(true, latestVersion);
@@ -788,160 +796,280 @@ function checkUpdates(callback) {
     });
 }
 
-async function downloadAndInstall(version, statusWin, isRepair = false) {
-    const authHeader = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'; 'User-Agent'='LIGHT-Updater'}` : "-Headers @{'User-Agent'='LIGHT-Updater'}";
-    const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
-    const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' ${authHeader}).tree | ConvertTo-Json -Compress"`;
+async function getRemoteFileList(version) {
+    return new Promise((resolve, reject) => {
+        const url = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
+        const auth = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'}` : '';
+        const cmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${url}' ${auth}).tree | ConvertTo-Json"`;
+        
+        exec(cmd, { maxBuffer: 1024 * 1024 * 10 }, (err, stdout) => {
+            if (err) return reject(err);
+            try {
+                const tree = JSON.parse(stdout);
+                const prefix = `FINAL/${version}/LIGHT/`;
+                const files = tree.filter(item => 
+                    item.type === 'blob' && 
+                    item.path.startsWith(prefix) &&
+                    !item.path.includes('/CONFIG/') &&
+                    !item.path.includes('/Achievements/') &&
+                    !item.path.includes('/AUDIO/') &&
+                    !item.path.includes('/TERMINALPORTATIL/')
+                ).map(item => ({
+                    path: item.path.replace(prefix, ''),
+                    url: `https://raw.githubusercontent.com/lukzst/LIGHT/main/${item.path}`,
+                    size: item.size,
+                    sha: item.sha
+                }));
+                resolve(files);
+            } catch(e) { reject(e); }
+        });
+    });
+}
 
-    statusWin.setContent(isRepair ? t('VERIFYING_INTEGRITY') : t('UPDATE_MAPPING'));
-    screen.render();
-
-    exec(getTreeCmd, { maxBuffer: 1024 * 1024 * 10 }, async (error, stdout) => {
-        if (error) {
-            statusWin.setContent(t('UPDATE_ERROR'));
-            return screen.render();
+function compareByteByByte(localPath, remoteUrl, onProgress) {
+    return new Promise((resolve) => {
+        if (!fs.existsSync(localPath)) {
+            resolve(false);
+            return;
         }
 
-        try {
-            const tree = JSON.parse(stdout);
-            const targetPrefix = `FINAL/${version}/LIGHT/`;
-            const remoteFiles = tree.filter(item => 
-                item.type === 'blob' && item.path.startsWith(targetPrefix) &&
-                !item.path.includes('/CONFIG/') && !item.path.includes('/Achievements/') &&
-                !item.path.includes('/AUDIO/') && !item.path.includes('/TERMINALPORTATIL/') &&
-                !item.path.includes('/_update/') && !item.path.includes('/node_modules/')
-            );
+        const localSize = fs.statSync(localPath).size;
+        let downloaded = 0;
+        let isSame = true;
+        let localStream = null;
+        let remoteStream = null;
 
-            const updatePath = path.join(__dirname, '..', '_update');
-            if (fs.existsSync(updatePath)) {
-                try { fs.rmSync(updatePath, { recursive: true, force: true }); } catch(e) {}
-            }
-            fs.mkdirSync(updatePath, { recursive: true });
-
-            const backupPath = path.join(__dirname, '..', 'backup_old');
-            if (fs.existsSync(backupPath)) {
-                try { fs.rmSync(backupPath, { recursive: true, force: true }); } catch(e) {}
-            }
-            fs.mkdirSync(backupPath, { recursive: true });
-
-            const excludeFromBackup = ['CONFIG', 'Achievements', 'AUDIO', 'TERMINALPORTATIL', '_update', 'backup_old'];
-            const filesToBackup = fs.readdirSync(path.join(__dirname, '..'));
-            for (const file of filesToBackup) {
-                if (!excludeFromBackup.includes(file)) {
-                    const src = path.join(__dirname, '..', file);
-                    const dest = path.join(backupPath, file);
-                    try {
-                        if (fs.statSync(src).isDirectory()) {
-                            fs.cpSync(src, dest, { recursive: true, force: true });
-                        } else {
-                            fs.copyFileSync(src, dest);
-                        }
-                    } catch(e) {}
-                }
+        const req = https.get(remoteUrl, { headers: { 'User-Agent': 'LIGHT-Updater' } }, (res) => {
+            const remoteSize = parseInt(res.headers['content-length']);
+            
+            if (localSize !== remoteSize) {
+                resolve(false);
+                return;
             }
 
-            let needsRepair = false;
-            let corruptedFiles = [];
+            localStream = fs.createReadStream(localPath);
+            let localBuffer = Buffer.alloc(0);
+            let remoteBuffer = Buffer.alloc(0);
+            let localPos = 0;
+            let remotePos = 0;
 
-            if (isRepair) {
-                statusWin.setContent(t('VERIFYING_INTEGRITY'));
-                screen.render();
-
-                for (let i = 0; i < remoteFiles.length; i++) {
-                    const item = remoteFiles[i];
-                    const relPath = item.path.replace(targetPrefix, '');
-                    const destPath = path.join(__dirname, '..', relPath);
-                    const remoteSha = item.sha;
-
-                    const checkPercentage = Math.round(((i + 1) / remoteFiles.length) * 100);
-                    const barLength = 30;
-                    const filled = Math.floor(checkPercentage / 3.34);
-                    const bar = "█".repeat(filled) + "░".repeat(barLength - filled);
-
-                    statusWin.setContent(t('VERIFYING_INTEGRITY'));
-                    descriptionBox.setContent(`{grey-fg}{bold}CHECKING: ${relPath}{/bold}{/grey-fg}`);
-                    screen.render();
-
-                    const localSha = getGitSha1(destPath);
-
-                    if (localSha !== remoteSha) {
-                        needsRepair = true;
-                        corruptedFiles.push(item);
+            const checkChunk = () => {
+                const minLen = Math.min(localBuffer.length - localPos, remoteBuffer.length - remotePos);
+                for (let i = 0; i < minLen; i++) {
+                    if (localBuffer[localPos + i] !== remoteBuffer[remotePos + i]) {
+                        isSame = false;
+                        cleanup();
+                        resolve(false);
+                        return;
                     }
                 }
-
-                if (!needsRepair) {
-                    statusWin.style.border.fg = 'green';
-                    statusWin.setContent(t('INTEGRITY_OK'));
-                    descriptionBox.setContent(t('PRESS_ENTER_TO_CONTINUE'));
-                    screen.render();
-
-                    screen.onceKey(['enter'], () => {
-                        if (global.updateBgOverlay) global.updateBgOverlay.destroy();
-                        isUpdateInterfaceActive = false;
-                        isupdating = false;
-                        blockMenuInput = false;
-                        mainList.select(0);
-                        mainList.focus();
-                        screen.render();
-                    });
+                
+                localPos += minLen;
+                remotePos += minLen;
+                downloaded += minLen;
+                
+                if (onProgress) onProgress(downloaded, remoteSize);
+                
+                if (localPos === localBuffer.length && localPos === remoteBuffer.length && downloaded === remoteSize) {
+                    cleanup();
+                    resolve(true);
                     return;
                 }
-            }
-
-            blockMenuInput = true;
-            const filesToDownload = isRepair ? corruptedFiles : remoteFiles;
-
-            for (let i = 0; i < filesToDownload.length; i++) {
-                const fileMetadata = filesToDownload[i];
-                const relPath = fileMetadata.path.replace(targetPrefix, '');
-                const destPath = path.join(updatePath, relPath);
-                const fileUrl = `https://raw.githubusercontent.com/lukzst/LIGHT/main/${fileMetadata.path}`;
-
-                const percentage = Math.round(((i + 1) / filesToDownload.length) * 100);
-                const barLength = 30;
-                const filled = Math.floor(percentage / 3.34);
-                const bar = "█".repeat(filled) + "░".repeat(barLength - filled);
-
-                statusWin.setContent(t('UPDATE_INSTALLING', { version: version.replace('V', ''), bar, percentage }));
-                descriptionBox.setContent(t('UPDATE_SECTOR', { current: i + 1, total: filesToDownload.length, file: relPath }));
-                screen.render();
-
-                if (!fs.existsSync(path.dirname(destPath))) {
-                    fs.mkdirSync(path.dirname(destPath), { recursive: true });
+                
+                if (localPos === localBuffer.length) {
+                    localBuffer = Buffer.alloc(0);
+                    localPos = 0;
+                    readLocal();
                 }
+                
+                if (remotePos === remoteBuffer.length) {
+                    remoteBuffer = Buffer.alloc(0);
+                    remotePos = 0;
+                }
+            };
 
-                const dlCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iwr -Uri '${fileUrl}' -OutFile '${destPath}'"`;
-                await new Promise((res) => { exec(dlCmd, () => res()); });
-            }
+            const readLocal = () => {
+                if (!isSame) return;
+                const chunk = localStream.read(65536);
+                if (chunk) {
+                    localBuffer = Buffer.concat([localBuffer, chunk]);
+                    checkChunk();
+                }
+            };
 
-            statusWin.style.border.fg = 'green';
-            if (isRepair && filesToDownload.length > 0) {
-                statusWin.setContent(t('REPAIR_COMPLETE', { count: corruptedFiles.length }));
-            } else if (isRepair && filesToDownload.length === 0) {
-                statusWin.setContent(t('INTEGRITY_OK'));
-            } else {
-                statusWin.setContent(t('UPDATE_COMPLETE', { version: version.replace('V', '') }));
-            }
-            descriptionBox.setContent(t('PRESS_ENTER_TO_RESTART'));
-            screen.render();
-            playsucesso();
-
-            screen.onceKey(['enter'], () => {
-                const updaterPath = path.join(__dirname, '..', 'Updater.exe');
-                const child = spawn('cmd.exe', ['/c', 'start', updaterPath], {
-                    stdio: 'ignore', detached: true, windowsHide: false
-                });
-                child.unref();
-                process.exit(0);
+            localStream.on('readable', readLocal);
+            localStream.on('end', () => {
+                if (downloaded === remoteSize && isSame) {
+                    cleanup();
+                    resolve(true);
+                }
             });
 
-        } catch (err) {
-            statusWin.style.border.fg = 'red';
-            statusWin.setContent(t('UPDATE_FAILED', { error: err.message }));
-            screen.render();
-            blockMenuInput = false;
+            res.on('data', (chunk) => {
+                if (!isSame) return;
+                remoteBuffer = Buffer.concat([remoteBuffer, chunk]);
+                checkChunk();
+            });
+
+            res.on('end', () => {
+                if (downloaded === remoteSize && isSame) {
+                    cleanup();
+                    resolve(true);
+                }
+            });
+
+            const cleanup = () => {
+                if (localStream) localStream.destroy();
+                if (remoteStream) remoteStream.destroy();
+                req.destroy();
+            };
+        });
+
+        req.on('error', () => resolve(false));
+    });
+}
+
+function downloadFile(url, destPath, onProgress) {
+    return new Promise((resolve, reject) => {
+        const dir = path.dirname(destPath);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        
+        const file = fs.createWriteStream(destPath);
+        let downloaded = 0;
+        let total = 0;
+        
+        https.get(url, { headers: { 'User-Agent': 'LIGHT-Updater' } }, (response) => {
+            total = parseInt(response.headers['content-length']);
+            response.on('data', (chunk) => {
+                downloaded += chunk.length;
+                if (onProgress) onProgress(downloaded, total);
+                file.write(chunk);
+            });
+            response.on('end', () => {
+                file.end();
+                resolve();
+            });
+            response.on('error', reject);
+        }).on('error', reject);
+    });
+}
+
+async function downloadAndInstall(version, statusWin, isRepair = false) {
+    const files = await getRemoteFileList(version);
+    const updatePath = path.join(__dirname, '..', '_update');
+    
+    if (fs.existsSync(updatePath)) fs.rmSync(updatePath, { recursive: true, force: true });
+    fs.mkdirSync(updatePath, { recursive: true });
+
+    const backupPath = path.join(__dirname, '..', 'backup_old');
+    if (fs.existsSync(backupPath)) fs.rmSync(backupPath, { recursive: true, force: true });
+    fs.mkdirSync(backupPath, { recursive: true });
+
+    const excludeFromBackup = ['CONFIG', 'Achievements', 'AUDIO', 'TERMINALPORTATIL', '_update', 'backup_old'];
+    const filesToBackup = fs.readdirSync(path.join(__dirname, '..'));
+    for (const file of filesToBackup) {
+        if (!excludeFromBackup.includes(file)) {
+            const src = path.join(__dirname, '..', file);
+            const dest = path.join(backupPath, file);
+            try {
+                if (fs.statSync(src).isDirectory()) {
+                    fs.cpSync(src, dest, { recursive: true, force: true });
+                } else {
+                    fs.copyFileSync(src, dest);
+                }
+            } catch(e) {}
         }
+    }
+
+    let corruptedFiles = [];
+    
+    if (isRepair) {
+        statusWin.setContent(t('VERIFYING_INTEGRITY'));
+        screen.render();
+        
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const localPath = path.join(__dirname, '..', file.path);
+            
+            const percent = Math.round(((i + 1) / files.length) * 100);
+            const bar = "█".repeat(Math.floor(percent / 3.3)) + "░".repeat(30 - Math.floor(percent / 3.3));
+            statusWin.setContent(`${t('VERIFYING_INTEGRITY')}\n\n[${bar}] ${percent}%`);
+            descriptionBox.setContent(`{grey-fg}{bold}CHECKING: ${file.path}{/bold}{/grey-fg}`);
+            screen.render();
+            
+            let isSame = false;
+            await compareByteByByte(localPath, file.url, (current, total) => {
+                const pct = Math.round((current / total) * 100);
+                statusWin.setContent(`${t('VERIFYING_INTEGRITY')}\n\n[${bar}] ${percent}%\n\nComparing: ${pct}%`);
+                screen.render();
+            }).then(result => { isSame = result; });
+            
+            if (!isSame) {
+                corruptedFiles.push(file);
+            }
+        }
+        
+        if (corruptedFiles.length === 0) {
+            statusWin.style.border.fg = 'green';
+            statusWin.setContent(t('INTEGRITY_OK'));
+            descriptionBox.setContent(t('PRESS_ENTER_TO_CONTINUE'));
+            screen.render();
+            
+            screen.onceKey(['enter'], () => {
+                if (global.updateBgOverlay) global.updateBgOverlay.destroy();
+                isUpdateInterfaceActive = false;
+                isupdating = false;
+                blockMenuInput = false;
+                mainList.focus();
+                screen.render();
+            });
+            return;
+        }
+    }
+
+    const filesToDownload = isRepair ? corruptedFiles : files;
+    blockMenuInput = true;
+    
+    for (let i = 0; i < filesToDownload.length; i++) {
+        const file = filesToDownload[i];
+        const destPath = path.join(updatePath, file.path);
+        
+        const percent = Math.round(((i + 1) / filesToDownload.length) * 100);
+        const bar = "█".repeat(Math.floor(percent / 3.3)) + "░".repeat(30 - Math.floor(percent / 3.3));
+        
+        statusWin.setContent(t('UPDATE_INSTALLING', { version: version.replace('V', ''), bar, percentage: percent }));
+        descriptionBox.setContent(t('UPDATE_SECTOR', { current: i + 1, total: filesToDownload.length, file: file.path }));
+        screen.render();
+        
+        let lastPercent = 0;
+        await downloadFile(file.url, destPath, (current, total) => {
+            const pct = Math.round((current / total) * 100);
+            if (pct !== lastPercent) {
+                lastPercent = pct;
+                const subBar = "█".repeat(Math.floor(pct / 3.3)) + "░".repeat(30 - Math.floor(pct / 3.3));
+                statusWin.setContent(t('UPDATE_INSTALLING', { version: version.replace('V', ''), bar: subBar, percentage: pct }));
+                screen.render();
+            }
+        });
+    }
+
+    statusWin.style.border.fg = 'green';
+    if (isRepair) {
+        statusWin.setContent(`{center}\n{green-fg}REPAIR COMPLETE{/green-fg}\n\n${corruptedFiles.length} file(s) restored.\n\nRestart required.{/center}`);
+    } else {
+        statusWin.setContent(t('UPDATE_COMPLETE', { version: version.replace('V', '') }));
+    }
+    descriptionBox.setContent(t('PRESS_ENTER_TO_RESTART'));
+    screen.render();
+    playsucesso();
+    
+    screen.onceKey(['enter'], () => {
+        const updaterPath = path.join(__dirname, '..', 'Updater.exe');
+        const child = spawn('cmd.exe', ['/c', 'start', updaterPath], {
+            stdio: 'ignore', detached: true, windowsHide: false
+        });
+        child.unref();
+        process.exit(0);
     });
 }
 
@@ -953,25 +1081,16 @@ async function showUpdateStatus() {
     playwarning();
     blockMenuInput = true;
 
-    let isAborted = false;
-    let currentProcess = null;
-    let integrityCheckActive = true;
-
     const bgOverlay = blessed.box({
-        parent: screen,
-        top: 0, left: 0,
+        parent: screen, top: 0, left: 0,
         width: '100%', height: '100%',
-        style: { bg: 'black' },
-        index: 200
+        style: { bg: 'black' }, index: 200
     });
     global.updateBgOverlay = bgOverlay;
 
     const statusWin = blessed.box({
-        parent: bgOverlay,
-        top: 'center', left: 'center',
-        width: 60, height: 12,
-        border: 'line',
-        tags: true,
+        parent: bgOverlay, top: 'center', left: 'center',
+        width: 60, height: 12, border: 'line', tags: true,
         content: t('UPDATE_TITLE'),
         style: { border: { fg: COLORDEFAULT }, label: { fg: COLORDEFAULT, bold: true } }
     });
@@ -979,186 +1098,49 @@ async function showUpdateStatus() {
     screen.render();
 
     async function handleRepair() {
-        if (isAborted) return;
         screen.unkey('enter', handleRepair);
-        global.currentRepairFunc = null;
-        integrityCheckActive = false;
         await downloadAndInstall(CURRENT_VERSION, statusWin, true);
     }
 
     async function handleNewUpdate() {
-        if (isAborted) return;
         screen.unkey('enter', handleNewUpdate);
-        global.currentUpdateFunc = null;
-        integrityCheckActive = false;
         await downloadAndInstall(global.latestVersionFound, statusWin, false);
     }
 
-    function abortAllOperations() {
-        isAborted = true;
-        integrityCheckActive = false;
-
-        if (currentProcess) {
-            try {
-                exec(`taskkill /F /T /PID ${currentProcess.pid} > nul 2>&1`);
-                exec(`taskkill /F /IM powershell.exe /T > nul 2>&1`);
-            } catch(e) {}
-            currentProcess = null;
-        }
-
-        screen.unkey('enter', handleRepair);
-        screen.unkey('enter', handleNewUpdate);
-        if (global.currentRepairFunc) global.currentRepairFunc = null;
-        if (global.currentUpdateFunc) global.currentUpdateFunc = null;
-    }
-
-    function safeClose() {
-        if (integrityCheckActive) {
-            descriptionBox.setContent(t('WAIT_VERIFICATION'));
-            playwarning();
-            screen.render();
-            return false;
-        }
-
-        abortAllOperations();
-        playback();
-
-        if (bgOverlay && !bgOverlay.destroyed) {
-            bgOverlay.destroy();
-        }
-
-        isUpdateInterfaceActive = false;
-        isupdating = false;
-        blockMenuInput = false;
-
-        if (mainList && typeof mainList.focus === 'function') {
-            mainList.select(0);
-            mainList.focus();
-        }
-
-        screen.render();
-        return true;
-    }
-
-    screen.key(['escape'], function escUpdate() {
-        safeClose();
-    });
-
     checkUpdates(async (hasUpdate, version) => {
-        if (isAborted) return;
-
         if (hasUpdate === null) {
-            if (isAborted) return;
             statusWin.setContent(t('UPDATE_ERROR'));
             screen.render();
-            integrityCheckActive = false;
             setTimeout(() => {
-                if (!isAborted && bgOverlay && !bgOverlay.destroyed) {
-                    safeClose();
-                }
+                bgOverlay.destroy();
+                isUpdateInterfaceActive = false;
+                isupdating = false;
+                blockMenuInput = false;
+                mainList.focus();
+                screen.render();
             }, 2000);
         } else if (hasUpdate) {
-            integrityCheckActive = false;
             global.latestVersionFound = version;
             statusWin.style.border.fg = 'magenta';
             statusWin.setContent(t('UPDATE_DETECTED', { version: version.replace('V', ''), time: "CALCULATING..." }));
             screen.render();
-
-            global.currentUpdateFunc = handleNewUpdate;
             screen.onceKey(['enter'], handleNewUpdate);
         } else {
             statusWin.setContent(t('VERIFYING_INTEGRITY'));
             screen.render();
-
-            const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
-            const authHeader = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'}` : "";
-            const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' ${authHeader}).tree | Where-Object {$_.path -like 'FINAL/${CURRENT_VERSION}/LIGHT/*'} | ConvertTo-Json -Compress"`;
-
-            currentProcess = exec(getTreeCmd, { maxBuffer: 1024 * 1024 * 10 }, async (error, stdout) => {
-                if (isAborted) return;
-                currentProcess = null;
-
-                if (error) {
-                    if (!isAborted) {
-                        statusWin.setContent(t('UPDATE_ERROR'));
-                        screen.render();
-                        integrityCheckActive = false;
-                    }
-                    return;
-                }
-
-                if (isAborted) return;
-
-                try {
-                    const tree = JSON.parse(stdout);
-                    const targetPrefix = `FINAL/${CURRENT_VERSION}/LIGHT/`;
-
-                    let corruptedCount = 0;
-                    let totalChecked = 0;
-                    const filesToCheck = tree.filter(item => 
-                        item.type === 'blob' &&
-                        !item.path.includes('/CONFIG/') && 
-                        !item.path.includes('/Achievements/') &&
-                        !item.path.includes('/AUDIO/') && 
-                        !item.path.includes('/TERMINALPORTATIL/')
-                    );
-
-                    for (const item of filesToCheck) {
-                        if (item.type !== 'blob') continue;
-
-                        const relPath = item.path.replace(targetPrefix, '');
-                        const destPath = path.join(__dirname, '..', relPath);
-                        const remoteSha = item.sha;
-
-                        const localSha = getGitSha1(destPath);
-
-                        if (localSha !== remoteSha) {
-                            corruptedCount++;
-                        }
-
-                        totalChecked++;
-                        const checkPercentage = Math.round((totalChecked / filesToCheck.length) * 100);
-                        const barLength = 30;
-                        const filled = Math.floor(checkPercentage / 3.34);
-                        const bar = "█".repeat(filled) + "░".repeat(barLength - filled);
-                        statusWin.setContent(t('VERIFYING_INTEGRITY_WITH_BAR', { bar, percentage: checkPercentage }));
-                        screen.render();
-                    }
-
-                    if (isAborted) return;
-
-                    if (corruptedCount === 0) {
-                        statusWin.style.border.fg = 'green';
-                        statusWin.setContent(t('INTEGRITY_OK'));
-                        descriptionBox.setContent(t('PRESS_ENTER_TO_CONTINUE'));
-                        screen.render();
-                        integrityCheckActive = false;
-
-                        screen.onceKey(['enter'], () => {
-                            if (!isAborted && bgOverlay && !bgOverlay.destroyed) {
-                                safeClose();
-                            }
-                        });
-                    } else {
-                        statusWin.style.border.fg = 'red';
-                        statusWin.setContent(t('INTEGRITY_FAIL_WITH_COUNT', { count: corruptedCount }));
-                        descriptionBox.setContent(t('PRESS_ENTER_TO_REPAIR'));
-                        screen.render();
-                        integrityCheckActive = false;
-
-                        global.currentRepairFunc = handleRepair;
-                        screen.onceKey(['enter'], handleRepair);
-                    }
-                } catch (err) {
-                    if (!isAborted) {
-                        statusWin.style.border.fg = 'red';
-                        statusWin.setContent(t('UPDATE_FAILED', { error: err.message }));
-                        screen.render();
-                        integrityCheckActive = false;
-                    }
-                }
-            });
+            
+            await handleRepair();
         }
+    });
+
+    screen.key(['escape'], function escUpdate() {
+        playback();
+        bgOverlay.destroy();
+        isUpdateInterfaceActive = false;
+        isupdating = false;
+        blockMenuInput = false;
+        mainList.focus();
+        screen.render();
     });
 }
 

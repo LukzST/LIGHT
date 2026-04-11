@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
+
 const strings = {
     'EN': {
         'MENU_START': '{center}START GAME{/center}',
@@ -212,6 +213,17 @@ const strings = {
         'ACHIEVEMENT_MEMORY_FRAGMENT_HINT': 'Find the hidden terminal in SUBLEVEL 7 after unlocking VOICE_HEARD, REMEMBERED, and TRUTH_SEEKER.',
         
         'RARE_BOOT_UNLOCKED': '{center}\n{yellow-fg}{bold}SYSTEM ANOMALY DETECTED{/bold}{/}\n\nThe rare boot sequence has been\npermanently synchronized.\n\n{white-fg}This protocol is now your default.{/}\n\n{cyan-fg}[ENTER] TO CONTINUE{/center}',
+        
+        'UPDATE_TITLE': '{center}\nCONNECTING TO REPOSITORY...{/center}',
+        'UPDATE_MAPPING': '{center}\n{yellow-fg}MAPPING REPOSITORY...{/}\nEstablishing secure link via PowerShell.{/center}',
+        'UPDATE_INSTALLING': '{center}\n{yellow-fg}INSTALLING UPDATE{/}\n\nVersion: {version}\n\n[{bar}] {percentage}%\n\n{white-fg}Do not close the application.{/white-fg}{/center}',
+        'UPDATE_SECTOR': '{center}{grey-fg}{bold}Sector {current} of {total} | Synchronizing: {file}{/bold}{/grey-fg}{/center}',
+        'UPDATE_COMPLETE_MSG': '{center}{bold}UPDATE SEQUENCE COMPLETE{/bold}{/center}',
+        'UPDATE_COMPLETE': '{center}\n{green-fg}UPDATE INSTALLED{/green-fg}\n\nVersion: {version} is ready.\n\n{blink}PRESS [ENTER] TO RESTART{/center}',
+        'UPDATE_FAILED': '{center}\n{red-fg}UPDATE FAILED{/red-fg}\n\n{error}\n\nTry again later.{/center}',
+        'UPDATE_ERROR': '{center}\n{red-fg}NETWORK ERROR{/red-fg}\n\nCheck connection.{/center}',
+        'UPDATE_DETECTED': '{center}\n{magenta-fg}UPDATE AVAILABLE: {version}{/magenta-fg}\n\nEstimated time: {yellow-fg}{time}{/yellow-fg}\n\n{white-fg}[ENTER] INSTALL | [ESC] CANCEL{/center}',
+        'UPDATE_CURRENT': '{center}\n{green-fg}SYSTEM IS CURRENT{/green-fg}\n\nVersion {version} is the latest.{/center}\n\n\n\n\n{center}{bold}{grey-fg}[ESC] TO CLOSE{/grey-fg}{/bold}{/center}',
         
         'RESET_OPTIONS': ' [ SYSTEM RESET ] ',
         'RESET_DATA': ' RESET ALL DATA (HARD)',
@@ -492,6 +504,16 @@ const strings = {
         'LEAKS_CONTENT': '{red-fg}LUX-4 ENERGY CORP - INTERNAL AUDIT - OCTOBER 1999{/red-fg}\n--------------------------------------------------\n{bold}SUBJECT:{/bold} Artificial Energy Scarcity via "The Fade" Protocol.\n\n{bold}EXECUTIVE SUMMARY:{/bold}\nThe "Fade" was not an accident. It was a calculated release of high-frequency\nnecro-static into the city grid.\n\n{bold}THE STRATEGY:{/bold}\n1. Create global panic where electricity feels "haunted".\n2. Market LUX-4 "Anti-Fade Shielding" as the only solution.\n3. Subscription-based life. Pay for light. Forever.\n\n{bold}CASUALTIES:{/bold}\nApprox. 450,000 citizens "digitally evaporated" during the first pulse.\nTheir neural patterns are used as {yellow-fg}Processing Power{/yellow-fg}.\n\n{bold}CONCLUSION:{/bold}\nTotal success. Profit margins increased by 4,000%.\nThe souls in the grid are stable batteries.\n\n[END OF FILE]\n--------------------------------------------------\n{center}PRESS [S] TO EXPORT | [ESC] TO EXIT{/center}',
         'LEAKS_EXPORTED': '\n\n{yellow-fg}DATA EXPORTED TO DESKTOP.{/yellow-fg}',
 
+        'VERIFYING_INTEGRITY': '{center}\n{yellow-fg}VERIFYING SYSTEM INTEGRITY...{/}\nComparing local sectors with repository.{/center}',
+        'INTEGRITY_OK': '{center}\n{green-fg}INTEGRITY VERIFIED{/green-fg}\n\nAll local sectors match the master record.\n\n{grey-fg}PRESS [ESC] TO CLOSE{/grey-fg}{/center}',
+        'INTEGRITY_FAIL': '\n{center}{red-fg}INTEGRITY COMPROMISED{/red-fg}{/center}\n\n{center}One or more local sectors do not match the master record.{/center}\n\n{center}{yellow-fg}PRESS [ENTER] TO APPLY RESOLUTION | PRESS [ESC] TO EXIT{/yellow-fg}{/center}',
+        'SUPPORT_WARNING': '\n{center}{bold}WARNING{/bold}{/center}',
+        'SUPPORT_AUDIO_SAVED': '{center}Audio settings saved.{/center}',
+        'SUPPORT_AUDIO_INIT': '{center}System audio initialized.{/center}',
+        'SUPPORT_ESC_RETURN': '\n\n{center}[ESC] TO RETURN{/center}',
+        'LANGUAGE_CHANGED': '{center}{yellow-fg}LANGUAGE CHANGED{/}\n\nRestart required to apply all translations.{/center}',
+
+
         'ENCOUNTER_01': "[SYSTEM]: Detecting residual neural pattern...",
         'ENCOUNTER_02': "[PATTERN]: Op... Operator 07... is that you?",
         'ENCOUNTER_03': "[YOU]: Who is this?",
@@ -653,55 +675,35 @@ The ones inside... they're not dead. They're waiting.
         'MEMORY_TERMINAL_ACCESS': ' > ACCESS MEMORY FRAGMENT ',
         'MEMORY_TERMINAL_SKIP': ' > SKIP ',
 
-        'VERIFYING_INTEGRITY': '{center}{bold}VERIFYING SYSTEM INTEGRITY...{/}{/center}',
-        'VERIFYING_INTEGRITY_WITH_BAR': '{center}{bold}VERIFYING SYSTEM INTEGRITY...{/}{/center}\n\n{center}[{bar}] {percentage}%{/center}',
-        'INTEGRITY_OK': '{center}{bold}{green-fg}✓ INTEGRITY VERIFIED{/}{/center}\n\n{center}{bold}All local sectors match the master record.{/}{/center}',
-        'INTEGRITY_FAIL': '{center}{bold}{red-fg}✗ INTEGRITY COMPROMISED{/}{/center}\n\n{center}{bold}One or more local sectors do not match.{/}{/center}',
-        'INTEGRITY_FAIL_WITH_COUNT': '{center}{bold}{red-fg}✗ INTEGRITY COMPROMISED{/}{/center}\n\n{center}{bold}{count} corrupted/missing file(s) found.{/bold}{/center}',
-        'REPAIR_COMPLETE': '{center}{bold}{green-fg}REPAIR COMPLETE{/}{/center}\n\n{center}{bold}{count} file(s) restored.\n\nRestart required.{/bold}{/center}',
-        'WAIT_VERIFICATION': '{center}{bold}{yellow-fg}WAIT, VERIFICATION IN PROGRESS...{/}{/center}',
-        
-        'UPDATE_TITLE': '{center}{bold}┌─────────────────────────────────────┐{/}\n{center}{bold}│           SYSTEM UPDATE              │{/}\n{center}{bold}└─────────────────────────────────────┘{/}{/center}',
-        'UPDATE_MAPPING': '{center}{bold}MAPPING REPOSITORY...{/}{/center}',
-        'UPDATE_INSTALLING': '{center}{bold}INSTALLING UPDATE{/}\n\nVersion: {version}\n\n{center}[{bar}] {percentage}%{/center}\n\n{center}{bold}Do not close the application.{/}{/center}',
-        'UPDATE_SECTOR': '{center}{bold}{grey-fg}Sector {current} of {total} | Synchronizing: {file}{/}{/center}',
-        'UPDATE_COMPLETE': '{center}{bold}{green-fg}UPDATE INSTALLED{/}{/center}\n\n{center}{bold}Version {version} is ready.{/}{/center}',
-        'UPDATE_FAILED': '{center}{bold}{red-fg}UPDATE FAILED{/}{/center}\n\n{center}{bold}{error}{/}{/center}',
-        'UPDATE_ERROR': '{center}{bold}{red-fg}NETWORK ERROR{/}{/center}\n\n{center}{bold}Check your connection and try again.{/}{/center}',
-        'UPDATE_DETECTED': '{center}{bold}{magenta-fg}UPDATE AVAILABLE: {version}{/}{/center}\n\n{center}{bold}Estimated time: {time}{/}{/center}\n\n{center}{bold}[ENTER] INSTALL | [ESC] CANCEL{/}{/center}',
-        'UPDATE_CURRENT': '{center}{bold}{green-fg}SYSTEM IS CURRENT{/}{/center}\n\n{center}{bold}Version {version} is the latest.{/}{/center}',
-        'PRESS_ENTER_TO_CONTINUE': '{center}{bold}{green-fg}[ENTER] TO CONTINUE{/}{/center}',
-        'PRESS_ENTER_TO_REPAIR': '{center}{bold}{yellow-fg}[ENTER] TO REPAIR{/}{/center}',
-        'PRESS_ENTER_TO_RESTART': '{center}{bold}{green-fg}[ENTER] TO RESTART{/}{/center}',
-        
-        'UPDATE_MAIN_TITLE': ' [ UPDATE CENTER ] ',
-        'UPDATE_OPTION_UPDATE': ' UPDATE GAME ',
-        'UPDATE_OPTION_BACK': ' BACK TO MENU ',
-        'UPDATE_SELECT_VERSION': ' [ SELECT VERSION ] ',
-        'UPDATE_FETCHING': '{center}{yellow-fg}FETCHING VERSIONS...{/}{/center}',
-        'UPDATE_NO_VERSIONS': '{center}{red-fg}NO VERSIONS FOUND{/}{/center}',
-        'UPDATE_RATE_LIMIT': '{center}{red-fg}API RATE LIMIT EXCEEDED{/}{/center}\n\n{center}{yellow-fg}Please log in to your GitHub account{/}\nin the ACCOUNT menu to increase limit.\n\nOr wait a few minutes and try again.{/}{/center}',
-        'UPDATE_RATE_LIMIT_LOGGED': '{center}{red-fg}API RATE LIMIT EXCEEDED{/}{/center}\n\n{center}{yellow-fg}You are already logged in.{/}\nPlease wait a few minutes and try again.{/}{/center}',
-        'UPDATE_CONFIRM_TITLE': ' [ CONFIRM UPDATE ] ',
-        'UPDATE_CONFIRM_MSG': 'Install {version}?',
-        'UPDATE_WARNING_SAME': '{yellow-fg}WARNING: Same version!{/}',
-        'UPDATE_WARNING_DOWNGRADE': '{red-fg}WARNING: DOWNGRADE DETECTED!{/}\n\n{grey-fg}You are about to install an OLDER version.\nThis may cause save file incompatibility.{/}',
-        'UPDATE_DOWNLOAD_TITLE': ' [ DOWNLOADING ] ',
-        'UPDATE_DOWNLOAD_MSG': '{yellow-fg}Downloading {version}{/}',
-        'UPDATE_COMPLETE_TITLE': ' [ UPDATE READY ] ',
-        'UPDATE_COMPLETE_MSG': '{green-fg}Update complete!{/}\n\nVersion {version} is ready.\n\n{blink}PRESS ENTER TO RESTART{/blink}',
-        'UPDATE_ERROR_TITLE': ' [ UPDATE FAILED ] ',
-        'UPDATE_ERROR_MSG': '{red-fg}Download failed!{/}\n\n{error}\n\nPress ENTER to continue.',
-        'UPDATE_IRREVERSIBLE': 'This action is IRREVERSIBLE!',
-        'UPDATE_CHECKING': '{center}{yellow-fg}CHECKING FILES...{/}{/center}',
-        'UPDATE_COMPARING': '{center}{cyan-fg}COMPARING BYTE BY BYTE...{/}{/center}',
-        'UPDATE_ESTIMATED_TIME': '{center}{grey-fg}Estimated time: {time}{/}{/center}',
-        'UPDATE_CORRUPTED_FOUND': '{center}{red-fg}{count} CORRUPTED FILE(S) FOUND{/}{/center}',
-        'UPDATE_ALL_GOOD': '{center}{green-fg}ALL FILES ARE GOOD!{/}{/center}',
-        'UPDATE_REPAIR_PROMPT': '{center}{yellow-fg}PRESS ENTER TO REPAIR{/}\n{white-fg}PRESS ESC TO CANCEL{/}{/center}',
-        'UPDATE_DOWNLOADING_FILE': '{center}{yellow-fg}DOWNLOADING{/} {file}{/center}',
-        'UPDATE_BYTES_DOWNLOADED': '{center}{grey-fg}{current} / {total} bytes{/}{/center}',
-        'UPDATE_TIME_REMAINING': '{center}{grey-fg}Time remaining: {time}{/}{/center}',
+        'UPDATE_ERROR': '{center}\n{red-fg}NETWORK ERROR{/red-fg}\n\nFailed to connect to GitHub repository.\n\n{yellow-fg}Try logging into your GitHub account{/yellow-fg}\nin the ACCOUNT menu to increase rate limit.\n\nCheck your internet connection and try again.{/center}',
+'UPDATE_MAIN_TITLE': ' [ UPDATE CENTER ] ',
+'UPDATE_OPTION_UPDATE': ' UPDATE GAME ',
+'UPDATE_OPTION_BACK': ' BACK TO MENU ',
+'UPDATE_SELECT_VERSION': ' [ SELECT VERSION ] ',
+'UPDATE_FETCHING': '{center}{yellow-fg}FETCHING VERSIONS...{/}{/center}',
+'UPDATE_NO_VERSIONS': '{center}{red-fg}NO VERSIONS FOUND{/}{/center}',
+'UPDATE_RATE_LIMIT': '{center}{red-fg}API RATE LIMIT EXCEEDED{/}{/center}\n\n{center}{yellow-fg}Please log in to your GitHub account{/}\nin the ACCOUNT menu to increase limit.\n\nOr wait a few minutes and try again.{/}{/center}',
+'UPDATE_RATE_LIMIT_LOGGED': '{center}{red-fg}API RATE LIMIT EXCEEDED{/}{/center}\n\n{center}{yellow-fg}You are already logged in.{/}\nPlease wait a few minutes and try again.{/}{/center}',
+'UPDATE_CONFIRM_TITLE': ' [ CONFIRM UPDATE ] ',
+'UPDATE_CONFIRM_MSG': 'Install {version}?',
+'UPDATE_WARNING_SAME': '{yellow-fg}WARNING: Same version!{/}',
+'UPDATE_WARNING_DOWNGRADE': '{red-fg}WARNING: DOWNGRADE DETECTED!{/}\n\n{grey-fg}You are about to install an OLDER version.\nThis may cause save file incompatibility.{/}',
+'UPDATE_DOWNLOAD_TITLE': ' [ DOWNLOADING ] ',
+'UPDATE_DOWNLOAD_MSG': '{yellow-fg}Downloading {version}{/}',
+'UPDATE_COMPLETE_TITLE': ' [ UPDATE READY ] ',
+'UPDATE_COMPLETE_MSG': '{green-fg}Update complete!{/}\n\nVersion {version} is ready.\n\n{blink}PRESS ENTER TO RESTART{/blink}',
+'UPDATE_ERROR_TITLE': ' [ UPDATE FAILED ] ',
+'UPDATE_ERROR_MSG': '{red-fg}Download failed!{/}\n\n{error}\n\nPress ENTER to continue.',
+'UPDATE_IRREVERSIBLE': 'This action is IRREVERSIBLE!',
+'UPDATE_CHECKING': '{center}{yellow-fg}CHECKING FILES...{/}{/center}',
+'UPDATE_COMPARING': '{center}{cyan-fg}COMPARING BYTE BY BYTE...{/}{/center}',
+'UPDATE_ESTIMATED_TIME': '{center}{grey-fg}Estimated time: {time}{/}{/center}',
+'UPDATE_CORRUPTED_FOUND': '{center}{red-fg}{count} CORRUPTED FILE(S) FOUND{/}{/center}',
+'UPDATE_ALL_GOOD': '{center}{green-fg}ALL FILES ARE GOOD!{/}{/center}',
+'UPDATE_REPAIR_PROMPT': '{center}{yellow-fg}PRESS ENTER TO REPAIR{/}\n{white-fg}PRESS ESC TO CANCEL{/}{/center}',
+'UPDATE_DOWNLOADING_FILE': '{center}{yellow-fg}DOWNLOADING{/} {file}{/center}',
+'UPDATE_BYTES_DOWNLOADED': '{center}{grey-fg}{current} / {total} bytes{/}{/center}',
+'UPDATE_TIME_REMAINING': '{center}{grey-fg}Time remaining: {time}{/}{/center}',
     },
 
     'PT': {
@@ -909,11 +911,23 @@ The ones inside... they're not dead. They're waiting.
         'ACHIEVEMENT_HARD_RESET_DESC': 'Resetou todas as configurações para o padrão.',
         'ACHIEVEMENT_HARD_RESET_HINT': 'Use a opção Restaurar Padrões nas Configurações.',
 
+
         'ACHIEVEMENT_MEMORY_FRAGMENT_NAME': 'BUSCADOR DE MEMÓRIAS',
         'ACHIEVEMENT_MEMORY_FRAGMENT_DESC': 'Acessou o fragmento de memória do Operador 06.',
         'ACHIEVEMENT_MEMORY_FRAGMENT_HINT': 'Encontre o terminal escondido no SUBLEVEL 7 após desbloquear ECOS DO PASSADO, O GUARDIÃO e DECODIFICADOR.',
         
         'RARE_BOOT_UNLOCKED': '{center}\n{yellow-fg}{bold}ANOMALIA DETECTADA{/bold}{/}\n\nA sequência de inicialização rara foi\npermanentemente sincronizada.\n\n{white-fg}Este protocolo agora é seu padrão.{/}\n\n{cyan-fg}[ENTER] PARA CONTINUAR{/center}',
+        
+        'UPDATE_TITLE': '{center}\nCONECTANDO AO REPOSITÓRIO...{/center}',
+        'UPDATE_MAPPING': '{center}\n{yellow-fg}MAPEANDO REPOSITÓRIO...{/}\nEstabelecendo link seguro via PowerShell.{/center}',
+        'UPDATE_INSTALLING': '{center}\n{yellow-fg}INSTALANDO ATUALIZAÇÃO{/}\n\nVersão: {version}\n\n[{bar}] {percentage}%\n\n{white-fg}Não feche o jogo.{/white-fg}{/center}',
+        'UPDATE_SECTOR': '{center}{grey-fg}{bold}Setor {current} de {total} | Sincronizando: {file}{/bold}{/grey-fg}{/center}',
+        'UPDATE_COMPLETE_MSG': '{center}{bold}SEQUÊNCIA DE ATUALIZAÇÃO CONCLUÍDA{/bold}{/center}',
+        'UPDATE_COMPLETE': '{center}\n{green-fg}ATUALIZAÇÃO INSTALADA{/green-fg}\n\nVersão {version} está pronta.\n\n{blink}PRESSIONE [ENTER] PARA REINICIAR{/center}',
+        'UPDATE_FAILED': '{center}\n{red-fg}FALHA NA ATUALIZAÇÃO{/red-fg}\n\n{error}\n\nTente novamente mais tarde.{/center}',
+        'UPDATE_ERROR': '{center}\n{red-fg}ERRO DE REDE{/red-fg}\n\nVerifique sua conexão.{/center}',
+        'UPDATE_DETECTED': '{center}\n{magenta-fg}ATUALIZAÇÃO DISPONÍVEL: {version}{/magenta-fg}\n\nTempo estimado: {yellow-fg}{time}{/yellow-fg}\n\n{white-fg}[ENTER] INSTALAR | [ESC] CANCELAR{/center}',
+        'UPDATE_CURRENT': '{center}\n{green-fg}JOGO ATUALIZADO{/green-fg}\n\nVersão {version} é a mais recente.{/center}\n\n\n\n\n{center}{bold}{grey-fg}[ESC] PARA FECHAR{/grey-fg}{/bold}{/center}',
         
         'RESET_OPTIONS': ' [ REINICIALIZAÇÃO DO SISTEMA ] ',
         'RESET_DATA': ' APAGAR TODOS OS DADOS',
@@ -1194,6 +1208,17 @@ The ones inside... they're not dead. They're waiting.
         'LEAKS_CONTENT': '{red-fg}LUX-4 ENERGY CORP - AUDITORIA INTERNA - OUTUBRO 1999{/red-fg}\n--------------------------------------------------\n{bold}ASSUNTO:{/bold} Escassez Artificial via Protocolo "The Fade".\n\n{bold}RESUMO:{/bold}\nO "Fade" não foi acidente. Foi uma liberação calculada\nde necro-estática na rede elétrica.\n\n{bold}ESTRATÉGIA:{/bold}\n1. Criar pânico onde a eletricidade pareça "assombrada".\n2. Vender o "Escudo Anti-Fade" como única solução.\n3. Vida por assinatura. Pagar pela luz. Para sempre.\n\n{bold}VÍTIMAS:{/bold}\nAprox. 450.000 cidadãos "evaporados digitalmente".\nSeus padrões neurais são usados como {yellow-fg}Poder de Processamento{/yellow-fg}.\n\n{bold}CONCLUSÃO:{/bold}\nSucesso total. Lucro aumentou 4.000%.\nAs almas na rede são baterias estáveis.\n\n[FIM DO ARQUIVO]\n--------------------------------------------------\n{center}[S] EXPORTAR | [ESC] SAIR{/center}',
         'LEAKS_EXPORTED': '\n\n{yellow-fg}DADOS EXPORTADOS PARA A ÁREA DE TRABALHO.{/yellow-fg}',
 
+        'VERIFYING_INTEGRITY': '{center}\n{yellow-fg}VERIFICANDO INTEGRIDADE DO SISTEMA...{/}\nComparando setores locais com o repositório.{/center}',
+        'INTEGRITY_OK': '{center}\n{green-fg}INTEGRIDADE VERIFICADA{/green-fg}\n\nTodos os setores locais coincidem com o registro mestre.\n\n{grey-fg}PRESSIONE [ESC] PARA FECHAR{/grey-fg}{/center}',
+        'INTEGRITY_FAIL': '{center}\n{red-fg}INTEGRIDADE COMPROMETIDA{/red-fg}\n\nUm ou mais setores locais não coincidem com o registro mestre.\n\n{yellow-fg}[ENTER] PARA REPARAR | [ESC] PARA SAIR{/yellow-fg}{/center}',
+        'SUPPORT_WARNING': '\n{center}{bold}AVISO{/bold}{/center}',
+        'SUPPORT_AUDIO_SAVED': '{center}Configurações de áudio salvas.{/center}',
+        'SUPPORT_AUDIO_INIT': '{center}Áudio do sistema inicializado.{/center}',
+        'SUPPORT_ESC_RETURN': '\n\n{center}[ESC] PARA VOLTAR{/center}',
+        'LANGUAGE_CHANGED': '{center}{yellow-fg}IDIOMA ALTERADO{/}\n\nReiniciando para aplicar todas as traduções.{/center}',
+
+
+
         'ENCOUNTER_01': "[SISTEMA]: Detectando padrão neural residual...",
         'ENCOUNTER_02': "[PADRÃO]: Op... Operador 07... é você?",
         'ENCOUNTER_03': "[VOCÊ]: Quem é?",
@@ -1323,6 +1348,8 @@ Os que estão dentro... não estão mortos. Estão esperando.
         'ACHIEVEMENT_FORGOTTEN_DESC': 'Escolheu esquecer as almas aprisionadas.',
         'ACHIEVEMENT_FORGOTTEN_HINT': 'Quando o núcleo perguntar, escolha esquecer.',
 
+
+
         'MEMORY_STEP_1': '[FRAGMENTO DE MEMÓRIA - OPERADOR 06]\n\nVejo o terminal. A luz verde pulsa como um batimento cardíaco.\nSterling me observa do outro lado do vidro.\nEle sorri. Eu sei o que ele quer.',
         'MEMORY_STEP_2': '[1999.10.14]\n\n"Não vou fazer isso, Sterling. Não vou entrar."\nEle não gritou. Ele só me mostrou a pasta.\nMinha mãe. Minha irmã. Todos que amo.\n"Você vai," ele disse. "Ou eles vão."',
         'MEMORY_STEP_3': '[1999.10.21 - ÚLTIMO DIA]\n\nA máquina está pronta. A cadeira é fria.\nJá posso ouvi-los. Milhares de vozes.\nElas não estão gritando. Estão sussurrando.\n"Não venha," elas dizem. "Não é o que você pensa."',
@@ -1355,55 +1382,38 @@ Os que estão dentro... não estão mortos. Estão esperando.
         'MEMORY_TERMINAL_ACCESS': ' > ACESSAR FRAGMENTO DE MEMÓRIA ',
         'MEMORY_TERMINAL_SKIP': ' > PULAR ',
 
-        'VERIFYING_INTEGRITY': '{center}{bold}VERIFICANDO INTEGRIDADE DO SISTEMA...{/}{/center}',
-        'VERIFYING_INTEGRITY_WITH_BAR': '{center}{bold}VERIFICANDO INTEGRIDADE DO SISTEMA...{/}{/center}\n\n{center}[{bar}] {percentage}%{/center}',
-        'INTEGRITY_OK': '{center}{bold}{green-fg}✓ INTEGRIDADE VERIFICADA{/}{/center}\n\n{center}{bold}Todos os setores locais coincidem com o registro mestre.{/}{/center}',
-        'INTEGRITY_FAIL': '{center}{bold}{red-fg}✗ INTEGRIDADE COMPROMETIDA{/}{/center}\n\n{center}{bold}Um ou mais setores locais não coincidem.{/}{/center}',
-        'INTEGRITY_FAIL_WITH_COUNT': '{center}{bold}{red-fg}✗ INTEGRIDADE COMPROMETIDA{/}{/center}\n\n{center}{bold}{count} arquivo(s) corrompido(s)/ausente(s) encontrado(s).{/bold}{/center}',
-        'REPAIR_COMPLETE': '{center}{bold}{green-fg}REPARO CONCLUÍDO{/}{/center}\n\n{center}{bold}{count} arquivo(s) restaurado(s).\n\nReinicialização necessária.{/bold}{/center}',
-        'WAIT_VERIFICATION': '{center}{bold}{yellow-fg}AGUARDE, VERIFICAÇÃO EM ANDAMENTO...{/}{/center}',
-        
-        'UPDATE_TITLE': '{center}{bold}┌─────────────────────────────────────┐{/}\n{center}{bold}│         ATUALIZAÇÃO DO SISTEMA       │{/}\n{center}{bold}└─────────────────────────────────────┘{/}{/center}',
-        'UPDATE_MAPPING': '{center}{bold}MAPEANDO REPOSITÓRIO...{/}{/center}',
-        'UPDATE_INSTALLING': '{center}{bold}INSTALANDO ATUALIZAÇÃO{/}\n\nVersão: {version}\n\n{center}[{bar}] {percentage}%{/center}\n\n{center}{bold}Não feche o jogo.{/}{/center}',
-        'UPDATE_SECTOR': '{center}{bold}{grey-fg}Setor {current} de {total} | Sincronizando: {file}{/}{/center}',
-        'UPDATE_COMPLETE': '{center}{bold}{green-fg}ATUALIZAÇÃO INSTALADA{/}{/center}\n\n{center}{bold}A versão {version} está pronta.{/}{/center}',
-        'UPDATE_FAILED': '{center}{bold}{red-fg}FALHA NA ATUALIZAÇÃO{/}{/center}\n\n{center}{bold}{error}{/}{/center}',
-        'UPDATE_ERROR': '{center}{bold}{red-fg}ERRO DE REDE{/}{/center}\n\n{center}{bold}Verifique sua conexão e tente novamente.{/}{/center}',
-        'UPDATE_DETECTED': '{center}{bold}{magenta-fg}ATUALIZAÇÃO DISPONÍVEL: {version}{/}{/center}\n\n{center}{bold}Tempo estimado: {time}{/}{/center}\n\n{center}{bold}[ENTER] INSTALAR | [ESC] CANCELAR{/}{/center}',
-        'UPDATE_CURRENT': '{center}{bold}{green-fg}JOGO ATUALIZADO{/}{/center}\n\n{center}{bold}A versão {version} é a mais recente.{/}{/center}',
-        'PRESS_ENTER_TO_CONTINUE': '{center}{bold}{green-fg}[ENTER] PARA CONTINUAR{/}{/center}',
-        'PRESS_ENTER_TO_REPAIR': '{center}{bold}{yellow-fg}[ENTER] PARA REPARAR{/}{/center}',
-        'PRESS_ENTER_TO_RESTART': '{center}{bold}{green-fg}[ENTER] PARA REINICIAR{/}{/center}',
-        
+
+
+        'UPDATE_ERROR': '{center}\n{red-fg}ERRO DE REDE{/red-fg}\n\nFalha ao conectar ao repositório do GitHub.\n\n{yellow-fg}Tente fazer login na sua conta GitHub{/yellow-fg}\nno menu CONTA para aumentar o limite de requisições.\n\nVerifique sua conexão e tente novamente.{/center}',
+    
         'UPDATE_MAIN_TITLE': ' [ CENTRAL DE ATUALIZAÇÃO ] ',
-        'UPDATE_OPTION_UPDATE': ' ATUALIZAR JOGO ',
-        'UPDATE_OPTION_BACK': ' VOLTAR AO MENU ',
-        'UPDATE_SELECT_VERSION': ' [ SELECIONAR VERSÃO ] ',
-        'UPDATE_FETCHING': '{center}{yellow-fg}BUSCANDO VERSÕES...{/}{/center}',
-        'UPDATE_NO_VERSIONS': '{center}{red-fg}NENHUMA VERSÃO ENCONTRADA{/}{/center}',
-        'UPDATE_RATE_LIMIT': '{center}{red-fg}LIMITE DE REQUISIÇÕES EXCEDIDO{/}{/center}\n\n{center}{yellow-fg}Faça login na sua conta GitHub{/}\nno menu CONTA para aumentar o limite.\n\nOu aguarde alguns minutos e tente novamente.{/}{/center}',
-        'UPDATE_RATE_LIMIT_LOGGED': '{center}{red-fg}LIMITE DE REQUISIÇÕES EXCEDIDO{/}{/center}\n\n{center}{yellow-fg}Você já está logado.{/}\nAguarde alguns minutos e tente novamente.{/}{/center}',
-        'UPDATE_CONFIRM_TITLE': ' [ CONFIRMAR ATUALIZAÇÃO ] ',
-        'UPDATE_CONFIRM_MSG': 'Instalar {version}?',
-        'UPDATE_WARNING_SAME': '{yellow-fg}ATENÇÃO: Mesma versão!{/}',
-        'UPDATE_WARNING_DOWNGRADE': '{red-fg}ATENÇÃO: DOWNGRADE DETECTADO!{/}\n\n{grey-fg}Você está prestes a instalar uma versão ANTIGA.\nIsso pode causar incompatibilidade com saves.{/}',
-        'UPDATE_DOWNLOAD_TITLE': ' [ BAIXANDO ] ',
-        'UPDATE_DOWNLOAD_MSG': '{yellow-fg}Baixando {version}{/}',
-        'UPDATE_COMPLETE_TITLE': ' [ ATUALIZAÇÃO PRONTA ] ',
-        'UPDATE_COMPLETE_MSG': '{green-fg}Atualização concluída!{/}\n\nVersão {version} está pronta.\n\n{blink}PRESSIONE ENTER PARA REINICIAR{/blink}',
-        'UPDATE_ERROR_TITLE': ' [ FALHA NA ATUALIZAÇÃO ] ',
-        'UPDATE_ERROR_MSG': '{red-fg}Falha no download!{/}\n\n{error}\n\nPressione ENTER para continuar.',
-        'UPDATE_IRREVERSIBLE': 'Esta ação é IRREVERSÍVEL!',
-        'UPDATE_CHECKING': '{center}{yellow-fg}VERIFICANDO ARQUIVOS...{/}{/center}',
-        'UPDATE_COMPARING': '{center}{cyan-fg}COMPARANDO BYTE A BYTE...{/}{/center}',
-        'UPDATE_ESTIMATED_TIME': '{center}{grey-fg}Tempo estimado: {time}{/}{/center}',
-        'UPDATE_CORRUPTED_FOUND': '{center}{red-fg}{count} ARQUIVO(S) CORROMPIDO(S){/}{/center}',
-        'UPDATE_ALL_GOOD': '{center}{green-fg}TODOS OS ARQUIVOS ESTÃO OK!{/}{/center}',
-        'UPDATE_REPAIR_PROMPT': '{center}{yellow-fg}PRESSIONE ENTER PARA REPARAR{/}\n{white-fg}PRESSIONE ESC PARA CANCELAR{/}{/center}',
-        'UPDATE_DOWNLOADING_FILE': '{center}{yellow-fg}BAIXANDO{/} {file}{/center}',
-        'UPDATE_BYTES_DOWNLOADED': '{center}{grey-fg}{current} / {total} bytes{/}{/center}',
-        'UPDATE_TIME_REMAINING': '{center}{grey-fg}Tempo restante: {time}{/}{/center}',
+'UPDATE_OPTION_UPDATE': ' ATUALIZAR JOGO ',
+'UPDATE_OPTION_BACK': ' VOLTAR AO MENU ',
+'UPDATE_SELECT_VERSION': ' [ SELECIONAR VERSÃO ] ',
+'UPDATE_FETCHING': '{center}{yellow-fg}BUSCANDO VERSÕES...{/}{/center}',
+'UPDATE_NO_VERSIONS': '{center}{red-fg}NENHUMA VERSÃO ENCONTRADA{/}{/center}',
+'UPDATE_RATE_LIMIT': '{center}{red-fg}LIMITE DE REQUISIÇÕES EXCEDIDO{/}{/center}\n\n{center}{yellow-fg}Faça login na sua conta GitHub{/}\nno menu CONTA para aumentar o limite.\n\nOu aguarde alguns minutos e tente novamente.{/}{/center}',
+'UPDATE_RATE_LIMIT_LOGGED': '{center}{red-fg}LIMITE DE REQUISIÇÕES EXCEDIDO{/}{/center}\n\n{center}{yellow-fg}Você já está logado.{/}\nAguarde alguns minutos e tente novamente.{/}{/center}',
+'UPDATE_CONFIRM_TITLE': ' [ CONFIRMAR ATUALIZAÇÃO ] ',
+'UPDATE_CONFIRM_MSG': 'Instalar {version}?',
+'UPDATE_WARNING_SAME': '{yellow-fg}ATENÇÃO: Mesma versão!{/}',
+'UPDATE_WARNING_DOWNGRADE': '{red-fg}ATENÇÃO: DOWNGRADE DETECTADO!{/}\n\n{grey-fg}Você está prestes a instalar uma versão ANTIGA.\nIsso pode causar incompatibilidade com saves.{/}',
+'UPDATE_DOWNLOAD_TITLE': ' [ BAIXANDO ] ',
+'UPDATE_DOWNLOAD_MSG': '{yellow-fg}Baixando {version}{/}',
+'UPDATE_COMPLETE_TITLE': ' [ ATUALIZAÇÃO PRONTA ] ',
+'UPDATE_COMPLETE_MSG': '{green-fg}Atualização concluída!{/}\n\nVersão {version} está pronta.\n\n{blink}PRESSIONE ENTER PARA REINICIAR{/blink}',
+'UPDATE_ERROR_TITLE': ' [ FALHA NA ATUALIZAÇÃO ] ',
+'UPDATE_ERROR_MSG': '{red-fg}Falha no download!{/}\n\n{error}\n\nPressione ENTER para continuar.',
+'UPDATE_IRREVERSIBLE': 'Esta ação é IRREVERSÍVEL!',
+'UPDATE_CHECKING': '{center}{yellow-fg}VERIFICANDO ARQUIVOS...{/}{/center}',
+'UPDATE_COMPARING': '{center}{cyan-fg}COMPARANDO BYTE A BYTE...{/}{/center}',
+'UPDATE_ESTIMATED_TIME': '{center}{grey-fg}Tempo estimado: {time}{/}{/center}',
+'UPDATE_CORRUPTED_FOUND': '{center}{red-fg}{count} ARQUIVO(S) CORROMPIDO(S){/}{/center}',
+'UPDATE_ALL_GOOD': '{center}{green-fg}TODOS OS ARQUIVOS ESTÃO OK!{/}{/center}',
+'UPDATE_REPAIR_PROMPT': '{center}{yellow-fg}PRESSIONE ENTER PARA REPARAR{/}\n{white-fg}PRESSIONE ESC PARA CANCELAR{/}{/center}',
+'UPDATE_DOWNLOADING_FILE': '{center}{yellow-fg}BAIXANDO{/} {file}{/center}',
+'UPDATE_BYTES_DOWNLOADED': '{center}{grey-fg}{current} / {total} bytes{/}{/center}',
+'UPDATE_TIME_REMAINING': '{center}{grey-fg}Tempo restante: {time}{/}{/center}',
     }
 };
 
@@ -1417,7 +1427,8 @@ try {
     } else {
         fs.writeFileSync(langPath, currentLang, 'utf8');
     }
-} catch (e) {}
+} catch (e) {
+}
 
 function t(key, replacements = {}) {
     let text = strings[currentLang]?.[key] || strings['EN']?.[key] || key;
