@@ -505,7 +505,7 @@ const strings = {
         'LEAKS_EXPORTED': '\n\n{yellow-fg}DATA EXPORTED TO DESKTOP.{/yellow-fg}',
 
         'VERIFYING_INTEGRITY': '{center}\n{yellow-fg}VERIFYING SYSTEM INTEGRITY...{/}\nComparing local sectors with repository.{/center}',
-        'INTEGRITY_OK': '{center}\n{green-fg}INTEGRITY VERIFIED{/green-fg}\n\nAll local sectors match the master record.\n\n{grey-fg}PRESS [ESC] TO CLOSE{/grey-fg}{/center}',
+        'INTEGRITY_OK': '{center}\n{green-fg}INTEGRITY VERIFIED{/green-fg}\n\nAll local sectors match the master record.\n\n{grey-fg}{bold}PRESS [ESC] TO CLOSE{/bold}}{/grey-fg}{/center}',
         'INTEGRITY_FAIL': '\n{center}{red-fg}INTEGRITY COMPROMISED{/red-fg}{/center}\n\n{center}One or more local sectors do not match the master record.{/center}\n\n{center}{yellow-fg}PRESS [ENTER] TO APPLY RESOLUTION | PRESS [ESC] TO EXIT{/yellow-fg}{/center}',
         'SUPPORT_WARNING': '\n{center}{bold}WARNING{/bold}{/center}',
         'SUPPORT_AUDIO_SAVED': '{center}Audio settings saved.{/center}',
