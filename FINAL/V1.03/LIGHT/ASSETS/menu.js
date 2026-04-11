@@ -11,6 +11,7 @@ let isBooting = true;
 let isUpdateInterfaceActive = false;
 let isupdating = false;
 let isBooting2 = true;
+let verificationInProgress = false;
 let account = false;
 let isERASE = false
 let blockMenuInput = false;
@@ -987,6 +988,7 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
         statusWin.setContent(t('VERIFYING_INTEGRITY'));
         screen.render();
         
+        verificationInProgress = true;
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
             const localPath = path.join(__dirname, '..', file.path);
@@ -1008,21 +1010,30 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
                 corruptedFiles.push(file);
             }
         }
+        verificationInProgress = false;
         
         if (corruptedFiles.length === 0) {
             statusWin.style.border.fg = 'green';
-            statusWin.setContent(t('INTEGRITY_OK'));
-            descriptionBox.setContent(t('PRESS_ENTER_TO_CONTINUE'));
+            statusWin.setContent(`{bold}${t('INTEGRITY_OK')}{/bold}`);
+            descriptionBox.setContent(`{bold}${t('PRESS_ENTER_TO_CONTINUE')}{/bold}`);
             screen.render();
             
-            screen.onceKey(['escape'], () => {
-                if (global.updateBgOverlay) global.updateBgOverlay.destroy();
-                isUpdateInterfaceActive = false;
-                isupdating = false;
-                blockMenuInput = false;
-                mainList.focus();
-                screen.render();
-            });
+            blockMenuInput = true;
+            screen.unkey('enter');
+            const escHandler = (ch, key) => {
+                if (key.name === 'escape') {
+                    screen.removeListener('keypress', escHandler);
+                    if (global.updateBgOverlay) global.updateBgOverlay.destroy();
+                    isUpdateInterfaceActive = false;
+                    isupdating = false;
+                    blockMenuInput = false;
+                    mainList.select(0);
+                    mainList.focus();
+                    screen.render();
+                }
+            };
+            
+            screen.on('keypress', escHandler);
             return;
         }
     }
@@ -1134,6 +1145,9 @@ async function showUpdateStatus() {
     });
 
     screen.key(['escape'], function escUpdate() {
+    if (verificationInProgress) {
+        return;
+    }
         playback();
         bgOverlay.destroy();
         isUpdateInterfaceActive = false;
