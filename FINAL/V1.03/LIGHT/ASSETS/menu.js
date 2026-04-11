@@ -1017,22 +1017,21 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
             statusWin.setContent(t('INTEGRITY_OK'));
             descriptionBox.setContent(t('PRESS_ENTER_TO_CONTINUE'));
             screen.render();
-            
+
 
             blockMenuInput = true;
             screen.unkey('enter');
             screen.unkey('escape');
             
-            screen.onceKey(['enter'], () => {
+            screen.onceKey(['escape'], () => {
                 if (global.updateBgOverlay) global.updateBgOverlay.destroy();
                 isUpdateInterfaceActive = false;
                 isupdating = false;
                 blockMenuInput = false;
+                mainList.select(0);
                 mainList.focus();
                 screen.render();
             });
-
-            return;
         }
     }
 
