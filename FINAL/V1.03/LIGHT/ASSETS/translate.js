@@ -694,6 +694,7 @@ The ones inside... they're not dead. They're waiting.
 'UPDATE_COMPLETE_MSG': '{green-fg}Update complete!{/}\n\nVersion {version} is ready.\n\n{blink}PRESS ENTER TO RESTART{/blink}',
 'UPDATE_ERROR_TITLE': ' [ UPDATE FAILED ] ',
 'UPDATE_ERROR_MSG': '{red-fg}Download failed!{/}\n\n{error}\n\nPress ENTER to continue.',
+'UPDATE_IRREVERSIBLE': 'This action is IRREVERSIBLE!',
     },
 
     'PT': {
@@ -1394,6 +1395,7 @@ Os que estão dentro... não estão mortos. Estão esperando.
 'UPDATE_COMPLETE_MSG': '{green-fg}Atualização concluída!{/}\n\nVersão {version} está pronta.\n\n{blink}PRESSIONE ENTER PARA REINICIAR{/blink}',
 'UPDATE_ERROR_TITLE': ' [ FALHA NA ATUALIZAÇÃO ] ',
 'UPDATE_ERROR_MSG': '{red-fg}Falha no download!{/}\n\n{error}\n\nPressione ENTER para continuar.',
+'UPDATE_IRREVERSIBLE': 'Esta ação é IRREVERSÍVEL!',
     }
 };
 

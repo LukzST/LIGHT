@@ -750,32 +750,32 @@ async function fetchVersions() {
     return new Promise((resolve) => {
         const url = 'https://api.github.com/repos/lukzst/LIGHT/contents/FINAL';
         const auth = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'}` : '';
-        const cmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; try { $r = Invoke-WebRequest -Uri '${url}' ${auth} -UseBasicParsing; $r.Content } catch { if($_.Exception.Response.StatusCode -eq 403) { Write-Host 'RATE_LIMIT' } else { Write-Host 'ERROR' } }"`;
+        const cmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; try { $r = Invoke-WebRequest -Uri '${url}' ${auth} -UseBasicParsing; $r.Content } catch { if($_.Exception.Response.StatusCode -eq 403) { 'RATE_LIMIT' } else { 'ERROR' } }"`;
         
         exec(cmd, (err, stdout) => {
             if (err) {
                 resolve({ error: 'NETWORK_ERROR', versions: [] });
                 return;
             }
-            
             const output = stdout.trim();
-            
             if (output === 'RATE_LIMIT') {
                 resolve({ error: 'RATE_LIMIT', versions: [] });
                 return;
             }
-            
             if (output === 'ERROR' || !output) {
                 resolve({ error: 'UNKNOWN_ERROR', versions: [] });
                 return;
             }
-            
             try {
                 const json = JSON.parse(output);
-                const versions = json
+                let versions = json
                     .filter(f => f.type === 'dir' && f.name.startsWith('V'))
                     .map(f => f.name)
                     .sort((a, b) => b.localeCompare(a));
+                
+                // FILTRA APENAS VERSÕES > ATUAL (exclui a atual e versões menores)
+                versions = versions.filter(v => v > CURRENT_VERSION);
+                
                 resolve({ error: null, versions });
             } catch(e) {
                 resolve({ error: 'PARSE_ERROR', versions: [] });
@@ -833,7 +833,6 @@ async function installVersion(version, progressCallback) {
         progressCallback(i + 1, files.length, files[i].path);
         await downloadFile(files[i].url, path.join(updatePath, files[i].path));
     }
-    
     return true;
 }
 
@@ -844,9 +843,8 @@ function showUpdateUI() {
     blockMenuInput = true;
     playwarning();
 
-    let isActive = true;
     let currentOverlay = null;
-    let isLocked = false;
+    let inProgress = false;
 
     function destroyOverlay() {
         if (currentOverlay && !currentOverlay.destroyed) currentOverlay.destroy();
@@ -861,19 +859,20 @@ function showUpdateUI() {
     }
 
     function closeAll() {
-        if (!isActive) return;
-        if (isLocked) return;
-        isActive = false;
+        if (inProgress) return;
         cleanupUpdateFolder();
         destroyOverlay();
         isUpdateInterfaceActive = false;
         isupdating = false;
         blockMenuInput = false;
-        mainList.select(0);
-        mainList.focus();
+        if (mainList) {
+            mainList.select(0);
+            mainList.focus();
+        }
         screen.render();
     }
 
+    // Menu principal
     const mainOverlay = blessed.box({
         parent: screen,
         top: 0, left: 0,
@@ -883,35 +882,37 @@ function showUpdateUI() {
     });
     currentOverlay = mainOverlay;
 
-    const updateMenu = blessed.list({
+    const menuBox = blessed.box({
         parent: mainOverlay,
-        top: 'center',
-        left: 'center',
-        width: 40,
-        height: 8,
+        top: 'center', left: 'center',
+        width: 40, height: 9,
         border: 'line',
         label: t('UPDATE_MAIN_TITLE'),
+        style: { border: { fg: COLORDEFAULT } }
+    });
+
+    const optionsList = blessed.list({
+        parent: menuBox,
+        top: 1, left: 'center',
+        width: '80%', height: 5,
         keys: true,
         tags: true,
-        items: [
-            t('UPDATE_OPTION_UPDATE'),
-            t('UPDATE_OPTION_BACK')
-        ],
+        items: [t('UPDATE_OPTION_UPDATE'), t('UPDATE_OPTION_BACK')],
         style: {
-            border: { fg: COLORDEFAULT },
             selected: { bg: COLORDEFAULT, fg: 'black' },
             item: { fg: 'white' }
         }
     });
 
-    updateMenu.focus();
+    optionsList.focus();
     screen.render();
 
-    async function showVersionList() {
-        if (isLocked) return;
-        isLocked = true;
+    // Lista de versões
+    async function showVersionSelector() {
+        if (inProgress) return;
+        inProgress = true;
         destroyOverlay();
-        
+
         const versionOverlay = blessed.box({
             parent: screen,
             top: 0, left: 0,
@@ -923,15 +924,13 @@ function showUpdateUI() {
 
         const loadingBox = blessed.box({
             parent: versionOverlay,
-            top: 'center',
-            left: 'center',
-            width: 45,
-            height: 6,
+            top: 'center', left: 'center',
+            width: 45, height: 6,
             border: 'line',
             label: t('UPDATE_SELECT_VERSION'),
-            tags: true,
             content: t('UPDATE_FETCHING'),
             align: 'center',
+            tags: true,
             style: { border: { fg: COLORDEFAULT } }
         });
         screen.render();
@@ -940,28 +939,23 @@ function showUpdateUI() {
 
         if (result.error === 'RATE_LIMIT') {
             loadingBox.destroy();
-            
             const errorMsg = githubToken ? t('UPDATE_RATE_LIMIT_LOGGED') : t('UPDATE_RATE_LIMIT');
-            
             const errorBox = blessed.box({
                 parent: versionOverlay,
-                top: 'center',
-                left: 'center',
-                width: 55,
-                height: 10,
+                top: 'center', left: 'center',
+                width: 55, height: 10,
                 border: 'line',
-                tags: true,
                 content: errorMsg,
                 align: 'center',
+                tags: true,
                 style: { border: { fg: 'red' } }
             });
             screen.render();
-            
             setTimeout(() => {
                 versionOverlay.destroy();
-                isLocked = false;
+                inProgress = false;
                 showUpdateUI();
-            }, 4500);
+            }, 4000);
             return;
         }
 
@@ -970,26 +964,23 @@ function showUpdateUI() {
             screen.render();
             setTimeout(() => {
                 versionOverlay.destroy();
-                isLocked = false;
+                inProgress = false;
                 showUpdateUI();
             }, 2000);
             return;
         }
 
-        const versions = result.versions;
         loadingBox.destroy();
 
         const versionList = blessed.list({
             parent: versionOverlay,
-            top: 'center',
-            left: 'center',
-            width: 40,
-            height: Math.min(versions.length + 2, 15),
+            top: 'center', left: 'center',
+            width: 40, height: Math.min(result.versions.length + 2, 14),
             border: 'line',
             label: t('UPDATE_SELECT_VERSION'),
             keys: true,
             tags: true,
-            items: versions,
+            items: result.versions,
             style: {
                 border: { fg: COLORDEFAULT },
                 selected: { bg: COLORDEFAULT, fg: 'black' },
@@ -1001,15 +992,11 @@ function showUpdateUI() {
         screen.render();
 
         versionList.on('select', async (item, idx) => {
-            if (!isActive) return;
-            if (isLocked) return;
-            
-            const version = versions[idx];
-            const isDowngrade = version !== CURRENT_VERSION && version < CURRENT_VERSION;
-            const isSame = version === CURRENT_VERSION;
+            if (inProgress) return;
+            const version = result.versions[idx];
             
             versionOverlay.destroy();
-            
+
             const confirmOverlay = blessed.box({
                 parent: screen,
                 top: 0, left: 0,
@@ -1017,90 +1004,72 @@ function showUpdateUI() {
                 style: { bg: 'black' },
                 index: 275
             });
-            currentOverlay = confirmOverlay;
 
-            let warningMsg = '';
-            let confirmHeight = 10;
-            let borderColor = COLORDEFAULT;
-            
-            if (isSame) {
-                warningMsg = `\n\n{center}${t('UPDATE_WARNING_SAME')}{/center}`;
-                confirmHeight = 11;
-                borderColor = 'yellow';
-            } else if (isDowngrade) {
-                warningMsg = `\n\n{center}${t('UPDATE_WARNING_DOWNGRADE')}{/center}`;
-                confirmHeight = 13;
-                borderColor = 'red';
-            }
-
-            const confirmItems = [
-                `\n{center}${t('UPDATE_CONFIRM_MSG', { version })}${warningMsg}{/center}\n`,
-                t('CONFIRM_YES'),
-                t('CONFIRM_NO')
-            ];
-
-            const confirmList = blessed.list({
+            const confirmBox = blessed.box({
                 parent: confirmOverlay,
-                top: 'center',
-                left: 'center',
-                width: 55,
-                height: confirmHeight,
+                top: 'center', left: 'center',
+                width: 55, height: 10,
                 border: 'line',
                 label: t('UPDATE_CONFIRM_TITLE'),
+                tags: true,
+                style: { border: { fg: 'yellow' } }
+            });
+
+            const confirmMsg = blessed.box({
+                parent: confirmBox,
+                top: 2, left: 'center',
+                width: '90%', height: 3,
+                content: `{center}${t('UPDATE_CONFIRM_MSG', { version })}\n\n{red-fg}${t('UPDATE_IRREVERSIBLE')}{/}{/center}`,
+                align: 'center',
+                tags: true
+            });
+
+            const confirmList = blessed.list({
+                parent: confirmBox,
+                bottom: 1, left: 'center',
+                width: '60%', height: 4,
                 keys: true,
                 tags: true,
-                items: confirmItems,
+                items: [t('CONFIRM_YES'), t('CONFIRM_NO')],
                 style: {
-                    border: { fg: borderColor },
                     selected: { bg: COLORDEFAULT, fg: 'black' },
                     item: { fg: 'white' }
                 }
             });
 
-            let confirmLocked = false;
-            
-            confirmList.select(1);
+            confirmList.select(0);
             confirmList.focus();
             screen.render();
 
             confirmList.on('select', async (opt, optIdx) => {
-                if (confirmLocked) return;
-                if (optIdx === 1) {
-                    confirmLocked = true;
-                    confirmOverlay.destroy();
-                    await performUpdate(version);
-                } else if (optIdx === 2) {
-                    confirmLocked = true;
-                    confirmOverlay.destroy();
-                    isLocked = false;
+                confirmOverlay.destroy();
+                if (optIdx === 0) {
+                    await performDownload(version);
+                } else if (optIdx === 1) {
+                    inProgress = false;
                     showUpdateUI();
                 }
             });
 
-            const escHandler = (ch, key) => {
-                if (key.name === 'escape') {
-                    return false;
-                }
-            };
-            screen.on('keypress', escHandler);
-            
-            confirmOverlay.once('destroy', () => {
-                screen.removeListener('keypress', escHandler);
+            screen.key(['escape'], () => {
+                confirmOverlay.destroy();
+                inProgress = false;
+                showUpdateUI();
             });
         });
 
         screen.key(['escape'], () => {
-            if (!isLocked) {
+            if (!inProgress) {
                 versionOverlay.destroy();
-                isLocked = false;
+                inProgress = false;
                 showUpdateUI();
             }
         });
     }
 
-    async function performUpdate(version) {
-        isLocked = true;
-        
+    async function performDownload(version) {
+        inProgress = true;
+
         const progressOverlay = blessed.box({
             parent: screen,
             top: 0, left: 0,
@@ -1112,10 +1081,8 @@ function showUpdateUI() {
 
         const progressBox = blessed.box({
             parent: progressOverlay,
-            top: 'center',
-            left: 'center',
-            width: 55,
-            height: 12,
+            top: 'center', left: 'center',
+            width: 55, height: 12,
             border: 'line',
             label: t('UPDATE_DOWNLOAD_TITLE'),
             tags: true,
@@ -1124,10 +1091,8 @@ function showUpdateUI() {
 
         const statusText = blessed.box({
             parent: progressBox,
-            top: 2,
-            left: 'center',
-            width: '90%',
-            height: 2,
+            top: 2, left: 'center',
+            width: '90%', height: 2,
             content: t('UPDATE_DOWNLOAD_MSG', { version }),
             align: 'center',
             tags: true
@@ -1135,20 +1100,16 @@ function showUpdateUI() {
 
         const progressBar = blessed.progressbar({
             parent: progressBox,
-            top: 5,
-            left: 'center',
-            width: '80%',
-            height: 1,
+            top: 5, left: 'center',
+            width: '80%', height: 1,
             style: { bar: { bg: 'green' } },
             filled: 0
         });
 
         const percentText = blessed.box({
             parent: progressBox,
-            top: 7,
-            left: 'center',
-            width: '90%',
-            height: 1,
+            top: 7, left: 'center',
+            width: '90%', height: 1,
             align: 'center',
             tags: true,
             content: '0%'
@@ -1156,10 +1117,8 @@ function showUpdateUI() {
 
         const fileText = blessed.box({
             parent: progressBox,
-            top: 9,
-            left: 'center',
-            width: '90%',
-            height: 1,
+            top: 9, left: 'center',
+            width: '90%', height: 1,
             align: 'center',
             tags: true,
             content: '{grey-fg}Preparing...{/}'
@@ -1167,16 +1126,8 @@ function showUpdateUI() {
 
         screen.render();
 
-        const escHandler = (ch, key) => {
-            if (key.name === 'escape') {
-                return false;
-            }
-        };
-        screen.on('keypress', escHandler);
-
         try {
             await installVersion(version, (current, total, file) => {
-                if (!isActive) return;
                 const percent = Math.round((current / total) * 100);
                 progressBar.setProgress(percent);
                 percentText.setContent(`${percent}%`);
@@ -1184,8 +1135,6 @@ function showUpdateUI() {
                 fileText.setContent(`{grey-fg}${shortFile}{/}`);
                 screen.render();
             });
-            
-            screen.removeListener('keypress', escHandler);
             
             progressBox.setLabel(t('UPDATE_COMPLETE_TITLE'));
             statusText.setContent(t('UPDATE_COMPLETE_MSG', { version: version.replace('V', '') }));
@@ -1195,19 +1144,12 @@ function showUpdateUI() {
             screen.render();
             playsucesso();
             
-            const enterHandler = (ch, key) => {
-                if (key.name === 'enter') {
-                    screen.removeListener('keypress', enterHandler);
-                    const updater = path.join(__dirname, '..', 'Updater.exe');
-                    spawn('cmd.exe', ['/c', 'start', updater], { detached: true, stdio: 'ignore' }).unref();
-                    process.exit(0);
-                }
-            };
-            screen.on('keypress', enterHandler);
-            
+            screen.onceKey(['enter'], () => {
+                const updater = path.join(__dirname, '..', 'Updater.exe');
+                spawn('cmd.exe', ['/c', 'start', updater], { detached: true, stdio: 'ignore' }).unref();
+                process.exit(0);
+            });
         } catch(e) {
-            screen.removeListener('keypress', escHandler);
-            
             progressBox.setLabel(t('UPDATE_ERROR_TITLE'));
             statusText.setContent(t('UPDATE_ERROR_MSG', { error: e.message }));
             progressBar.hide();
@@ -1216,32 +1158,25 @@ function showUpdateUI() {
             screen.render();
             playwarning();
             
-            const enterHandler = (ch, key) => {
-                if (key.name === 'enter') {
-                    screen.removeListener('keypress', enterHandler);
-                    progressOverlay.destroy();
-                    cleanupUpdateFolder();
-                    isLocked = false;
-                    showUpdateUI();
-                }
-            };
-            screen.on('keypress', enterHandler);
+            screen.onceKey(['enter'], () => {
+                progressOverlay.destroy();
+                cleanupUpdateFolder();
+                inProgress = false;
+                showUpdateUI();
+            });
         }
     }
 
-    updateMenu.on('select', (item, idx) => {
-        if (!isActive) return;
-        if (isLocked) return;
+    optionsList.on('select', (item, idx) => {
+        if (inProgress) return;
         if (idx === 0) {
-            showVersionList();
+            showVersionSelector();
         } else {
             closeAll();
         }
     });
 
-    screen.key(['escape'], () => {
-        if (!isLocked) closeAll();
-    });
+    screen.key(['escape'], () => closeAll());
 }
 
 function showResetOptions() {
