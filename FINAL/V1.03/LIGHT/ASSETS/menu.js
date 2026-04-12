@@ -1022,7 +1022,7 @@ async function downloadAndInstall(version, statusWin, isRepair = false) {
             blockMenuInput = true;
             screen.unkey('enter');
             
-            screen.onceKey(['escape'], () => {
+            screen.onceKey(['enter'], () => {
                 if (global.updateBgOverlay) global.updateBgOverlay.destroy();
                 isUpdateInterfaceActive = false;
                 isupdating = false;
