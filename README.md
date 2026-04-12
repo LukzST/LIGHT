@@ -5,7 +5,7 @@
       - file, You can obtain one at http://mozilla.org/MPL/2.0/.
       -->
    <!-- TODO: Get a job -->
-   <img src="./docs/Public/IMG/icon.png" width="100px" align="left">
+   <img src="./ICONS/game_png.png" width="100px" align="left">
    
    ### `LIGHT`
    
