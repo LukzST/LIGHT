@@ -753,7 +753,7 @@ The ones inside... they're not dead. They're waiting.
         'ACCOUNT_NETWORK': '\n{bold}{cyan-fg}GITHUB{/} NETWORK {/bold}',
         'ACCOUNT_NO_BIO': 'Nenhuma descrição disponível.',
         'ACCOUNT_UNKNOWN': 'DESCONHECIDO',
-        'ACCOUNT_STATS': '{center}{yellow-fg}ESTATÍSTICAS OPERACIONAIS{/}\n{center}────────────────{/}\n{bold}VERSÃO:{/bold} {version}\n{bold}USUÁRIO DO PC:{/bold} {user}\n{bold}FRAGMENTOS:{/bold} {achs}/{total}\n\n {bold}ARMAZENAMENTO:{/bold} GIST NA NUVEM',
+        'ACCOUNT_STATS': '{center}{yellow-fg}ESTATÍSTICAS OPERACIONAIS{/}\n{center}────────────────{/}\n{bold}VERSÃO:{/bold} {version}\n{bold}USUÁRIO DO PC:{/bold} {user}\n{bold}FRAGMENTOS:{/bold} {achs}/{total}\n\n {bold}ARMAZENAMENTO:{/bold}\n GIST NA NUVEM',
         'ACCOUNT_SOCIAL': '{cyan-fg}{bold}{name}{/}\n{bold}{grey-fg}@{login}{/}{/bold}\n\n{white-fg}{bio}{/}\n\n{bold}LOCAL:{/bold}  {location}\n{bold}SEGUIDORES:{/bold} {followers}\n{bold}GISTS:{/bold}     {gists}',
         'ACCOUNT_SYNC': ' SINCRONIZAR COM A NUVEM ',
         'ACCOUNT_RESTORE': ' RESTAURAR DA NUVEM ',
