@@ -1,0 +1,494 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+body {
+  background: #008080
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32"><rect width="16" height="16" fill="%23006666"/><rect x="16" width="16" height="16" fill="%23007777"/><rect y="16" width="16" height="16" fill="%23007777"/><rect x="16" y="16" width="16" height="16" fill="%23008888"/></svg>');
+  background-repeat: repeat;
+  font-family: "Pixelated MS Sans Serif", Arial;
+  min-height: 100vh;
+  overflow: hidden;
+  cursor: default;
+}
+html,
+body {
+  overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+  html,
+  body {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body::-webkit-scrollbar {
+    width: 0;
+    background: transparent;
+  }
+
+  body {
+    scrollbar-width: none;
+  }
+}
+
+.window {
+  position: absolute;
+  background: silver;
+  box-shadow:
+    inset -1px -1px #0a0a0a,
+    inset 1px 1px #dfdfdf,
+    inset -2px -2px grey,
+    inset 2px 2px #fff;
+  padding: 3px;
+  min-width: 380px;
+  animation: shake 0.15s infinite;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(2px, 1px);
+  }
+  75% {
+    transform: translate(-1px, -2px);
+  }
+}
+
+.window-body {
+  margin: 8px;
+  background: silver;
+  text-align: center;
+}
+
+.title-bar {
+  background: linear-gradient(90deg, #2f498c, #4a6aa8);
+  padding: 3px 2px 3px 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title-bar-text {
+  color: white;
+  font-weight: bold;
+  font-size: 11px;
+}
+
+.title-bar-controls button {
+  min-width: 16px;
+  min-height: 14px;
+  padding: 0;
+  background: silver;
+  box-shadow:
+    inset -1px -1px #0a0a0a,
+    inset 1px 1px #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.error-number {
+  font-size: 72px;
+  font-weight: bold;
+  color: #ff0000;
+  font-family: "Pixelated MS Sans Serif", Arial;
+  text-shadow: 3px 3px 0 #0a0a0a;
+  margin: 10px 0;
+  animation: blink 0.5s infinite;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.error-text {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ff0000;
+  margin: 10px 0;
+  text-transform: uppercase;
+}
+
+.error-message {
+  font-size: 11px;
+  margin: 15px 0;
+  color: #222;
+}
+
+button {
+  background: silver;
+  border: none;
+  box-shadow:
+    inset -1px -1px #0a0a0a,
+    inset 1px 1px #fff,
+    inset -2px -2px grey,
+    inset 2px 2px #dfdfdf;
+  color: #222;
+  padding: 6px 20px;
+  cursor: pointer;
+  font-family: "Pixelated MS Sans Serif", Arial;
+  font-size: 11px;
+  margin: 5px;
+}
+
+button:active {
+  box-shadow:
+    inset -1px -1px #fff,
+    inset 1px 1px #0a0a0a;
+}
+
+.counter {
+  font-size: 10px;
+  color: #2f498c;
+  margin-top: 10px;
+}
+
+.warning {
+  color: #ff0000;
+  font-weight: bold;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 20px;
+  background: #fff;
+  border: 2px solid;
+  border-top-color: #0a0a0a;
+  border-left-color: #0a0a0a;
+  border-right-color: #dfdfdf;
+  border-bottom-color: #dfdfdf;
+  margin: 10px 0;
+}
+
+.progress-fill {
+  width: 0%;
+  height: 100%;
+  background: #2f498c;
+  transition: width 0.1s linear;
+}
+
+.blinking {
+  animation: blinkText 0.5s infinite;
+}
+
+@keyframes blinkText {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.virus-icon {
+  font-size: 48px;
+  color: #ff0000;
+  margin: 10px 0;
+}
+
+.bsod-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #0000aa;
+  z-index: 20000;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: "Courier New", "Lucida Console", monospace;
+  color: #ffffff;
+  text-align: left;
+  padding: 40px;
+}
+
+.bsod-overlay.show {
+  display: flex;
+}
+
+.bsod-content {
+  max-width: 850px;
+  width: 90%;
+  background: #0000aa;
+  border: 2px solid #ffffff;
+  padding: 30px;
+}
+
+.bsod-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 30px;
+  text-transform: uppercase;
+  text-align: center;
+  letter-spacing: 2px;
+}
+
+.bsod-text {
+  font-size: 14px;
+  margin: 15px 0;
+  line-height: 1.6;
+  font-family: "Courier New", monospace;
+}
+
+.bsod-code {
+  font-size: 12px;
+  margin: 20px 0;
+  font-family: "Courier New", monospace;
+  background: transparent;
+  padding: 10px 0;
+  border-top: 1px solid #ffffff;
+  border-bottom: 1px solid #ffffff;
+}
+
+.bsod-progress {
+  width: 100%;
+  height: 20px;
+  background: #ffffff;
+  margin: 20px 0;
+  border: none;
+}
+
+.bsod-progress-fill {
+  width: 0%;
+  height: 100%;
+  background: #0000aa;
+  transition: width 0.05s linear;
+}
+
+.bsod-footer {
+  font-size: 11px;
+  margin-top: 25px;
+  text-align: center;
+  font-family: "Courier New", monospace;
+}
+
+.bsod-blink {
+  animation: bsodBlink 1s infinite;
+}
+
+@keyframes bsodBlink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.rescue-box {
+  background: silver;
+  padding: 20px;
+  margin-top: 20px;
+  border: 2px solid;
+  border-top-color: #dfdfdf;
+  border-left-color: #dfdfdf;
+  border-right-color: #0a0a0a;
+  border-bottom-color: #0a0a0a;
+  text-align: center;
+}
+
+.rescue-box h3 {
+  color: #2f498c;
+  margin-bottom: 10px;
+}
+
+.token-code {
+  font-family: monospace;
+  font-size: 24px;
+  font-weight: bold;
+  color: #2f498c;
+  background: #fff;
+  padding: 10px;
+  margin: 10px 0;
+  letter-spacing: 2px;
+}
+
+.email-input {
+  padding: 8px;
+  margin: 10px 0;
+  width: 80%;
+  font-family: monospace;
+  border: 2px solid;
+  border-top-color: #0a0a0a;
+  border-left-color: #0a0a0a;
+  border-right-color: #dfdfdf;
+  border-bottom-color: #dfdfdf;
+  background: #fff;
+}
+
+.hidden {
+  display: none;
+}
+.rickroll-audio {
+  position: fixed;
+  bottom: -100px;
+  left: -100px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.rickroll-audio audio {
+  width: 1px;
+  height: 1px;
+}
+
+.crt-effect {
+  position: relative;
+  animation: flicker 0.15s infinite;
+}
+
+.crt-effect::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.1) 0px,
+    rgba(0, 0, 0, 0.1) 2px,
+    transparent 2px,
+    transparent 4px
+  );
+  pointer-events: none;
+  z-index: 9998;
+}
+
+.crt-effect::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(0, 0, 0, 0.2) 100%
+  );
+  pointer-events: none;
+  z-index: 9998;
+}
+
+@keyframes flicker {
+  0% {
+    opacity: 1;
+  }
+  95% {
+    opacity: 1;
+  }
+  96% {
+    opacity: 0.98;
+  }
+  97% {
+    opacity: 0.99;
+  }
+  98% {
+    opacity: 0.97;
+  }
+  99% {
+    opacity: 0.98;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.crt-curve {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
+  border-radius: 30px / 20px;
+}
+
+body.crt {
+  animation: flicker 0.15s infinite;
+}
+
+body.crt::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15) 0px,
+    rgba(0, 0, 0, 0.15) 2px,
+    transparent 2px,
+    transparent 4px
+  );
+  pointer-events: none;
+  z-index: 9998;
+}
+
+body.crt::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(0, 0, 0, 0.25) 100%
+  );
+  pointer-events: none;
+  z-index: 9998;
+}
+
+body.crt::before,
+body.crt::after {
+  z-index: 2147483647;
+  pointer-events: none;
+}
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+  html,
+  body {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body::-webkit-scrollbar {
+    width: 0;
+    background: transparent;
+  }
+
+  body {
+    scrollbar-width: none;
+  }
+}

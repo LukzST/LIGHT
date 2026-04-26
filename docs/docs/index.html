@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="LIGHT Documentation - Complete game guide, installation, controls, development and more">
+    <meta name="author" content="Lukzxdd">
+    <title>LIGHT · Docs</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="shortcut icon" href="/Public/ICO/favicon.ico" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100;14..32,200;14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0,1" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/Public/CSS/modernStyleExtra/cssForDocs.css">
+</head>
+<body>
+
+    <aside class="m3-sidebar" id="m3Sidebar">
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <a href="/" class="nav-item">
+                    <span class="material-symbols-rounded">home</span>
+                    <span>Home</span>
+                </a>
+                <a href="/#about" class="nav-item">
+                    <span class="material-symbols-rounded">info</span>
+                    <span>About</span>
+                </a>
+                <a href="/#download" class="nav-item">
+                    <span class="material-symbols-rounded">download</span>
+                    <span>Download</span>
+                </a>
+                <a href="/demo/" class="nav-item">
+                    <span class="material-symbols-rounded">stadia_controller</span>
+                    <span>Demo</span>
+                </a>
+                <a href="/music/" class="nav-item">
+                    <span class="material-symbols-rounded">audiotrack</span>
+                    <span>Music</span>
+                </a>
+                <a href="/devlogs/" class="nav-item">
+                    <span class="material-symbols-rounded">developer_mode</span>
+                    <span>DevLogs</span>
+                </a>
+                <a href="/faq/" class="nav-item">
+                    <span class="material-symbols-rounded">help</span>
+                    <span>FAQ</span>
+                </a>
+                <a href="/docs/" class="nav-item active">
+                    <span class="material-symbols-rounded">menu_book</span>
+                    <span>Docs</span>
+                </a>
+            </div>
+        </div>
+        <div class="sidebar-footer">
+            <div class="social-row">
+                <a href="https://github.com/LukzST" target="_blank" class="social-icon-md"><i class="fab fa-github"></i></a>
+                <a href="https://www.instagram.com/UndPixelGames" target="_blank" class="social-icon-md"><i class="fab fa-instagram"></i></a>
+                <a href="https://UndPixelGames.itch.io" target="_blank" class="social-icon-md"><i class="fab fa-itch-io"></i></a>
+                <a href="https://www.youtube.com/@UndPixelGames" target="_blank" class="social-icon-md"><i class="fab fa-youtube"></i></a>
+            </div>
+            <p style="text-align:center; font-size:0.75rem; opacity:0.6;">© 2026  Undead Pixel Games</p>
+        </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="main-content">
+        <nav class="container" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;">
+            <button class="menu-button-md" id="menuButtonSide">
+                <span class="material-symbols-rounded" style="font-size: 28px;">menu</span>
+            </button>
+            <a href="https://UndPixelGames.itch.io/" target="_blank" class="btn-filled">Store <i class="fa-solid fa-chevron-right"></i></a>
+        </nav>
+
+        <main>
+            <section class="container hero-section reveal">
+                <div class="hero-content">
+                    <span class="hero-badge">DOCUMENTATION</span>
+                    <h1 class="hero-title">Documentation</h1>
+                    <p class="hero-description">Complete guide to installation, controls, development, and everything you need to know about LIGHT.</p>
+                </div>
+            </section>
+
+            <section class="container quick-nav reveal">
+                <div class="quick-nav-grid">
+                    <a href="#installation" class="quick-nav-card">
+                        <span class="material-symbols-rounded">install_desktop</span>
+                        <span>Installation</span>
+                    </a>
+                    <a href="#controls" class="quick-nav-card">
+                        <span class="material-symbols-rounded">keyboard</span>
+                        <span>Controls</span>
+                    </a>
+                    <a href="#gameplay" class="quick-nav-card">
+                        <span class="material-symbols-rounded">sports_esports</span>
+                        <span>Gameplay</span>
+                    </a>
+                    <a href="#development" class="quick-nav-card">
+                        <span class="material-symbols-rounded">code</span>
+                        <span>Development</span>
+                    </a>
+                    <a href="#commands" class="quick-nav-card">
+                        <span class="material-symbols-rounded">terminal</span>
+                        <span>Commands</span>
+                    </a>
+                    <a href="#troubleshooting" class="quick-nav-card">
+                        <span class="material-symbols-rounded">build</span>
+                        <span>Troubleshooting</span>
+                    </a>
+                </div>
+            </section>
+
+            <section id="installation" class="container doc-section reveal">
+                <div class="doc-header">
+                    <h2>Installation Guide</h2>
+                </div>
+                <div class="doc-content">
+                    <h3>System Requirements</h3>
+                    <div class="requirements-grid">
+                        <div class="req-card">
+                            <h4>Toaster Mode (Minimum)</h4>
+                            <ul>
+                                <li><strong>OS:</strong> Windows 10 (or a 2015 toaster)</li>
+                                <li><strong>Processor:</strong> Any dual-core CPU (a hamster on a wheel also works)</li>
+                                <li><strong>Memory:</strong> 1 GB RAM (your smartwatch has more)</li>
+                                <li><strong>Storage:</strong> 500 MB (about 50 toasts worth of data)</li>
+                                <li><strong>Graphics:</strong> A potato with copper wires</li>
+                            </ul>
+                        </div>
+                        <div class="req-card">
+                            <h4>Smart Toaster Mode (Recommended)</h4>
+                            <ul>
+                                <li><strong>OS:</strong> Windows 11 (or an air fryer with WiFi)</li>
+                                <li><strong>Processor:</strong> Any quad-core CPU (a very motivated squirrel)</li>
+                                <li><strong>Memory:</strong> 2 GB RAM (two potatoes in parallel)</li>
+                                <li><strong>Storage:</strong> 1 GB available space</li>
+                                <li><strong>Graphics:</strong> A sweet potato (premium version)</li>
+                                <li><strong>Note:</strong> Game may toast your bread while you play. Not responsible for burnt toast.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <h3>How to Install</h3>
+                    <div class="steps-list">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>Download the game</h4>
+                                <p>Download LIGHT from <a href="https://UndPixelGames.itch.io/LIGHT" target="_blank">Itch.io</a> or <a href="https://github.com/LukzST/LIGHT" target="_blank">GitHub</a>.</p>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>Extract the files</h4>
+                                <p>Extract the downloaded ZIP file to a folder of your choice.</p>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h4>Run the game</h4>
+                                <p>Double-click <code>LIGHT.exe</code> to start playing.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span>Terminal alternative</span>
+                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        </div>
+                        <pre><code># Clone the repository
+git clone https://github.com/LukzST/LIGHT.git
+
+# Navigate to the directory
+cd LIGHT
+
+# Run the game (if compiled)
+./LIGHT.exe</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <section id="controls" class="container doc-section reveal">
+                <div class="doc-header">
+                    <h2>Controls</h2>
+                </div>
+                <div class="doc-content">
+                    <div class="commands-table">
+                        <div class="command-row">
+                            <span class="command-name">↑ ↓ ← →</span>
+                            <span class="command-desc">Navigate Menu</span>
+                        </div>
+                        <div class="command-row">
+                            <span class="command-name">ENTER</span>
+                            <span class="command-desc">Execute Command / Confirm</span>
+                        </div>
+                        <div class="command-row">
+                            <span class="command-name">ESC</span>
+                            <span class="command-desc">Return / Cancel</span>
+                        </div>
+                        <div class="command-row">
+                            <span class="command-name">M</span>
+                            <span class="command-desc">Toggle Audio</span>
+                        </div>
+                        <div class="command-row">
+                            <span class="command-name">C</span>
+                            <span class="command-desc">Cycle Colors</span>
+                        </div>
+                        <div class="command-row">
+                            <span class="command-name">G</span>
+                            <span class="command-desc">Toggle Glitch Effect</span>
+                        </div>
+                        <div class="command-row">
+                            <span class="command-name">F1 / I</span>
+                            <span class="command-desc">System Info</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="gameplay" class="container doc-section reveal">
+                <div class="doc-header">
+                    <h2>Gameplay Guide</h2>
+                </div>
+                <div class="doc-content">
+                    <h3>Core Mechanics</h3>
+                    <div class="mechanics-grid">
+                        <div class="mechanic-card">
+                            <h4>Energy Management</h4>
+                            <p>Complete protocol sequences in order. Failure resets progress and drains energy.</p>
+                        </div>
+                        <div class="mechanic-card">
+                            <h4>The Fade & Survey</h4>
+                            <p>Your answers determine if you access the mainframe. Wrong answers lock you out.</p>
+                        </div>
+                        <div class="mechanic-card">
+                            <h4>Core Stabilization</h4>
+                            <p>Dynamic minigame with 3 modes: BAR SYNC, PULSE SYNC, and KEY HACK.</p>
+                        </div>
+                        <div class="mechanic-card">
+                            <h4>PACPRO Subsystem</h4>
+                            <p>PAC-MAN style minigame. Complete all 3 levels to unlock ELITE OPERATOR status.</p>
+                        </div>
+                        <div class="mechanic-card">
+                            <h4>Terminal Commands</h4>
+                            <p>Use help, status, logs, scan, repair, clear, exit to interact with the system.</p>
+                        </div>
+                        <div class="mechanic-card">
+                            <h4>Save System</h4>
+                            <p>Automatic saves at key story moments. Use CONTINUE MISSION to resume.</p>
+                        </div>
+                    </div>
+
+                    <h3>Tips & Tricks</h3>
+                    <ul class="tips-list">
+                        <li><strong>Complete protocols in order</strong> - Wrong sequence resets progress.</li>
+                        <li><strong>Type "6789" fast</strong> - You have 5 seconds during lockdown.</li>
+                        <li><strong>Use "lux1999files"</strong> - Decrypt the Project Fade logs.</li>
+                        <li><strong>Press [S] during data leaks</strong> - Export files to your desktop.</li>
+                        <li><strong>Use "LUX4LIFE"</strong> - Alternative password for secret route.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="development" class="container doc-section reveal">
+                <div class="doc-header">
+                    <h2>Development</h2>
+                </div>
+                <div class="doc-content">
+                    <h3>Building from Source</h3>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span>Build instructions</span>
+                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        </div>
+                        <pre><code># Install dependencies
+npm install
+
+# Run development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Run tests
+npm test</code></pre>
+                    </div>
+
+                    <h3>Project Structure</h3>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span>Directory structure</span>
+                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        </div>
+                            <pre><code>LIGHT/
+├───ACHIEVEMENTS/          
+├───ASSETS/                
+│   ├───DEVCODE/           
+│   ├───STATUS/            
+│   ├───TERMINALACCESS/    
+│   └───TERMINALPORTATIL/  
+├───AUDIO/                 
+│   ├───EFFECTS/           
+│   ├───PLAYER/            
+│   └───TRACKS/            
+├───backup_old/            
+├───CONFIG/                
+└───_update/               </code></pre>
+                    </div>
+
+                    <h3>Contributing</h3>
+                    <p>LIGHT is open-source and welcomes contributions! Here's how you can help:</p>
+                    <ul class="contribute-list">
+                        <li><strong>Report bugs</strong> - Open an issue on GitHub with detailed steps</li>
+                        <li><strong>Suggest features</strong> - Share your ideas in the discussions tab</li>
+                        <li><strong>Improve docs</strong> - Help make documentation better</li>
+                        <li><strong>Create assets</strong> - Contribute art, sound, or music</li>
+                        <li><strong>Write code</strong> - Submit pull requests with fixes or features</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="troubleshooting" class="container doc-section reveal">
+                <div class="doc-header">
+                    <h2>Troubleshooting</h2>
+                </div>
+                <div class="doc-content">
+                    <div class="faq-list">
+                        <div class="faq-item-doc">
+                            <div class="faq-question-doc" onclick="toggleDocFaq(this)">
+                                <span>Game crashes on startup</span>
+                                <span class="faq-arrow">▼</span>
+                            </div>
+                            <div class="faq-answer-doc">
+                                <p>Make sure your system meets the minimum requirements. Try running as administrator or reinstalling the game.</p>
+                            </div>
+                        </div>
+                        <div class="faq-item-doc">
+                            <div class="faq-question-doc" onclick="toggleDocFaq(this)">
+                                <span>Black screen on launch</span>
+                                <span class="faq-arrow">▼</span>
+                            </div>
+                            <div class="faq-answer-doc">
+                                <p>Update your graphics drivers. If the issue persists, try launching in windowed mode via config file.</p>
+                            </div>
+                        </div>
+                        <div class="faq-item-doc">
+                            <div class="faq-question-doc" onclick="toggleDocFaq(this)">
+                                <span>Audio not working</span>
+                                <span class="faq-arrow">▼</span>
+                            </div>
+                            <div class="faq-answer-doc">
+                                <p>Check your system volume and ensure no other application is using exclusive audio control.</p>
+                            </div>
+                        </div>
+                        <div class="faq-item-doc">
+                            <div class="faq-question-doc" onclick="toggleDocFaq(this)">
+                                <span>Save files not loading</span>
+                                <span class="faq-arrow">▼</span>
+                            </div>
+                            <div class="faq-answer-doc">
+                                <p>Check that the save directory has write permissions. Save files are located in <code>/CONFIG/checkpoints.json</code></p>
+                            </div>
+                        </div>
+                        <div class="faq-item-doc">
+                            <div class="faq-question-doc" onclick="toggleDocFaq(this)">
+                                <span>How to report a bug?</span>
+                                <span class="faq-arrow">▼</span>
+                            </div>
+                            <div class="faq-answer-doc">
+                                <p>Report bugs on <a href="https://github.com/LukzST/LIGHT/issues" target="_blank">GitHub Issues</a> with screenshots and steps to reproduce.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <button class="back-to-top visible" id="backToTopBtn">Back to Top <i class="fa-solid fa-arrow-up"></i></button>
+
+        </main>
+
+        <div class="mio-footer">
+            <div class="squiggle">
+                <svg aria-hidden="true" width="100%" height="8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <pattern id="a" width="91" height="8" patternUnits="userSpaceOnUse">
+                        <g clip-path="url(#clip0_2426_11367)">
+                            <path d="M114 4c-5.067 4.667-10.133 4.667-15.2 0S88.667-.667 83.6 4 73.467 8.667 68.4 4 58.267-.667 53.2 4 43.067 8.667 38 4 27.867-.667 22.8 4 12.667 8.667 7.6 4-2.533-.667-7.6 4s-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0" stroke="#E1E3E1" stroke-linecap="square"></path>
+                        </g>
+                    </pattern>
+                    <rect width="100%" height="100%" fill="url(#a)"></rect>
+                </svg>
+            </div>
+            <footer>
+                <section class="about">
+                    <div class="about-material">
+                        <span class="material-symbols-rounded" style="font-size: 32px; color: var(--md-expressive-coral);">lightbulb</span>
+                        <p>Beautifully atmospheric, horror-focused, and made with passion. We care about the light, not the void. LIGHT is an open-source horror experience where every flicker matters.</p>
+                    </div>
+                    <ul class="social-links">
+                        <li><h3>Social</h3></li>
+                        <li><a href="https://github.com/LukzST" target="_blank">GitHub</a></li>
+                        <li><a href="https://www.instagram.com/UndPixelGames" target="_blank">Instagram</a></li>
+                        <li><a href="https://www.youtube.com/@UndPixelGames" target="_blank">YouTube</a></li>
+                        <li><a href="https://UndPixelGames.itch.io" target="_blank">Itch.io</a></li>
+                    </ul>
+                    <ul class="library-links">
+                        <li><h3>Pages</h3></li>
+                        <li><a href="/demo/">Demo</a></li>
+                        <li><a href="/devlogs/">DevLogs</a></li>
+                        <li><a href="/brand-kit/">Brand Kit</a></li>
+                        <li><a href="/music/">Soundtrack</a></li>
+                        <li><a href="/faq/">FAQ</a></li>
+                        <li><a href="/docs/">Docs</a></li>
+                    </ul>
+                    <ul class="versions">
+                        <li><h3>Archived versions</h3></li>
+                        <li><a href="/demo/">Demo</a></li>
+                        <li><a href="https://github.com/LukzST/LIGHT/releases" target="_blank">Releases</a></li>
+                        <li><a href="https://github.com/LukzST/LIGHT" target="_blank">Source Code</a></li>
+                    </ul>
+                </section>
+                <section class="legal">
+                    <div class="google-logo" style="display: flex; align-items: center; gap: 8px;">
+                         
+                    </div>
+                    <ul>
+                        <li class="legal-link"><a href="#" onclick="alert('Privacy Policy - We value your privacy. No data collected.'); return false;">Privacy Policy</a></li>
+                        <li class="legal-link"><a href="#" onclick="alert('Terms of Service - LIGHT is free and open-source.'); return false;">Terms of Service</a></li>
+                        <li class="legal-link"><a href="https://github.com/LukzST/LIGHT/issues" target="_blank">Report Issue</a></li>
+                        <li class="legal-link"><a href="#" onclick="window.open('mailto:contatosadberry@gmail.com', 'Popup', 'width=500,height=400,scrollbars=no'); return false;">Feedback</a></li>
+                    </ul>
+                </section>
+            </footer>
+        </div>
+    </div>
+
+    <script src="/Public/JS/modernScripts/jsForDocs.js"></script>
+</body>
+</html>

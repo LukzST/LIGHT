@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 | Lost in the Dark</title>
+    <link rel="shortcut icon" href="/Public/ICO/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/Public/CSS/globalCSS.css">
+    <link rel="stylesheet" href="/Public/CSS/globalCSS2.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes glitch {
+            0%, 100% { transform: skew(0deg, 0deg); }
+            95% { transform: skew(0deg, 0deg); }
+            96% { transform: skew(2deg, 1deg); }
+            97% { transform: skew(-1deg, -0.5deg); }
+            98% { transform: skew(0deg, 0deg); }
+        }
+        
+        @keyframes glitch-overlay {
+            0%, 100% { transform: translate(0, 0); opacity: 0; }
+            95% { transform: translate(0, 0); opacity: 0; }
+            96% { transform: translate(-2px, 1px); opacity: 0.5; }
+            97% { transform: translate(2px, -1px); opacity: 0.5; }
+            98% { transform: translate(0, 0); opacity: 0; }
+        }
+        
+        .fade-in-up {
+            animation: fadeInUp 0.8s ease-out;
+        }
+        
+        .glitch-text {
+            animation: glitch 3s infinite;
+        }
+        
+        .glitch-overlay {
+            animation: glitch-overlay 2s infinite;
+        }
+        
+        .music-control {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 50;
+            background: var(--zen-subtle);
+            backdrop-filter: blur(8px);
+            padding: 10px 20px;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid var(--zen-subtle);
+        }
+        
+        .music-control:hover {
+            border-color: var(--zen-coral);
+            transform: scale(1.05);
+        }
+        
+        .music-info {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 50;
+            background: var(--zen-subtle);
+            backdrop-filter: blur(8px);
+            padding: 8px 16px;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            color: var(--zen-dark);
+            opacity: 0.7;
+        }
+        
+        .music-info a:hover {
+            color: var(--zen-coral);
+        }
+        
+        .vignette {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 10;
+            box-shadow: inset 0 0 150px rgba(0, 0, 0, 0.2);
+        }
+        
+        @media (max-width: 640px) {
+            .music-control span {
+                display: none;
+            }
+            .music-info {
+                font-size: 0.6rem;
+                bottom: 15px;
+                right: 15px;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen overflow-x-hidden bg-paper font-['bricolage-grotesque'] text-dark">
+
+    <audio id="bg-audio"></audio>
+
+    <div class="music-control" id="musicControl">
+        <i class="fas fa-volume-mute text-coral text-lg" id="volumeIcon"></i>
+        <span class="text-sm font-medium text-dark">Toggle Music</span>
+    </div>
+
+    <div class="music-info">
+        <i class="fas fa-music text-coral text-xs"></i>
+        <a href="https://youtube.com/playlist?list=PLstaXaIuDSEidUQAif2ptoqswAv8qTJ6y" target="_blank" class="hover:text-coral transition-colors">
+            <span id="musicName">The Last Choice - LIGHT OST</span>
+        </a>
+    </div>
+
+    <div class="vignette"></div>
+
+    <main class="container min-h-screen flex items-center justify-center">
+        <div class="text-center fade-in-up">
+            <div class="relative mb-8">
+                <h1 class="font-bold font-bold text-coral text-[clamp(8rem,20vw,15rem)] leading-none tracking-[-5px] glitch-text" style="font-size: 16rem;">
+                    404
+                </h1>
+                <div class="absolute top-0 left-0 w-full h-full font-bold font-bold text-[clamp(8rem,20vw,15rem)] text-transparent glitch-overlay pointer-events-none" style="font-size: 16rem;">
+                    404
+                </div>
+            </div>
+            
+            <p class="text-2xl tracking-wider mb-4 text-dark opacity-80 uppercase font-semibold">
+                You are lost in the dark
+            </p>
+            
+            <p class="max-w-md mx-auto mb-8 text-dark opacity-60 leading-relaxed">
+                The page you're looking for has been consumed by the Fade. But don't worry, the light still guides you home.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+                <a href="/" class="inline-flex items-center justify-center gap-2 rounded-xl font-bold px-6 py-4 transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] w-fit border-dark bg-dark text-paper shadow-lg">
+                    <i class="fa-solid fa-chevron-left"></i>
+                    Return to Light
+                </a>
+                <a href="/#download" class="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-4 transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] w-fit bg-subtle text-dark">
+                    <i class="fa-solid fa-download"></i>
+                    Download Game
+                </a>
+                <a href="/demo/" class="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-4 transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] w-fit bg-subtle text-dark">
+                    <i class="fa-solid fa-gamepad"></i>
+                    Try Demo
+                </a>
+            </div>
+            
+            <div class="pt-8 border-t border-subtle">
+                <h3 class="text-sm font-semibold mb-3 text-dark opacity-70" style="margin-bottom:10px; margin-top:20px">Maybe you're looking for:</h3>
+                <div class="flex flex-wrap gap-4 justify-center">
+                    <a href="/#about" class="text-sm text-dark opacity-60 hover:text-coral hover:opacity-100 transition-colors">About the Game</a>
+                    <a href="/#screenshots" class="text-sm text-dark opacity-60 hover:text-coral hover:opacity-100 transition-colors">Screenshots</a>
+                    <a href="/devlogs/" class="text-sm text-dark opacity-60 hover:text-coral hover:opacity-100 transition-colors">DevLogs</a>
+                    <a href="/demo/" class="text-sm text-dark opacity-60 hover:text-coral hover:opacity-100 transition-colors">Demo Version</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const audio = document.getElementById('bg-audio');
+        const musicControl = document.getElementById('musicControl');
+        const volumeIcon = document.getElementById('volumeIcon');
+        const musicName = document.getElementById('musicName');
+        
+        const musicas = [
+            { src: '/Public/MP3/4042.mp3', nome: 'The True Light - LIGHT OST' },
+            { src: '/Public/MP3/404.mp3', nome: 'The Last Choice - LIGHT OST' }
+        ];
+        
+        let musicaAtual = 0;
+        let isMuted = true;
+        let audioIniciado = false;
+        
+        audio.src = musicas[musicaAtual].src;
+        audio.volume = 0.3;
+        audio.muted = true;
+        musicName.textContent = musicas[musicaAtual].nome;
+        
+        audio.addEventListener('ended', function() {
+            musicaAtual = (musicaAtual + 1) % musicas.length;
+            audio.src = musicas[musicaAtual].src;
+            musicName.textContent = musicas[musicaAtual].nome;
+            if (!isMuted) {
+                audio.play();
+            }
+        });
+
+        musicControl.addEventListener('click', function(e) {
+            e.stopPropagation();
+            
+            if (!audioIniciado) {
+                audio.muted = false;
+                audio.play().catch(e => console.log('Audio play failed:', e));
+                volumeIcon.classList.remove('fa-volume-mute');
+                volumeIcon.classList.add('fa-volume-up');
+                audioIniciado = true;
+                isMuted = false;
+            } else {
+                if (isMuted) {
+                    audio.muted = false;
+                    audio.play().catch(e => console.log('Audio play failed:', e));
+                    volumeIcon.classList.remove('fa-volume-mute');
+                    volumeIcon.classList.add('fa-volume-up');
+                    isMuted = false;
+                } else {
+                    audio.muted = true;
+                    volumeIcon.classList.remove('fa-volume-up');
+                    volumeIcon.classList.add('fa-volume-mute');
+                    isMuted = true;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

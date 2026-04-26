@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="LIGHT Game Updates - All versions and releases">
+    <meta name="author" content="Lukzxdd">
+    <title>LIGHT · DevLogs</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100;14..32,200;14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0,1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="shortcut icon" href="/Public/ICO/favicon.ico" type="image/x-icon">
+    
+    <link rel="stylesheet" href="/Public/CSS/modernStyleExtra/cssForDevlogs.css">
+</head>
+<body>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <aside class="m3-sidebar" id="m3Sidebar">
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <a href="/" class="nav-item">
+                    <span class="material-symbols-rounded">home</span>
+                    <span>Home</span>
+                </a>
+                <a href="/#about" class="nav-item">
+                    <span class="material-symbols-rounded">info</span>
+                    <span>About</span>
+                </a>
+                <a href="/#download" class="nav-item">
+                    <span class="material-symbols-rounded">download</span>
+                    <span>Download</span>
+                </a>
+                <a href="/demo/" class="nav-item">
+                    <span class="material-symbols-rounded">stadia_controller</span>
+                    <span>Demo</span>
+                </a>
+                <a href="/music/" class="nav-item">
+                    <span class="material-symbols-rounded">audiotrack</span>
+                    <span>Music</span>
+                </a>
+                <a href="/devlogs/" class="nav-item active">
+                    <span class="material-symbols-rounded">developer_mode</span>
+                    <span>DevLogs</span>
+                </a>
+
+                <a href="/faq/" class="nav-item">
+                    <span class="material-symbols-rounded">help</span>
+                    <span>FAQ</span>
+                </a>
+
+                <a href="/docs/" class="nav-item">
+                    <span class="material-symbols-rounded">menu_book</span>
+                    <span>Docs</span>
+                </a>
+ 
+            </div>
+        </div>
+        <div class="sidebar-footer">
+            <div class="social-row">
+                <a href="https://github.com/LukzST" target="_blank" class="social-icon-md"><i class="fab fa-github"></i></a>
+                <a href="https://www.instagram.com/UndPixelGames" target="_blank" class="social-icon-md"><i class="fab fa-instagram"></i></a>
+                <a href="https://UndPixelGames.itch.io" target="_blank" class="social-icon-md"><i class="fab fa-itch-io"></i></a>
+                <a href="https://www.youtube.com/@UndPixelGames" target="_blank" class="social-icon-md"><i class="fab fa-youtube"></i></a>
+            </div>
+             <p style="text-align:center; font-size:0.75rem; opacity:0.6;">© 2026  Undead Pixel Games</p>
+        </div>
+    </aside>
+
+    <div class="main-content">
+        <nav class="container top-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;">
+            <button class="menu-button-md" id="menuButtonSide">
+                <span class="material-symbols-rounded" style="font-size: 28px;">menu</span>
+            </button>
+            <a href="https://UndPixelGames.itch.io/" target="_blank" class="btn-filled">Store <i class="fa-solid fa-chevron-right"></i></a>
+        </nav>
+
+        <main>
+            <section class="container hero-section reveal">
+                <div class="hero-content">
+                    <span class="hero-badge">DEVELOPMENT LOGS</span>
+                    <h1 class="hero-title">Devlogs</h1>
+                    <p class="hero-description">All versions of LIGHT released up to <span id="current-date" class="coral">...</span></p>
+                </div>
+            </section>
+            <section class="container versions-section reveal">
+                <div id="version-container" class="versions-grid">
+                    <div class="loader-wrapper">
+                        <div class="loader"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="container footer-note reveal">
+                <p class="note-text">Stay tuned for future updates. The light never dies.</p>
+            </section>
+        </main>
+
+        <div class="mio-footer">
+            <div class="squiggle">
+                <svg aria-hidden="true" width="100%" height="8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <pattern id="wavePattern" width="91" height="8" patternUnits="userSpaceOnUse">
+                        <path d="M114 4c-5.067 4.667-10.133 4.667-15.2 0S88.667-.667 83.6 4 73.467 8.667 68.4 4 58.267-.667 53.2 4 43.067 8.667 38 4 27.867-.667 22.8 4 12.667 8.667 7.6 4-2.533-.667-7.6 4s-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0" stroke="var(--md-sys-color-outline-variant)" stroke-linecap="square"/>
+                    </pattern>
+                    <rect width="100%" height="100%" fill="url(#wavePattern)"></rect>
+                </svg>
+            </div>
+            <footer>
+                <section class="about">
+                    <div class="about-material">
+                        <span class="material-symbols-rounded" style="font-size: 32px; color: var(--md-expressive-coral);">lightbulb</span>
+                        <p>Beautifully atmospheric, horror-focused, and made with passion. We care about the light, not the void. LIGHT is an open-source horror experience where every flicker matters.</p>
+                    </div>
+                    <ul class="social-links">
+                        <li><h3>Social</h3></li>
+                        <li><a href="https://github.com/LukzST" target="_blank">GitHub</a></li>
+                        <li><a href="https://www.instagram.com/UndPixelGames" target="_blank">Instagram</a></li>
+                        <li><a href="https://www.youtube.com/@UndPixelGames" target="_blank">YouTube</a></li>
+                        <li><a href="https://UndPixelGames.itch.io" target="_blank">Itch.io</a></li>
+                    </ul>
+                    <ul class="library-links">
+                        <li><h3>Pages</h3></li>
+                        <li><a href="/demo/">Demo</a></li>
+                        <li><a href="/devlogs/">DevLogs</a></li>
+                        
+                        <li><a href="/music/">Music</a></li>
+<li><a href="/faq/">FAQ</a></li>
+<li><a href="/docs/">Docs</a></li>
+                    </ul>
+                    <ul class="versions">
+                        <li><h3>Archived versions</h3></li>
+                        <li><a href="/demo/">Demo</a></li>
+                        <li><a href="https://github.com/LukzST/LIGHT/releases" target="_blank">Releases</a></li>
+                        <li><a href="https://github.com/LukzST/LIGHT" target="_blank">Source Code</a></li>
+                    </ul>
+                </section>
+                <section class="legal">
+                    <div class="google-logo" style="display: flex; align-items: center; gap: 8px;">
+                         
+                    </div>
+                    <ul>
+                        <li class="legal-link"><a href="#" onclick="alert('Privacy Policy - We value your privacy. No data collected.'); return false;">Privacy Policy</a></li>
+                        <li class="legal-link"><a href="#" onclick="alert('Terms of Service - LIGHT is free and open-source.'); return false;">Terms of Service</a></li>
+                        <li class="legal-link"><a href="https://github.com/LukzST/LIGHT/issues" target="_blank">Report Issue</a></li>
+                        <li class="legal-link"><a href="#" onclick="window.open('mailto:contatosadberry@gmail.com', 'Popup', 'width=500,height=400,scrollbars=no'); return false;">Feedback</a></li>
+                    </ul>
+                </section>
+            </footer>
+        </div>
+    </div>
+
+    <button class="back-to-top" id="backToTopBtn">Back to Top <i class="fa-solid fa-arrow-up"></i></button>
+
+    <script src="/Public/JS/modernScripts/jsForDevlogs.js"></script>
+</body>
+</html>

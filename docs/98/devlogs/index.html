@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="LIGHT Game Updates - All versions and releases">
+    <meta name="author" content="Lukzxdd">
+    <title>LIGHT - DevLogs (Windows 98 Edition)</title>
+    <link rel="shortcut icon" href="/Public/ICO/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://unpkg.com/98.css">
+    <link type="text/plain" rel="author" href="/humans.txt">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/Public/CSS/98_StyleExtra/cssFor98Devlogs.css">
+</head>
+<body class="crt">
+    <div class="desktop">
+        <div class="back-button">
+            <button onclick="window.location.href='/98/home/'">
+                <i class="fa-solid fa-arrow-left"></i> Back to Main
+            </button>
+        </div>
+        
+        <div class="window">
+            <div class="title-bar">
+                <div class="title-bar-text">📁 LIGHT - DevLogs</div>
+                <div class="title-bar-controls">
+                    <button aria-label="Minimize"></button>
+                    <button aria-label="Maximize"></button>
+                    <button aria-label="Close"></button>
+                </div>
+            </div>
+            <div class="window-body">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" class="text-coral" width="60" height="60" viewBox="0 0 2048 2048" fill="none">
+                            <path fill-rule="evenodd" clip-rule="evenodd" fill="currentColor" d="M 1284.57 406.421 C 1397.04 398.909 1574.71 426.698 1639.78 530.011 C 1660.15 562.687 1666.54 602.18 1657.5 639.611 C 1632.76 745.043 1508.05 794.393 1426.51 845.072 L 1501.2 887.775 C 1515.65 896.005 1538.23 908.203 1551.08 917.579 C 1543.82 922.811 1530.89 929.798 1522.67 934.589 C 1504.93 944.974 1487.13 955.261 1469.27 965.45 C 1428.93 988.481 1388.81 1012.67 1348.16 1035 C 1316.95 1017.49 1285.85 999.782 1254.85 981.886 L 893.136 774.042 L 766.731 701.32 L 726.5 678.084 C 720.033 674.345 712.896 670.882 706.814 666.601 C 704.995 665.32 703.654 663.987 702.891 661.832 C 702.417 660.493 702.626 659.85 703.417 658.679 C 708.386 651.315 789.377 607.252 802.242 599.86 L 948.207 515.43 C 972.77 501.249 999.885 484.219 1024.81 471.584 C 1108.38 429.22 1192.01 412.361 1284.57 406.421 Z M 1255.64 563.401 C 1274.94 561.626 1295.57 562.781 1314.89 565.701 C 1346.67 570.504 1400.97 595.464 1390.78 636.107 C 1382.21 670.291 1336.76 690.725 1308.19 707.18 C 1288.51 718.436 1268.91 729.826 1249.39 741.35 C 1242.99 738.197 1234.84 733.293 1228.47 729.714 C 1213.18 721.706 1194.58 710.449 1179.43 701.709 C 1146.22 682.401 1112.85 663.371 1079.33 644.622 C 1095.98 634.127 1113.84 624.309 1130.87 614.381 C 1174.15 589.145 1204.04 568.642 1255.64 563.401 Z" />
+                            
+                            <path fill="currentColor" d="M 498.332 1149.1 C 508.103 1150.39 544.645 1173.24 555.721 1179.65 L 651.823 1235.04 L 1118.57 1504.22 C 1117.01 1446.49 1118.31 1383.56 1118.45 1325.47 C 1170.49 1294.2 1224.08 1264.69 1276.43 1233.87 C 1289.97 1225.9 1306.88 1215.13 1320.72 1208.8 L 1320.02 1392.3 C 1297.46 1407.43 1260.95 1427.18 1236.61 1441.31 C 1173.15 1477.77 1108.71 1514.04 1045.75 1551.17 C 1019.64 1566.59 993.428 1581.84 967.125 1596.93 C 954.384 1604.28 931.637 1618.26 918.916 1622.75 C 906.2 1617.6 890.216 1607.94 878.086 1600.96 C 860.326 1590.68 842.51 1580.49 824.641 1570.39 L 606.79 1445.51 L 386.672 1318.96 L 331.224 1287.05 C 322.34 1281.93 304.062 1271.96 297.025 1265.48 C 303.738 1259.96 489.346 1151.75 498.332 1149.1 z" />
+                            <path fill="currentColor" d="M 698.77 846.81 C 708.599 848.406 826.327 918.404 842.561 927.687 L 1154.26 1107.05 C 1207.49 1137.78 1264.99 1169.27 1317.08 1201.37 C 1307.87 1207.69 1292.15 1216.19 1281.83 1222.22 L 1210.75 1263.42 C 1181.2 1280.39 1144.84 1303.64 1115.58 1318.7 C 1116.13 1318.79 510.514 974.309 498.134 963.089 C 504.936 956.614 526.563 945.194 535.739 940.012 C 553.695 929.874 571.595 919.637 589.438 909.302 L 654.046 871.836 C 667.827 863.782 684.67 853.268 698.77 846.81 z" />
+                            <path fill="currentColor" d="M 1552.29 925.717 L 1553.76 926.324 C 1555.47 932.043 1553.98 992.787 1553.98 1003.74 L 1554.09 1257.81 C 1531.9 1272.58 1370.43 1367.66 1355.06 1371.49 C 1350.33 1365.33 1351.97 1335.44 1351.97 1325.76 L 1352.01 1252.99 C 1352 1183.23 1350.92 1110.8 1352.3 1041.33 L 1552.29 925.717 z" />
+                            </svg>
+                        <div>
+                            <h1 style="font-size: 24px; font-weight: bold; margin: 0;">LIGHT DevLogs</h1>
+                            <p style="margin: 0;">version history & releases</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="window">
+            <div class="title-bar">
+                <div class="title-bar-text">📀 RELEASES</div>
+                <div class="title-bar-controls">
+                    <button aria-label="Minimize"></button>
+                    <button aria-label="Maximize"></button>
+                    <button aria-label="Close"></button>
+                </div>
+            </div>
+            <div class="window-body">
+                <h2 style="font-size: 28px; margin-bottom: 8px; text-align: center;">RELEASES</h2>
+                <p style="margin-bottom: 16px; text-align: center;">All versions of LIGHT released up to <span id="current-date" style="color: #2f498c; font-weight: bold;"></span></p>
+                
+                <div id="version-container" class="updates-grid">
+                    <div class="loader">Loading versions...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="window">
+            <div class="title-bar">
+                <div class="title-bar-text">📋 About DevLogs</div>
+                <div class="title-bar-controls">
+                    <button aria-label="Minimize"></button>
+                    <button aria-label="Close"></button>
+                </div>
+            </div>
+            <div class="window-body">
+                <p>This page lists all official releases of LIGHT. Each version card contains the final build files available in the GitHub repository.</p>
+                <hr>
+                <p><strong>Note:</strong> Beta versions and development builds are not listed here. Only stable releases are shown.</p>
+                <hr>
+                <p style="font-style: italic; margin-top: 8px;">Stay tuned for future updates. The light never dies.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="taskbar">
+        <div class="start-button" id="startButton">
+            <i class="fa-brands fa-windows"></i>
+            <span>Start</span>
+        </div>
+        
+        <div class="taskbar-tasks">
+            <div class="taskbar-task" onclick="window.location.href='/98/home/'">
+                <i class="fa-solid fa-tv"></i> Home
+            </div>
+            <div class="taskbar-task" onclick="window.location.href='/98/demo/'">
+                <i class="fa-solid fa-gamepad"></i> Demo
+            </div>
+            <div class="taskbar-task active" onclick="window.location.href='/98/devlogs/'">
+                <i class="fa-solid fa-newspaper"></i> DevLogs
+            </div>
+        </div>
+        
+
+        <div class="taskbar-task taskbar-clock" id="crtToggleBtn" style="min-width: 60px;">
+            <i class="fa-solid fa-tv"></i> CRT
+        </div>
+        <div class="taskbar-clock" id="clock">
+            00:00
+        </div>
+    </div>
+    
+    <div class="start-menu" id="startMenu">
+        <div class="start-menu-item" onclick="window.location.href='/98/home/'; document.getElementById('startMenu').classList.remove('open')">
+            <i class="fa-solid fa-tv"></i> <span>Home</span>
+        </div>
+        <div class="start-menu-item" onclick="window.location.href='/98/demo/'; document.getElementById('startMenu').classList.remove('open')">
+            <i class="fa-solid fa-gamepad"></i> <span>Demo</span>
+        </div>
+        <div class="start-menu-item" onclick="window.location.href='/98/devlogs/'; document.getElementById('startMenu').classList.remove('open')">
+            <i class="fa-solid fa-newspaper"></i> <span>DevLogs</span>
+        </div>
+        <div class="start-menu-separator"></div>
+        <div class="start-menu-item" onclick="window.open('https://github.com/LukzST', '_blank'); document.getElementById('startMenu').classList.remove('open')">
+            <i class="fa-brands fa-github"></i> <span>GitHub</span>
+        </div>
+        <div class="start-menu-item" onclick="window.open('https://www.instagram.com/UndPixelGames', '_blank'); document.getElementById('startMenu').classList.remove('open')">
+            <i class="fa-brands fa-instagram"></i> <span>Instagram</span>
+        </div>
+        <div class="start-menu-separator"></div>
+        <div class="start-menu-item" onclick="window.open('mailto:contatosadberry@gmail.com', '_blank'); document.getElementById('startMenu').classList.remove('open')">
+            <i class="fa-solid fa-envelope"></i> <span>Support</span>
+        </div>
+        <div class="start-menu-item" onclick="window.location.reload(); document.getElementById('startMenu').classList.remove('open')">
+            <i class="fa-solid fa-power-off"></i> <span>Restart...</span>
+        </div>
+        <div class="start-menu-separator"></div>
+            <div class="start-menu-item" id="shutdownBtn">
+                <i class="fa-solid fa-power-off"></i> <span>Shutdown...</span>
+            </div>
+        
+    </div>
+
+    <div class="shutdown-overlay" id="shutdownOverlay">
+    <div class="shutdown-message">
+        <p>The computer is shutting down...</p>
+    </div>
+</div>
+    
+<script src="/Public/JS/98_Scripts/jsFor98Devlogs.js"></script>
+<script src="/Public/JS/crt-manager.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.CRTManager) {
+            window.CRTManager.init('crtToggleBtn');
+        }
+    });
+</script>
+
+</body>
+</html>

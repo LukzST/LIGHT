@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="robots" content="noindex, nofollow">
+    <title>LIGHT - Demo Version (Windows 98 Edition)</title>
+    <link rel="shortcut icon" href="/Public/ICO/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://unpkg.com/98.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link type="text/plain" rel="author" href="/humans.txt">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/Public/CSS/98_StyleExtra/cssFor98Demo.css">
+</head>
+<body class="crt">
+    <div class="desktop">
+        <div class="back-button">
+            <button onclick="window.location.href='/98/home/'">
+                <i class="fa-solid fa-arrow-left"></i> Back to Main
+            </button>
+        </div>
+        
+        <div class="window">
+            <div class="title-bar">
+                <div class="title-bar-text">⬇️ Download Demo</div>
+                <div class="title-bar-controls">
+                    <button aria-label="Minimize"></button>
+                    <button aria-label="Maximize"></button>
+                    <button aria-label="Close"></button>
+                </div>
+            </div>
+            <div class="window-body">
+                <h2 style="font-size: 28px; margin-bottom: 8px; text-align: center;">DEMO VERSION</h2>
+                <p style="margin-bottom: 16px; text-align: center;">Experience the atmospheric horror before the full release</p>
+                
+                <div class="download-section">
+                    <button class="download-btn" onclick="window.open('https://raw.githubusercontent.com/LukzST/LIGHT/refs/heads/main/BETA/V3/LIGHT-BETA-V3.zip', '_blank')">
+                        <i class="fab fa-windows"></i> Download Windows Demo
+                    </button>
+                    <button class="download-btn" disabled style="opacity: 0.6; cursor: not-allowed;">
+                        <i class="fab fa-linux"></i> Linux Demo <span class="soon-badge">SOON</span>
+                    </button>
+                </div>
+                
+                <div class="info-box">
+                    <p><strong>⚠️ Important Information</strong></p>
+                    <hr>
+                    <p>This demo version was created using older development tools and may not fully represent the final game experience. Some features, visuals, and mechanics have been refined in the full version.</p>
+                    <p style="margin-top: 12px; font-style: italic;">That said, this demo has its own unique charm that even the final version can't replicate...</p>
+                </div>
+                
+                <div class="info-box">
+                    <p><strong>💾 Save Data</strong></p>
+                    <hr>
+                    <p>Your progress in this demo will not carry over to the full version of LIGHT. The demo is designed as a standalone experience that gives you a taste of the atmosphere and gameplay.</p>
+                    <p style="margin-top: 12px; font-style: italic;">Don't worry though — the demo is short enough that you'll want to replay it anyway!</p>
+                </div>
+                
+                <div class="info-box">
+                    <p><strong>📋 System Requirements</strong></p>
+                    <hr>
+                    <p><strong>Minimum:</strong> Windows 7/8/10/11, 2GB RAM, DirectX 10 compatible</p>
+                    <p><strong>Recommended:</strong> Windows 10/11, 4GB RAM, Dedicated GPU</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="window">
+            <div class="title-bar">
+                <div class="title-bar-text">❓ Need Help?</div>
+                <div class="title-bar-controls">
+                    <button aria-label="Minimize"></button>
+                    <button aria-label="Close"></button>
+                </div>
+            </div>
+            <div class="window-body">
+                <p>Having trouble running the demo? Check out our support page or report an issue on GitHub.</p>
+                <div style="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;">
+                    <button onclick="window.open('https://github.com/LukzST/LIGHT/issues', '_blank')">
+                        <i class="fab fa-github"></i> Report Issue
+                    </button>
+                    <button onclick="window.open('mailto:contatosadberry@gmail.com', '_blank')">
+                        <i class="fa-solid fa-envelope"></i> Contact Support
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="window" style="margin-top: 8px;">
+            <div class="title-bar">
+                <div class="title-bar-text">
+
+                </div>
+                <div class="title-bar-controls">
+                    <button aria-label="Close"></button>
+                </div>
+            </div>
+            <div class="window-body">
+                <span>Made with passion. We care about the light, not the void. Stay tuned for more updates.</span>
+            </div>
+        </div>
+        </div>
+    </div>
+    
+    <div class="taskbar">
+        <div class="start-button" id="startButton">
+            <i class="fa-brands fa-windows"></i>
+            <span>Start</span>
+        </div>
+        
+        <div class="taskbar-tasks">
+            <div class="taskbar-task" onclick="window.location.href='/98/home/'">
+                <i class="fa-solid fa-tv"></i> Home
+            </div>
+            <div class="taskbar-task active" onclick="window.location.href='/98/demo/'">
+                <i class="fa-solid fa-gamepad"></i> Demo
+            </div>
+            <div class="taskbar-task" onclick="window.location.href='/98/devlogs/'">
+                <i class="fa-solid fa-newspaper"></i> DevLogs
+            </div>
+        </div>
+        
+
+        <div class="taskbar-task taskbar-clock" id="crtToggleBtn" style="min-width: 60px;">
+            <i class="fa-solid fa-tv"></i> CRT
+        </div>
+
+        <div class="taskbar-clock" id="clock">
+            00:00
+        </div>
+    </div>
+    
+    <div class="start-menu" id="startMenu">
+        <div class="start-menu-item" onclick="window.location.href='/98/home/'; document.getElementById('startMenu').classList.remove('open')">
+            <i class="fa-solid fa-tv"></i> <span>Home</span>
+        </div>
+        <div class="start-menu-item" onclick="window.location.href='/98/demo/'; document.getElementById('startMenu').classList.remove('open')">
+            <i class="fa-solid fa-gamepad"></i> <span>Demo</span>
+        </div>
+        <div class="start-menu-item" onclick="window.location.href='/98/devlogs/'; document.getElementById('startMenu').classList.remove('open')">
+            <i class="fa-solid fa-newspaper"></i> <span>DevLogs</span>
+        </div>
+        <div class="start-menu-separator"></div>
+        <div class="start-menu-item" onclick="window.open('https://github.com/LukzST', '_blank'); document.getElementById('startMenu').classList.remove('open')">
+            <i class="fa-brands fa-github"></i> <span>GitHub</span>
+        </div>
+        <div class="start-menu-item" onclick="window.open('https://www.instagram.com/UndPixelGames', '_blank'); document.getElementById('startMenu').classList.remove('open')">
+            <i class="fa-brands fa-instagram"></i> <span>Instagram</span>
+        </div>
+        <div class="start-menu-separator"></div>
+        <div class="start-menu-item" onclick="window.open('mailto:contatosadberry@gmail.com', '_blank'); document.getElementById('startMenu').classList.remove('open')">
+            <i class="fa-solid fa-envelope"></i> <span>Support</span>
+        </div>
+        <div class="start-menu-item" onclick="window.location.reload(); document.getElementById('startMenu').classList.remove('open')">
+            <i class="fa-solid fa-power-off"></i> <span>Restart...</span>
+        </div>
+
+        <div class="start-menu-separator"></div>
+            <div class="start-menu-item" id="shutdownBtn">
+                <i class="fa-solid fa-power-off"></i> <span>Shutdown...</span>
+            </div>
+    </div>
+
+    <div class="shutdown-overlay" id="shutdownOverlay">
+    <div class="shutdown-message">
+        <p>The computer is shutting down...</p>
+    </div>
+</div>
+    
+<script src="/Public/JS/98_Scripts/jsFor98Demo.js"></script>
+
+
+<script src="/Public/JS/crt-manager.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.CRTManager) {
+            window.CRTManager.init('crtToggleBtn');
+        }
+    });
+</script>
+</body>
+</html>

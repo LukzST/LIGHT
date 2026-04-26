@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="robots" content="noindex, nofollow">
+    <title>404 · Page Not Found</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100;14..32,200;14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0,1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="shortcut icon" href="/Public/ICO/favicon.ico" type="image/x-icon">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            text-decoration: none;
+            font-weight: normal;
+            font-family: var(--md-font-body);
+        }
+
+        ::selection {
+            background: #ffb7b7;
+            color: #000000;
+        }
+
+        :root {
+            --md-sys-color-primary: #FFB4AB;
+            --md-sys-color-on-primary: #5C2E2A;
+            --md-sys-color-primary-container: #ffb4ab;
+            --md-sys-color-on-primary-container: #090909;
+            --md-sys-color-secondary: #E6E1E5;
+            --md-sys-color-on-secondary: #2B2930;
+            --md-sys-color-tertiary: #CAC4D0;
+            --md-sys-color-surface: #090909;
+            --md-sys-color-surface-dim: #090909;
+            --md-sys-color-surface-bright: #2B2930;
+            --md-sys-color-background: #090909;
+            --md-sys-color-on-surface: #E6E1E5;
+            --md-sys-color-on-surface-variant: #CAC4D0;
+            --md-sys-color-outline: #938F99;
+            --md-sys-color-outline-variant: #49454F;
+            --md-expressive-coral: #FF8A7A;
+            --md-font-display: 'Inter', sans-serif;
+            --md-font-body: 'Inter', sans-serif;
+            --md-shape-large: 28px;
+            --md-shape-full: 9999px;
+            --md-elevation-3: 0 4px 8px 3px rgba(0, 0, 0, 0.15), 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+            --md-motion-emphasized: 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            --md-motion-standard: 0.2s cubic-bezier(0.2, 0, 0, 1);
+        }
+
+        body {
+            background-color: var(--md-sys-color-background);
+            color: var(--md-sys-color-on-surface);
+            font-family: var(--md-font-body);
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+
+        .m3-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 280px;
+            background-color: var(--md-sys-color-surface);
+            border-right: 1px solid var(--md-sys-color-outline-variant);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            transition: transform var(--md-motion-emphasized);
+        }
+
+        @media (max-width: 768px) {
+            .m3-sidebar {
+                transform: translateX(-100%);
+                z-index: 1000;
+                box-shadow: var(--md-elevation-3);
+            }
+
+            .m3-sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay {
+                position: fixed;
+                inset: 0;
+                background-color: rgba(0, 0, 0, 0.6);
+                backdrop-filter: blur(4px);
+                z-index: 999;
+                opacity: 0;
+                visibility: hidden;
+                transition: 0.25s ease;
+            }
+
+            .sidebar-overlay.active {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .menu-button-md {
+                display: flex;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .menu-button-md {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 280px;
+            }
+
+            .sidebar-overlay {
+                display: none;
+            }
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 16px 12px;
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 10px 16px;
+            border-radius: var(--md-shape-large);
+            color: var(--md-sys-color-on-surface);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all var(--md-motion-standard);
+            margin: 2px 0;
+            cursor: pointer;
+            }
+
+            .nav-item:hover {
+            background-color: #8c494228;
+            }
+
+            .nav-item.active {
+            background-color: #ffb4ab;
+            color: #090909;
+            }
+
+            .nav-item .material-symbols-rounded {
+            font-size: 22px;
+            }
+
+        .sidebar-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .social-row {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .social-icon-md {
+            color: var(--md-sys-color-on-surface-variant);
+            font-size: 1.25rem;
+            transition: var(--md-motion-standard);
+        }
+
+        .social-icon-md:hover {
+            color: var(--md-expressive-coral);
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+        }
+
+        .menu-button-md {
+            background: none;
+            border: none;
+            color: var(--md-sys-color-on-surface);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: var(--md-shape-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-button-md:hover {
+            background-color: var(--md-sys-color-surface-dim);
+        }
+
+        .main-content {
+            transition: margin-left 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 20px;
+            }
+        }
+
+        .btn-filled {
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            border: none;
+            padding: 10px 24px;
+            border-radius: 100px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.3s all ease;
+        }
+
+        .btn-filled:hover {
+            background-color: var(--md-expressive-coral);
+        }
+
+        .btn-outlined {
+            background: transparent;
+            border: 1px solid var(--md-sys-color-outline);
+            padding: 10px 24px;
+            border-radius: 100px;
+            color: var(--md-sys-color-on-surface);
+            font-weight: 500;
+            text-decoration: none;
+            transition: 0.3s all ease;
+        }
+
+        .btn-outlined:hover {
+            border-color: var(--md-expressive-coral);
+            color: var(--md-expressive-coral);
+        }
+
+        .error-section {
+            padding: 80px 20px;
+            text-align: center;
+            min-height: 60vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .error-code {
+            font-family: var(--md-font-display);
+            font-size: 8rem;
+            font-weight: 800;
+            line-height: 1;
+            background: linear-gradient(135deg, var(--md-expressive-coral), var(--md-sys-color-primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .error-code {
+                font-size: 5rem;
+            }
+        }
+
+        .error-title {
+            font-family: var(--md-font-display);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .error-description {
+            color: var(--md-sys-color-on-surface-variant);
+            max-width: 500px;
+            margin: 0 auto 32px auto;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .mio-footer {
+            margin-top: 80px;
+            background: var(--md-sys-color-surface-dim);
+        }
+
+        .squiggle svg {
+            display: block;
+            width: 100%;
+        }
+
+        .mio-footer footer {
+            padding: 48px 32px 32px;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .about {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 48px;
+            margin-bottom: 64px;
+        }
+
+        .about-material p {
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: var(--md-sys-color-on-surface-variant);
+            margin-top: 16px;
+        }
+
+        .social-links,
+        .library-links,
+        .versions {
+            list-style: none;
+        }
+
+        .social-links h3,
+        .library-links h3,
+        .versions h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .social-links li,
+        .library-links li,
+        .versions li {
+            margin-bottom: 12px;
+        }
+
+        .social-links a,
+        .library-links a,
+        .versions a {
+            color: var(--md-sys-color-on-surface-variant);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.2s;
+        }
+
+        .social-links a:hover,
+        .library-links a:hover,
+        .versions a:hover {
+            color: var(--md-expressive-coral);
+        }
+
+        .legal {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 24px;
+            padding-top: 32px;
+            border-top: 1px solid var(--md-sys-color-outline-variant);
+        }
+
+        .legal ul {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            list-style: none;
+        }
+
+        .legal-link a {
+            color: var(--md-sys-color-on-surface-variant);
+            text-decoration: none;
+            font-size: 0.75rem;
+            transition: color 0.2s;
+        }
+
+        .legal-link a:hover {
+            color: var(--md-expressive-coral);
+        }
+
+        @media (max-width: 900px) {
+            .about {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+
+            .legal {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .legal ul {
+                justify-content: center;
+            }
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            border-radius: 100px;
+            padding: 10px 18px;
+            font-weight: 600;
+            z-index: 90;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-to-top.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            background: var(--md-expressive-coral);
+            transform: scale(1.05);
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .reveal.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--md-sys-color-surface-dim);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--md-sys-color-outline);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--md-expressive-coral);
+        }
+
+        html, body {
+            cursor: url('/Public/CUR/cursor.svg') 0 0, auto;
+        }
+
+        a, 
+        button,
+        label, 
+        summary, 
+        select,
+        option,
+        input[type="submit"], 
+        input[type="button"], 
+        input[type="reset"], 
+        input[type="checkbox"], 
+        input[type="radio"], 
+        input[type="file"],
+        input[type="range"],
+        [role="button"], 
+        [role="link"], 
+        [role="menuitem"],
+        [onclick],          
+        .pointer,     
+        svg:has(path):hover  
+        {
+            cursor: url('/Public/CUR/pointer.svg') 12 0, pointer !important;
+        }
+        input[type="text"], 
+        input[type="email"], 
+        input[type="password"], 
+        input[type="number"], 
+        input[type="search"], 
+        textarea, .about-material p,
+        [contenteditable="true"] {
+            cursor: text;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <aside class="m3-sidebar" id="m3Sidebar">
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <a href="/" class="nav-item">
+                    <span class="material-symbols-rounded">home</span>
+                    <span>Home</span>
+                </a>
+                <a href="/#about" class="nav-item">
+                    <span class="material-symbols-rounded">info</span>
+                    <span>About</span>
+                </a>
+                <a href="/#download" class="nav-item">
+                    <span class="material-symbols-rounded">download</span>
+                    <span>Download</span>
+                </a>
+                <a href="/demo/" class="nav-item">
+                    <span class="material-symbols-rounded">stadia_controller</span>
+                    <span>Demo</span>
+                </a>
+                <a href="/music/" class="nav-item">
+                    <span class="material-symbols-rounded">audiotrack</span>
+                    <span>Music</span>
+                </a>
+                <a href="/devlogs/" class="nav-item">
+                    <span class="material-symbols-rounded">developer_mode</span>
+                    <span>DevLogs</span>
+                </a>
+
+                <a href="/faq/" class="nav-item">
+                    <span class="material-symbols-rounded">help</span>
+                    <span>FAQ</span>
+                </a>
+
+                <a href="/docs/" class="nav-item">
+                    <span class="material-symbols-rounded">menu_book</span>
+                    <span>Docs</span>
+                </a>
+ 
+            </div>
+        </div>
+        <div class="sidebar-footer">
+            <div class="social-row">
+                <a href="https://github.com/LukzST" target="_blank" class="social-icon-md"><i
+                        class="fab fa-github"></i></a>
+                <a href="https://www.instagram.com/UndPixelGames" target="_blank" class="social-icon-md"><i
+                        class="fab fa-instagram"></i></a>
+                <a href="https://UndPixelGames.itch.io" target="_blank" class="social-icon-md"><i
+                        class="fab fa-itch-io"></i></a>
+                <a href="https://www.youtube.com/@UndPixelGames" target="_blank" class="social-icon-md"><i
+                        class="fab fa-youtube"></i></a>
+            </div>
+             <p style="text-align:center; font-size:0.75rem; opacity:0.6;">© 2026  Undead Pixel Games</p>
+        </div>
+    </aside>
+
+    <div class="main-content">
+        <nav class="container"
+            style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;">
+            <button class="menu-button-md" id="menuButtonSide">
+                <span class="material-symbols-rounded" style="font-size: 28px;">menu</span>
+            </button>
+            <a href="https://UndPixelGames.itch.io/" target="_blank" class="btn-filled">Store <i
+                    class="fa-solid fa-chevron-right"></i></a>
+        </nav>
+
+        <main>
+            <section class="container error-section reveal">
+                <h1 class="error-code">404</h1>
+                <h2 class="error-title">Page Not Found</h2>
+                <p class="error-description">The page you're looking for doesn't exist or has been moved.</p>
+                <div class="error-actions">
+                    <a href="/" class="btn-filled">
+                        <span class="material-symbols-rounded">home</span>
+                        Back to Home
+                    </a>
+                    <a href="javascript:history.back()" class="btn-outlined" style="display: flex;">
+                        <span class="material-symbols-rounded">arrow_back</span>
+                        <p style="margin-left: 5px;">Go Back</p>
+                    </a>
+                </div>
+            </section>
+        </main>
+
+        <div class="mio-footer">
+            <div class="squiggle">
+                <svg aria-hidden="true" width="100%" height="8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <pattern id="a" width="91" height="8" patternUnits="userSpaceOnUse">
+                        <g clip-path="url(#clip0_2426_11367)">
+                            <path d="M114 4c-5.067 4.667-10.133 4.667-15.2 0S88.667-.667 83.6 4 73.467 8.667 68.4 4 58.267-.667 53.2 4 43.067 8.667 38 4 27.867-.667 22.8 4 12.667 8.667 7.6 4-2.533-.667-7.6 4s-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0" stroke="#E1E3E1" stroke-linecap="square"></path>
+                        </g>
+                    </pattern>
+                    <rect width="100%" height="100%" fill="url(#a)"></rect>
+                </svg>
+            </div>
+            <footer>
+            <section class="about">
+                <div class="about-material">
+                    <span class="material-symbols-rounded" style="font-size: 32px; color: var(--md-expressive-coral);">lightbulb</span>
+                    <p>Beautifully atmospheric, horror-focused, and made with passion. We care about the light, not the void. LIGHT is an open-source horror experience where every flicker matters.</p>
+                </div>
+                <ul class="social-links">
+                    <li><h3>Social</h3></li>
+                    <li><a href="https://github.com/LukzST" target="_blank" rel="noopener">GitHub</a></li>
+                    <li><a href="https://www.instagram.com/UndPixelGames" target="_blank" rel="noopener">Instagram</a></li>
+                    <li><a href="https://www.youtube.com/@UndPixelGames" target="_blank" rel="noopener">YouTube</a></li>
+                    <li><a href="https://UndPixelGames.itch.io" target="_blank" rel="noopener">Itch.io</a></li>
+                </ul>
+                <ul class="library-links">
+                    <li><h3>Pages</h3></li>
+                    <li><a href="/demo/">Demo</a></li>
+                    <li><a href="/devlogs/">DevLogs</a></li>
+                    
+                    <li><a href="/music/">Music</a></li>
+<li><a href="/faq/">FAQ</a></li>
+<li><a href="/docs/">Docs</a></li>
+                </ul>
+                <ul class="versions">
+                    <li><h3>Archived versions</h3></li>
+                    <li><a href="/demo/">Demo</a></li>
+                    <li><a href="https://github.com/LukzST/LIGHT/releases" target="_blank">Releases</a></li>
+                    <li><a href="https://github.com/LukzST/LIGHT" target="_blank">Source Code</a></li>
+                </ul>
+            </section>
+            <section class="legal">
+                <div class="google-logo" style="display: flex; align-items: center; gap: 8px;">
+                     
+                </div>
+                <ul>
+                    <li class="legal-link"><a href="#" onclick="alert('Privacy Policy - We value your privacy. No data collected beyond what you share.'); return false;">Privacy Policy</a></li>
+                    <li class="legal-link"><a href="#" onclick="alert('Terms of Service - LIGHT is free and open-source software.'); return false;">Terms of Service</a></li>
+                    <li class="legal-link"><a href="https://github.com/LukzST/LIGHT/issues" target="_blank">Report Issue</a></li>
+                    <li class="legal-link"><a href="#" onclick="window.open('mailto:contatosadberry@gmail.com', 'Popup', 'width=500,height=400,scrollbars=no'); return false;">Feedback</a></li>
+                </ul>
+            </section>
+            </footer>
+        </div>
+    </div>
+
+    <button class="back-to-top" id="backToTop">Back to Top <i class="fa-solid fa-arrow-up"></i></button>
+
+    <script>
+        const backBtn = document.getElementById('backToTop');
+        if (backBtn) {
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 500) backBtn.classList.add('show');
+                else backBtn.classList.remove('show');
+            });
+            backBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+        }
+
+        const sidebar = document.getElementById('m3Sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const menuBtn = document.getElementById('menuButtonSide');
+
+        function openSidebar() {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.add('open');
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        if (menuBtn) menuBtn.addEventListener('click', openSidebar);
+        if (overlay) overlay.addEventListener('click', closeSidebar);
+
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                const href = item.getAttribute('href');
+                if (href && href !== '#' && href !== '/') {
+                    window.location.href = href;
+                    closeSidebar();
+                }
+            });
+        });
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) closeSidebar();
+        });
+
+        const reveals = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('revealed'); });
+        }, { threshold: 0.1 });
+        reveals.forEach(r => observer.observe(r));
+
+        function support() {
+            window.location.href = "mailto:contatosadberry@gmail.com";
+        }
+    </script>
+</body>
+
+</html>

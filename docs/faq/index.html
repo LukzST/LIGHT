@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="LIGHT FAQ - Frequently Asked Questions about the game">
+    <meta name="author" content="Lukzxdd">
+    <title>LIGHT · FAQ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="shortcut icon" href="/Public/ICO/favicon.ico" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100;14..32,200;14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0,1" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/Public/CSS/modernStyleExtra/cssForFaq.css">
+</head>
+<body>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <aside class="m3-sidebar" id="m3Sidebar">
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <a href="/" class="nav-item">
+                    <span class="material-symbols-rounded">home</span>
+                    <span>Home</span>
+                </a>
+                <a href="/#about" class="nav-item">
+                    <span class="material-symbols-rounded">info</span>
+                    <span>About</span>
+                </a>
+                <a href="/#download" class="nav-item">
+                    <span class="material-symbols-rounded">download</span>
+                    <span>Download</span>
+                </a>
+                <a href="/demo/" class="nav-item">
+                    <span class="material-symbols-rounded">stadia_controller</span>
+                    <span>Demo</span>
+                </a>
+                <a href="/music/" class="nav-item">
+                    <span class="material-symbols-rounded">audiotrack</span>
+                    <span>Music</span>
+                </a>
+                <a href="/devlogs/" class="nav-item">
+                    <span class="material-symbols-rounded">developer_mode</span>
+                    <span>DevLogs</span>
+                </a>
+
+                <a href="/faq/" class="nav-item active">
+                    <span class="material-symbols-rounded">help</span>
+                    <span>FAQ</span>
+                </a>
+
+                <a href="/docs/" class="nav-item">
+                    <span class="material-symbols-rounded">menu_book</span>
+                    <span>Docs</span>
+                </a>
+ 
+            </div>
+        </div>
+        <div class="sidebar-footer">
+            <div class="social-row">
+                <a href="https://github.com/LukzST" target="_blank" class="social-icon-md"><i class="fab fa-github"></i></a>
+                <a href="https://www.instagram.com/UndPixelGames" target="_blank" class="social-icon-md"><i class="fab fa-instagram"></i></a>
+                <a href="https://UndPixelGames.itch.io" target="_blank" class="social-icon-md"><i class="fab fa-itch-io"></i></a>
+                <a href="https://www.youtube.com/@UndPixelGames" target="_blank" class="social-icon-md"><i class="fab fa-youtube"></i></a>
+            </div>
+             <p style="text-align:center; font-size:0.75rem; opacity:0.6;">© 2026  Undead Pixel Games</p>
+        </div>
+    </aside>
+
+    <div class="main-content">
+        <nav class="container" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;">
+            <button class="menu-button-md" id="menuButtonSide">
+                <span class="material-symbols-rounded" style="font-size: 28px;">menu</span>
+            </button>
+            <a href="https://UndPixelGames.itch.io/" target="_blank" class="btn-filled">Store <i class="fa-solid fa-chevron-right"></i></a>
+        </nav>
+
+        <main>
+            <section class="container hero-section reveal">
+                <div class="hero-content">
+                    <span class="hero-badge">FREQUENTLY ASKED QUESTIONS</span>
+                    <h1 class="hero-title">Got <span class="coral">Questions?</span></h1>
+                    <p class="hero-description">Everything you need to know about LIGHT. Find answers to the most common questions below.</p>
+                </div>
+            </section>
+
+            <section class="container faq-section reveal">
+                <div class="faq-grid">
+                    
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <h3>What is LIGHT?</h3>
+                            <span class="faq-arrow">▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p>LIGHT is an atmospheric horror game where you play as Operator 07, the last sentinel in an isolated relay bunker. The "Fade" has consumed the stars, and you must keep the generator running while uncovering corporate secrets and deciding the fate of a fading reality.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <h3>What are the system requirements?</h3>
+                            <span class="faq-arrow">▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p><strong>Minimum:</strong> A toaster (2015 model), Windows 10, 1GB RAM, any dual-core CPU.<br>
+                            <strong>Recommended:</strong> A smart toaster (with WiFi), Windows 11, 2GB RAM, any quad-core CPU.<br>
+                            <strong>Note:</strong> Game may toast your bread while you play. Not responsible for burnt toast.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <h3>Is LIGHT free?</h3>
+                            <span class="faq-arrow">▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Yes! LIGHT is completely free and open-source. You can download it from Itch.io or GitHub. No payment required, no hidden costs.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <h3>Is there a demo available?</h3>
+                            <span class="faq-arrow">▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Yes! You can play the LIGHT demo right now. Just click on the "Demo" button in the sidebar or visit our <a href="/demo/">Demo page</a> to download and experience the atmospheric horror before the full release.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <h3>What platforms is LIGHT available on?</h3>
+                            <span class="faq-arrow">▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Currently, LIGHT is available for Windows (64-bit). Linux and Mac versions are planned for future updates.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <h3>How do I report a bug?</h3>
+                            <span class="faq-arrow">▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p>You can report bugs on our <a href="https://github.com/LukzST/LIGHT/issues" target="_blank">GitHub Issues page</a>. Please include as much detail as possible (screenshots, steps to reproduce, system specs).</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <h3>Where can I listen to the soundtrack?</h3>
+                            <span class="faq-arrow">▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p>The complete LIGHT soundtrack is available on our <a href="/music/">Soundtrack page</a>. You can listen to all tracks directly on YouTube.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <h3>Can I contribute to development?</h3>
+                            <span class="faq-arrow">▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Absolutely! LIGHT is open-source. You can contribute code, report issues, or suggest features on <a href="https://github.com/LukzST/LIGHT" target="_blank">GitHub</a>. We welcome all contributions!</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <h3>How can I contact the team?</h3>
+                            <span class="faq-arrow">▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p>You can reach us via email at <a href="mailto:contatosadberry@gmail.com">contatosadberry@gmail.com</a> or through our social media channels (GitHub, Instagram, YouTube).</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <h3>How often is LIGHT updated?</h3>
+                            <span class="faq-arrow">▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p>We release updates regularly. Check our <a href="/devlogs/">DevLogs</a> for development progress, patch notes, and upcoming features.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="container contact-section reveal">
+                <div class="contact-card">
+                    <div class="contact-icon">
+                        <i class="fa-regular fa-message"></i>
+                    </div>
+                    <h3>Still have questions?</h3>
+                    <p>Didn't find what you were looking for? Reach out to us directly.</p>
+                    <div class="contact-actions">
+                        <a href="mailto:contatosadberry@gmail.com" class="btn-filled">
+                            <i class="fa-regular fa-envelope"></i>
+                            Email Us
+                        </a>
+                        <a href="https://github.com/LukzST/LIGHT/issues" target="_blank" class="btn-outlined">
+                            <i class="fa-brands fa-github"></i>
+                            Open an Issue
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <div class="mio-footer">
+            <div class="squiggle">
+                <svg aria-hidden="true" width="100%" height="8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <pattern id="a" width="91" height="8" patternUnits="userSpaceOnUse">
+                        <g clip-path="url(#clip0_2426_11367)">
+                            <path d="M114 4c-5.067 4.667-10.133 4.667-15.2 0S88.667-.667 83.6 4 73.467 8.667 68.4 4 58.267-.667 53.2 4 43.067 8.667 38 4 27.867-.667 22.8 4 12.667 8.667 7.6 4-2.533-.667-7.6 4s-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0-10.133-4.667-15.2 0-10.133 4.667-15.2 0" stroke="#E1E3E1" stroke-linecap="square"></path>
+                        </g>
+                    </pattern>
+                    <rect width="100%" height="100%" fill="url(#a)"></rect>
+                </svg>
+            </div>
+            <footer>
+                <section class="about">
+                    <div class="about-material">
+                        <span class="material-symbols-rounded" style="font-size: 32px; color: var(--md-expressive-coral);">lightbulb</span>
+                        <p>Beautifully atmospheric, horror-focused, and made with passion. We care about the light, not the void. LIGHT is an open-source horror experience where every flicker matters.</p>
+                    </div>
+                    <ul class="social-links">
+                        <li><h3>Social</h3></li>
+                        <li><a href="https://github.com/LukzST" target="_blank">GitHub</a></li>
+                        <li><a href="https://www.instagram.com/UndPixelGames" target="_blank">Instagram</a></li>
+                        <li><a href="https://www.youtube.com/@UndPixelGames" target="_blank">YouTube</a></li>
+                        <li><a href="https://UndPixelGames.itch.io" target="_blank">Itch.io</a></li>
+                    </ul>
+                    <ul class="library-links">
+                        <li><h3>Pages</h3></li>
+                        <li><a href="/demo/">Demo</a></li>
+                        <li><a href="/devlogs/">DevLogs</a></li>
+                        <li><a href="/brand-kit/">Brand Kit</a></li>
+                        <li><a href="/music/">Soundtrack</a></li>
+                        <li><a href="/faq/">FAQ</a></li>
+<li><a href="/docs/">Docs</a></li>
+                    </ul>
+                    <ul class="versions">
+                        <li><h3>Archived versions</h3></li>
+                        <li><a href="/demo/">Demo</a></li>
+                        <li><a href="https://github.com/LukzST/LIGHT/releases" target="_blank">Releases</a></li>
+                        <li><a href="https://github.com/LukzST/LIGHT" target="_blank">Source Code</a></li>
+                    </ul>
+                </section>
+                <section class="legal">
+                    <div class="google-logo" style="display: flex; align-items: center; gap: 8px;">
+                         
+                    </div>
+                    <ul>
+                        <li class="legal-link"><a href="#" onclick="alert('Privacy Policy - We value your privacy. No data collected.'); return false;">Privacy Policy</a></li>
+                        <li class="legal-link"><a href="#" onclick="alert('Terms of Service - LIGHT is free and open-source.'); return false;">Terms of Service</a></li>
+                        <li class="legal-link"><a href="https://github.com/LukzST/LIGHT/issues" target="_blank">Report Issue</a></li>
+                        <li class="legal-link"><a href="#" onclick="window.open('mailto:contatosadberry@gmail.com', 'Popup', 'width=500,height=400,scrollbars=no'); return false;">Feedback</a></li>
+                    </ul>
+                </section>
+            </footer>
+        </div>
+    </div>
+
+    <button class="back-to-top" id="backToTopBtn">Back to Top <i class="fa-solid fa-arrow-up"></i></button>
+
+    <script src="/Public/JS/modernScripts/jsForFaq.js"></script>
+</body>
+</html>

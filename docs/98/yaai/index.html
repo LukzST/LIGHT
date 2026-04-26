@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>LIGHT</title>
+    <link rel="shortcut icon" href="/Public/ICO/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://unpkg.com/98.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/Public/CSS/98_StyleExtra/cssFor98YAAI.css">
+</head>
+<body class="crt">
+    <div id="windowsContainer"></div>
+    
+    
+    <div class="bsod-overlay" id="bsodOverlay">
+        <div class="bsod-content">
+            <div class="bsod-title">
+                Windows 98
+            </div>
+            <div class="bsod-text">
+                A fatal exception 0E has occurred at 0028:C001E36D in VXD VMM(01) + 00010E36.
+                The current application will be terminated.
+            </div>
+            <div class="bsod-text">
+                * Press any key to terminate the current application.<br>
+                * Press CTRL+ALT+DEL again to restart your computer.<br>
+                You will lose any unsaved information in all applications.
+            </div>
+            <div class="bsod-code">
+                Press any key to continue <span class="bsod-blink">_</span>
+            </div>
+            <div class="bsod-progress">
+                <div class="bsod-progress-fill" id="bsodProgress"></div>
+            </div>
+            <div class="bsod-footer" id="bsodMessage">
+                Dumping physical memory to disk: XX%
+            </div>
+        </div>
+    </div>
+    
+    <div class="rescue-box hidden" id="rescueBox" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 30000; width: 450px; max-width: 90%;">
+        <div class="title-bar" style="margin: -20px -20px 0 -20px;">
+            <div class="title-bar-text">
+                <i class="fa-solid fa-floppy-disk"></i> LIGHT
+            </div>
+            <div class="title-bar-controls">
+                <button id="closeRescue"><i class="fa-solid fa-times"></i></button>
+            </div>
+        </div>
+        <div style="padding: 20px;">
+            <div class="virus-icon" style="color: #2f498c;">
+                <i class="fa-solid fa-face-smile"></i>
+            </div>
+            <h3 style="color: #2f498c; font-size: 18px; margin-bottom: 10px;">IT WAS JUST A JOKE!</h3>
+            <p style="font-size: 11px; margin-bottom: 15px;">
+                Congratulations! You survived the YOU ARE AN IDIOT virus simulation.<br>
+                As a reward, here's a free key for the game LIGHT!
+            </p>
+            <div class="token-code" id="tokenDisplay">LIGHT-XXXX-XXXX-XXXX</div>
+            <p style="font-size: 10px; margin: 10px 0;">
+                Send an email to <strong>contatosadberry@gmail.com</strong> with your token to claim your free copy!
+            </p>
+            <input type="text" id="userEmail" class="email-input" placeholder="your@email.com">
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+                <button id="sendEmailBtn">SEND EMAIL</button>
+                <button id="closeRescueBtn">CLOSE</button>
+            </div>
+            <p style="font-size: 9px; margin-top: 10px; color: #2f498c;">
+                <i class="fa-solid fa-key"></i> Token valid for one free copy of LIGHT
+            </p>
+        </div>
+    </div>
+
+    <div class="rickroll-audio">
+        <audio id="rickrollAudio" preload="auto">
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+        </audio>
+    </div>
+
+    <div style="position: fixed; bottom: 60px; right: 20px; z-index: 100000;">
+        <button id="crtToggleBtn" class="taskbar-task" style="min-width: 70px; background: silver;">
+            <i class="fa-solid fa-tv"></i> CRT
+        </button>
+    </div>
+
+<script src="/Public/JS/98_Scripts/jsFor98YAAI.js"></script>
+
+<script src="/Public/JS/crt-manager.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.CRTManager) {
+            window.CRTManager.init('crtToggleBtn');
+        }
+    });
+</script>
+
+</body>
+</html>

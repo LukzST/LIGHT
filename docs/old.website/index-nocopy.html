@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>LIGHT — Pale Luna Developer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0a0c10;
+            font-family: 'Bricolage Grotesque', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            color: #f0f3f8;
+            overflow-x: hidden;
+        }
+
+        .min-h-screen { min-height: 100vh; }
+        .overflow-x-hidden { overflow-x: hidden; }
+        .bg-paper { background-color: #fefcf0; }
+        .text-dark { color: #1e1b1a; }
+        .font-\[bricolage-grotesque\] { font-family: 'Bricolage Grotesque', monospace; }
+
+        .container {
+            width: 100%;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-4 { gap: 1rem; }
+        .gap-6 { gap: 1.5rem; }
+        .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+        .lg\:py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+        .text-lg { font-size: 1.125rem; }
+        .font-bold { font-weight: 700; }
+        .hidden { display: none; }
+        .lg\:flex { display: flex; }
+        .place-self-center { place-self: center; }
+        .text-ls { font-size: 1.1rem; }
+        .hover\:text-coral:hover { color: #ff6b5b; transition: color 0.2s; }
+        .transition-colors { transition: color 0.2s ease; }
+        .rounded-xl { border-radius: 0.75rem; }
+        .border-dark { border-color: #2c2b28; }
+        .bg-dark { background-color: #1e1b1a; }
+        .text-paper { color: #fefcf0; }
+        .shadow-lg { box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2), 0 8px 10px -6px rgba(0,0,0,0.1); }
+        .hover\:scale-\[1\.02\]:hover { transform: scale(1.02); }
+        .active\:scale-\[0\.98\]:active { transform: scale(0.98); }
+        .transition-transform { transition: transform 0.2s ease; }
+        .px-5 { padding-left: 1.25rem; padding-right: 1.25rem; }
+        .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+        .justify-center { justify-content: center; }
+
+        .menu-toggle, .menu-close {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #1e1b1a;
+        }
+        .mobile-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+        }
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            right: -280px;
+            width: 280px;
+            height: 100%;
+            background: #fefcf0;
+            color: #1e1b1a;
+            z-index: 1001;
+            padding: 2rem 1.5rem;
+            transition: right 0.3s cubic-bezier(0.2,0.9,0.4,1.1);
+            box-shadow: -5px 0 20px rgba(0,0,0,0.2);
+        }
+        .mobile-menu.open { right: 0; }
+        .mobile-menu-overlay.open { opacity: 1; visibility: visible; }
+        .mobile-menu nav ul { list-style: none; margin-top: 2rem; }
+        .mobile-menu nav ul li { margin-bottom: 1.5rem; }
+        .mobile-menu nav ul li a {
+            font-size: 1.3rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: #1e1b1a;
+        }
+        .menu-close { position: absolute; top: 1.2rem; right: 1.2rem; font-size: 1.6rem; }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #ff6b5b;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 0.7rem 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            z-index: 99;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+            font-family: inherit;
+            width: auto;
+        }
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        footer {
+            background-color: #fefcf0;
+            border-top: 1px solid #e2e0d4;
+            padding: 3rem 1rem;
+        }
+        .grid { display: grid; }
+        .footer-links a { text-decoration: none; color: #2c2b28; }
+        .footer-links a:hover { color: #ff6b5b; }
+
+        .hero-video-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .bg-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+            filter: brightness(0.45) contrast(1.1);
+            transition: filter 0.4s ease;
+        }
+        .hero-video-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.65) 100%);
+            z-index: 1;
+            pointer-events: none;
+        }
+        .glass-card {
+            position: relative;
+            z-index: 20;
+            max-width: 620px;
+            width: 85%;
+            background: rgba(30, 27, 26, 0.68);
+            backdrop-filter: blur(14px);
+            border-radius: 2rem;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 25px 45px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.08) inset;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: floatIn 0.7s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+        .glass-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 35px 55px rgba(0,0,0,0.4);
+            backdrop-filter: blur(18px);
+            background: rgba(30, 27, 26, 0.75);
+            border-color: rgba(255,107,91,0.6);
+        }
+        @keyframes floatIn {
+            0% { opacity: 0; transform: translateY(30px) scale(0.96); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .card-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #FFFFFF 30%, #ffc3b5 80%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 0.75rem;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .card-text {
+            font-size: 1.2rem;
+            line-height: 1.5;
+            color: #f0ede8;
+            margin: 1.2rem 0 2rem 0;
+            font-weight: 500;
+            opacity: 0.95;
+        }
+        .card-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: #ff6b5b;
+            color: white;
+            padding: 0.85rem 2rem;
+            border-radius: 3rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-decoration: none;
+            transition: all 0.25s;
+            box-shadow: 0 8px 18px rgba(255,107,91,0.3);
+            border: none;
+            cursor: pointer;
+        }
+        .card-button i {
+            transition: transform 0.2s;
+        }
+        .card-button:hover i {
+            transform: translateX(4px);
+        }
+        @media (max-width: 640px) {
+            .glass-card { padding: 1.8rem 1.2rem; width: 90%; }
+            .card-title { font-size: 2rem; }
+            .card-text { font-size: 1rem; }
+            .card-button { padding: 0.7rem 1.5rem; font-size: 1rem; }
+        }
+
+        .fab, .fa, .fas { font-family: "Font Awesome 6 Free"; font-weight: 400; }
+        .credits a { text-decoration: none; color: #ff6b5b; }
+        .zen-link:hover { text-decoration: underline; }
+        .w-full { width: 100%; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="min-h-screen overflow-x-hidden font-['bricolage-grotesque']" style="background: #0a0c10;">
+
+    <main>
+        <div class="hero-video-wrapper">
+            <video autoplay loop muted playsinline class="bg-video">
+                <source src="./Public/VID/Trailer.mp4" type="video/mp4">
+                <source src="https://cdn.pixabay.com/video/2023/06/25/169160-837743421_tiny.mp4" type="video/mp4">
+                Seu navegador não suporta vídeos, mas a atmosfera continua.
+            </video>
+            <div class="glass-card">
+                <h2 class="card-title">Pale Luna Developer</h2>
+                <p class="card-text">Beautifully atmospheric, horror-focused, and made with passion. We care about the light, not the void.</p>
+                <a href="#download" class="card-button">
+                    Download Game <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </main>
+
+
+    <script>
+        const menuToggle = document.getElementById('menuToggle');
+        const menuOverlay = document.getElementById('menuOverlay');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const menuClose = document.getElementById('menuClose');
+        function openMenu() { mobileMenu.classList.add('open'); menuOverlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
+        function closeMenu() { mobileMenu.classList.remove('open'); menuOverlay.classList.remove('open'); document.body.style.overflow = ''; }
+        menuToggle.addEventListener('click', openMenu);
+        menuClose.addEventListener('click', closeMenu);
+        menuOverlay.addEventListener('click', closeMenu);
+        window.closeMenu = closeMenu;
+
+        const backBtn = document.getElementById('backToTop');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) backBtn.classList.add('visible');
+            else backBtn.classList.remove('visible');
+        });
+        backBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+        window.support = () => alert("Support channel: please reach us via email or GitHub issues!");
+
+        const bgVideo = document.querySelector('.bg-video');
+        if(bgVideo) {
+            bgVideo.playbackRate = 0.9;
+            bgVideo.addEventListener('error', () => {
+                bgVideo.src = "https://cdn.pixabay.com/video/2022/11/20/139774-773674257_large.mp4";
+                bgVideo.load();
+            });
+        }
+    </script>
+</body>
+</html>
