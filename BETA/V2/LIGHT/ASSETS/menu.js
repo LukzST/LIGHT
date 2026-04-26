@@ -343,7 +343,7 @@ const bg1Overlay = blessed.box({
     border: 'line',
     label: ' [ CREDITS ] ',
     tags: true,
-    content: '{center}LIGHT GAME\n\nDeveloped by Pale Luna Developer\n\n'+currentYear+' © All Rights Reserved\n\nPress ESC to return{/center}',
+    content: '{center}LIGHT GAME\n\nDeveloped by Undead Pixel Games\n\n'+currentYear+' © All Rights Reserved\n\nPress ESC to return{/center}',
     style: {
       border: { fg: COLORDEFAULT },
       label: { fg: COLORDEFAULT, bold: true }

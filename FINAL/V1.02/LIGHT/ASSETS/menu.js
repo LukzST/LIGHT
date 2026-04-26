@@ -1398,7 +1398,7 @@ function credits() {
         t('CREDITS_SLIDE9', { names: 'LUCAS EDUARDO\nISABELLA SANCHES' }),
         t('CREDITS_SLIDE10', { name: 'LUIZ OTÁVIO' }),
         t('CREDITS_SLIDE11', { theme: 'THE LAST CHOICE - LIGHT OST' }),
-        t('CREDITS_SLIDE12', { studio: 'PALE LUNA DEVELOPER' }),
+        t('CREDITS_SLIDE12', { studio: 'Undead Pixel Games' }),
         t('CREDITS_SLIDE13', { testers: 'HAGRAJAG (ROSE)' }),
         t('CREDITS_SLIDE14', { name: 'LUCAS EDUARDO' }),
         t('CREDITS_THANKS'),
@@ -2812,11 +2812,11 @@ function supportGame() {
     supportOptions.on('select', (item) => {
         const text = item.getText();
         if (text.includes('ITCH.IO') || text.includes(t('SUPPORT_ITCH'))) {
-            exec('start https://palelunadev.itch.io/light');
+            exec('start https://UndPixelGames.itch.io/light');
             playBeep2();
         }
         else if (text.includes('TWITTER') || text.includes(t('SUPPORT_TWITTER'))) {
-            const tweetText = encodeURIComponent("I'm playing LIGHT! A unique terminal horror experience. Check it out here: https://palelunadev.itch.io/light");
+            const tweetText = encodeURIComponent("I'm playing LIGHT! A unique terminal horror experience. Check it out here: https://UndPixelGames.itch.io/light");
             exec(`start https://twitter.com/intent/tweet?text=${tweetText}`);
             playBeep2();
         }

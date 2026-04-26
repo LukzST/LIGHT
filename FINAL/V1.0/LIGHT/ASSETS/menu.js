@@ -543,7 +543,7 @@ function bootSequence() {
                     top: 'center', left: 'center',
                     width: '80%', height: 10,
                     tags: true,
-                    content: '{center}\n\n{white-fg}A{/}\n\n{yellow-fg}{bold}PALE LUNA DEVELOPER{/bold}{/}\n\n{white-fg}GAME{/}\n\n\n{grey-fg}INITIALIZING...{/}{/center}',
+                    content: '{center}\n\n{white-fg}A{/}\n\n{yellow-fg}{bold}Undead Pixel Games{/bold}{/}\n\n{white-fg}GAME{/}\n\n\n{grey-fg}INITIALIZING...{/}{/center}',
                 });
                 
 
@@ -1338,7 +1338,7 @@ function credits() {
 
     const slides = [
         `{center}{bold}${logocredits}{/bold}\n\nA TERMINAL HORROR GAME{/center}`,
-        `{center}{yellow-fg}AN ORIGINAL STORY BY{/yellow-fg}\n\n{bold}PALE LUNA DEVELOPER{/bold}{/center}`,
+        `{center}{yellow-fg}AN ORIGINAL STORY BY{/yellow-fg}\n\n{bold}Undead Pixel Games{/bold}{/center}`,
         `{center}{yellow-fg}DIRECTOR{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
         `{center}{yellow-fg}MAIN PROGRAMMER{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
         `{center}{yellow-fg}EVENT PROGRAMMER{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
@@ -1348,11 +1348,11 @@ function credits() {
         `{center}{yellow-fg}SOUND DESIGN{/yellow-fg}\n\n{bold}LUCAS EDUARDO\nISABELLA SANCHES{/bold}{/center}`,
         `{center}{yellow-fg}QUALITY ASSURANCE{/yellow-fg}\n\n{bold}LUIZ OTÁVIO{/bold}{/center}`,
         `{center}{yellow-fg}ENDING THEME{/yellow-fg}\n\n{bold}THE LAST CHOICE - LIGHT OST{/bold}{/center}`,
-        `{center}{yellow-fg}PUBLICITY{/yellow-fg}\n\n{bold}PALE LUNA DEVELOPER{/bold}{/center}`,
+        `{center}{yellow-fg}PUBLICITY{/yellow-fg}\n\n{bold}Undead Pixel Games{/bold}{/center}`,
         `{center}{yellow-fg}BETA TESTERS{/yellow-fg}\n\n{bold}LUCAS EDUARDO, ISABELLA SANCHES, LUIZ OTÁVIO and some friends{/bold}{/center}`,
         `{center}{yellow-fg}PRODUCT COORDINATOR{/yellow-fg}\n\n{bold}LUCAS EDUARDO{/bold}{/center}`,
         `{center}{yellow-fg}THANKS FOR PLAYING{/yellow-fg}`,
-        `{center}CREATED BY PALE LUNA DEVELOPER\n\n${currentYear} © ALL RIGHTS RESERVED{/center}`
+        `{center}CREATED BY Undead Pixel Games\n\n${currentYear} © ALL RIGHTS RESERVED{/center}`
     ]; 
 
     let currentSlide = 0;
@@ -2652,11 +2652,11 @@ function supportGame() {
     supportOptions.on('select', (item) => {
         const text = item.getText();
         if (text.includes('ITCH.IO')) {
-            exec('start https://palelunadev.itch.io/light');
+            exec('start https://UndPixelGames.itch.io/light');
             playBeep2();
         }
         else if (text.includes('TWITTER')) {
-            const tweetText = encodeURIComponent("I'm playing LIGHT! A unique terminal horror experience. Check it out here: https://palelunadev.itch.io/light");
+            const tweetText = encodeURIComponent("I'm playing LIGHT! A unique terminal horror experience. Check it out here: https://UndPixelGames.itch.io/light");
             exec(`start https://twitter.com/intent/tweet?text=${tweetText}`);
             playBeep2();
         }

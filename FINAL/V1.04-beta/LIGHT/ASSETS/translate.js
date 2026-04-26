@@ -39,7 +39,7 @@ const strings = {
         
         'BOOT_WARNING': '{center}{yellow-fg}{bold}\nSYSTEM INTERACTION WARNING{/bold}{/yellow-fg}\n\nThis software is designed to interact with and modify\nlocal files within the operational directory.\n\n{blink}PRESS [ENTER] TO ACKNOWLEDGE{/blink}',
         'BOOT_CONTROLS': '{center}\n{bold}ARROWS{/bold} ........ NAVIGATE MENU  \n{bold}ENTER{/bold} ......... EXECUTE COMMAND \n{bold}ESC{/bold} ........... RETURN / CANCEL \n{bold}[M]{/bold} ............ TOGGLE AUDIO   \n{bold}[C]{/bold} ............ CYCLE COLORS   \n{bold}[G]{/bold} ............ TOGGLE GLITCH  \n{bold}[F1 / I]{/bold} ....... SYSTEM INFO   \n\n\n{cyan-fg}PRESS [ENTER] TO CONTINUE{/}\n{/center}',
-        'BOOT_DEV_BRAND': '{center}\n\n{white-fg}A GAME BY{/}\n\n{yellow-fg}{bold}PALE LUNA DEVELOPER{/bold}{/}\n\n\n{grey-fg}INITIALIZING...{/}{/center}',
+        'BOOT_DEV_BRAND': '{center}\n\n{white-fg}A GAME BY{/}\n\n{yellow-fg}{bold}Undead Pixel Games{/bold}{/}\n\n\n{grey-fg}INITIALIZING...{/}{/center}',
         'BOOT_CONTROLS_TITLE': '{center} [ SYSTEM CONTROLS ] {/center}',
         
         'ACCOUNT_ONLINE': '{bold}ACCOUNT STATUS: {green-fg}ONLINE (@{username}){/green-fg}{/bold}',
@@ -269,7 +269,7 @@ const strings = {
         'CREDITS_SLIDE13': '{center}{yellow-fg}SPECIAL THANKS{/yellow-fg}\n\n{bold}{testers}{/bold}{/center}',
         'CREDITS_SLIDE14': '{center}{yellow-fg}PROJECT LEAD{/yellow-fg}\n\n{bold}{name}{/bold}{/center}',
         'CREDITS_THANKS': '{center}{yellow-fg}THANK YOU FOR PLAYING{/yellow-fg}',
-        'CREDITS_COPYRIGHT': '{center}PALE LUNA DEVELOPER\n\n{year} © ALL RIGHTS RESERVED{/center}',
+        'CREDITS_COPYRIGHT': '{center}Undead Pixel Games\n\n{year} © ALL RIGHTS RESERVED{/center}',
         'CREDITS_INSTAGRAM': '{center}INSTAGRAM{/center}',
         'CREDITS_CLOSE': '{center}CLOSE{/center}',
         'CREDITS_EXIT': '{center}EXIT THE GAME{/center}',
@@ -742,7 +742,7 @@ The ones inside... they're not dead. They're waiting.
 
         'BOOT_WARNING': '{center}{yellow-fg}{bold}\nATENÇÃO: INTERAÇÃO COM O SISTEMA{/bold}{/yellow-fg}\n\nEste jogo foi projetado para interagir e modificar\narquivos locais dentro do diretório de instalação.\n\n{blink}PRESSIONE [ENTER] PARA CONFIRMAR{/blink}',
         'BOOT_CONTROLS': '{center}\n{bold}SETAS{/bold} ......... NAVEGAR NO MENU\n{bold}ENTER{/bold} ......... EXECUTAR COMANDO\n{bold}ESC{/bold} ......... VOLTAR / CANCELAR\n{bold}[M]{/bold} ......... LIGAR/DESLIGAR SOM\n{bold}[C]{/bold} ............ ALTERNAR CORES\n{bold}[G]{/bold} ............ ALTERNAR GLITCH\n{bold}[F1 / I]{/bold} ....... INFO DO SISTEMA\n\n\n{cyan-fg}PRESSIONE [ENTER] PARA CONTINUAR{/}\n{/center}',
-        'BOOT_DEV_BRAND': '{center}\n\n{white-fg}UM JOGO FEITO POR{/}\n\n{yellow-fg}{bold}PALE LUNA DEVELOPER{/bold}{/}\n\n\n{grey-fg}INICIALIZANDO...{/}{/center}',
+        'BOOT_DEV_BRAND': '{center}\n\n{white-fg}UM JOGO FEITO POR{/}\n\n{yellow-fg}{bold}Undead Pixel Games{/bold}{/}\n\n\n{grey-fg}INICIALIZANDO...{/}{/center}',
         'BOOT_CONTROLS_TITLE': '{center} [ CONTROLES ] {/center}',
         
         'ACCOUNT_ONLINE': '{bold}STATUS DA CONTA: {green-fg}ONLINE (@{username}){/green-fg}{/bold}',
@@ -973,7 +973,7 @@ The ones inside... they're not dead. They're waiting.
         'CREDITS_SLIDE13': '{center}{yellow-fg}AGRADECIMENTOS ESPECIAIS{/yellow-fg}\n\n{bold}{testers}{/bold}{/center}',
         'CREDITS_SLIDE14': '{center}{yellow-fg}LÍDER DO PROJETO{/yellow-fg}\n\n{bold}{name}{/bold}{/center}',
         'CREDITS_THANKS': '{center}{yellow-fg}OBRIGADO POR JOGAR!{/yellow-fg}',
-        'CREDITS_COPYRIGHT': '{center}PALE LUNA DEVELOPER\n\n{year} © TODOS OS DIREITOS RESERVADOS{/center}',
+        'CREDITS_COPYRIGHT': '{center}Undead Pixel Games\n\n{year} © TODOS OS DIREITOS RESERVADOS{/center}',
         'CREDITS_INSTAGRAM': '{center}INSTAGRAM{/center}',
         'CREDITS_CLOSE': '{center}FECHAR{/center}',
         'CREDITS_EXIT_TO_MENU': '{center}VOLTAR AO MENU{/center}',
