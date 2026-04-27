@@ -544,7 +544,7 @@ screen.on('keypress', (ch, key) => {
 
     fastMenu.on('select', (item) => {
         const txt = item.getText();
-        if (txt.includes('INSTAGRAM')) exec('start https://instagram.com/PlayLightGame');
+        if (txt.includes('INSTAGRAM')) exec('start https://instagram.com/UndPixelGames');
         if (txt.includes('EXIT')) exitToMenu();
         if (txt.includes('CANCEL')) {
             fastMenu.hide();
@@ -562,7 +562,7 @@ screen.on('keypress', (ch, key) => {
             playcreditsaudio();
             showNextSlide();
         }
-        if (txt.includes('INSTAGRAM')) exec('start https://instagram.com/PlayLightGame');
+        if (txt.includes('INSTAGRAM')) exec('start https://instagram.com/UndPixelGames');
         if (txt.includes('EXIT')) exitToMenu();
     });
 

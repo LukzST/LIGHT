@@ -1373,7 +1373,7 @@ function credits() {
         const txt = item.getText();
         if (txt.includes('INSTAGRAM')) {
             playBeep2()
-            exec('start https://instagram.com/PlayLightGame');
+            exec('start https://instagram.com/UndPixelGames');
         }
         if (txt.includes('CLOSE')) {
             playBeep2()

@@ -576,7 +576,7 @@ function credits() {
 
     fastMenu.on('select', (item) => {
         const txt = item.getText();
-        if (txt.includes(t('CREDITS_INSTAGRAM'))) exec('start https://instagram.com/PlayLightGame');
+        if (txt.includes(t('CREDITS_INSTAGRAM'))) exec('start https://instagram.com/UndPixelGames');
         if (txt.includes(t('CREDITS_EXIT'))) exitToMenu();
         if (txt.includes(t('CREDITS_CANCEL'))) {
             fastMenu.hide();
@@ -598,7 +598,7 @@ function credits() {
             }
             showNextSlide();
         }
-        if (txt.includes(t('CREDITS_INSTAGRAM'))) exec('start https://instagram.com/PlayLightGame');
+        if (txt.includes(t('CREDITS_INSTAGRAM'))) exec('start https://instagram.com/UndPixelGames');
         if (txt.includes(t('CREDITS_EXIT_TO_MENU'))) exitToMenu();
     });
 
