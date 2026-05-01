@@ -1349,7 +1349,7 @@ function credits() {
         t('CREDITS_SLIDE9', { names: 'LUCAS EDUARDO\nISABELLA SANCHES' }),
         t('CREDITS_SLIDE10', { name: 'LUIZ OTÁVIO' }),
         t('CREDITS_SLIDE11', { theme: 'THE LAST CHOICE - LIGHT OST' }),
-        t('CREDITS_SLIDE12', { studio: 'Undead Pixel Games' }),
+        t('CREDITS_SLIDE12', { studio: 'Unburied Pixels' }),
         t('CREDITS_SLIDE13', { testers: 'LUCAS EDUARDO, ISABELLA SANCHES, LUIZ OTÁVIO and some friends' }),
         t('CREDITS_SLIDE14', { name: 'LUCAS EDUARDO' }),
         t('CREDITS_THANKS'),
@@ -1442,7 +1442,7 @@ function credits() {
         const txt = item.getText();
         if (txt.includes('INSTAGRAM') || txt.includes(t('CREDITS_INSTAGRAM'))) {
             playBeep2()
-            exec('start https://instagram.com/UndPixelGames');
+            exec('start https://instagram.com/UnburiedPixels');
         }
         if (txt.includes('CLOSE') || txt.includes(t('CREDITS_CLOSE'))) {
             playBeep2()
@@ -2762,11 +2762,11 @@ function supportGame() {
     supportOptions.on('select', (item) => {
         const text = item.getText();
         if (text.includes('ITCH.IO') || text.includes(t('SUPPORT_ITCH'))) {
-            exec('start https://UndPixelGames.itch.io/light');
+            exec('start https://UnburiedPixels.itch.io/light');
             playBeep2();
         }
         else if (text.includes('TWITTER') || text.includes(t('SUPPORT_TWITTER'))) {
-            const tweetText = encodeURIComponent("I'm playing LIGHT! A unique terminal horror experience. Check it out here: https://UndPixelGames.itch.io/light");
+            const tweetText = encodeURIComponent("I'm playing LIGHT! A unique terminal horror experience. Check it out here: https://UnburiedPixels.itch.io/light");
             exec(`start https://twitter.com/intent/tweet?text=${tweetText}`);
             playBeep2();
         }

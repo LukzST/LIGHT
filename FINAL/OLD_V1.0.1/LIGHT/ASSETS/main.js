@@ -507,7 +507,7 @@ function credits() {
         t('CREDITS_SLIDE9', { names: 'LUCAS EDUARDO\nISABELLA SANCHES' }),
         t('CREDITS_SLIDE10', { name: 'LUIZ OTÁVIO' }),
         t('CREDITS_SLIDE11', { theme: 'THE LAST CHOICE - LIGHT OST' }),
-        t('CREDITS_SLIDE12', { studio: 'Undead Pixel Games' }),
+        t('CREDITS_SLIDE12', { studio: 'Unburied Pixels' }),
         t('CREDITS_SLIDE13', { testers: 'LUCAS EDUARDO, ISABELLA SANCHES, LUIZ OTÁVIO and some friends' }),
         t('CREDITS_SLIDE14', { name: 'LUCAS EDUARDO' }),
         t('CREDITS_THANKS'),
@@ -552,7 +552,7 @@ function credits() {
 
     fastMenu.on('select', (item) => {
         const txt = item.getText();
-        if (txt.includes(t('CREDITS_INSTAGRAM'))) exec('start https://instagram.com/PlayLightGame');
+        if (txt.includes(t('CREDITS_INSTAGRAM'))) exec('start https://instagram.com/UnburiedPixels');
         if (txt.includes(t('CREDITS_EXIT'))) exitToMenu();
         if (txt.includes(t('CREDITS_CANCEL'))) {
             fastMenu.hide();
@@ -574,7 +574,7 @@ function credits() {
             }
             showNextSlide();
         }
-        if (txt.includes(t('CREDITS_INSTAGRAM'))) exec('start https://instagram.com/PlayLightGame');
+        if (txt.includes(t('CREDITS_INSTAGRAM'))) exec('start https://instagram.com/UnburiedPixels');
         if (txt.includes(t('CREDITS_EXIT_TO_MENU'))) exitToMenu();
     });
 

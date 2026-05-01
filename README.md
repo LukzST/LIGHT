@@ -16,7 +16,7 @@
    **LIGHT** is a psychological horror experience focused on narrative and terminal-based interaction.
    
    <div flex="true">
-     <a href="https://undpixelgames.itch.io/LIGHT">
+     <a href="https://UnburiedPixels.itch.io/LIGHT">
        Download
      </a>
      •
