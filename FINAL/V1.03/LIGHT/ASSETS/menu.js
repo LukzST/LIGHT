@@ -775,7 +775,7 @@ function getGitSha1(filePath) {
 }
 
 function checkUpdates(callback) {
-    const url = 'https://api.github.com/repos/lukzst/LIGHT/contents/FINAL';
+    const url = 'https://api.github.com/repos/LuxJson/LIGHT/contents/FINAL';
     const authHeader = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'; 'User-Agent'='LIGHT-Game'}` : "-Headers @{'User-Agent'='LIGHT-Game'}";
     const cmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $res = Invoke-WebRequest -Uri '${url}' ${authHeader} -UseBasicParsing; $res.Content"`;
 
@@ -799,7 +799,7 @@ function checkUpdates(callback) {
 
 async function getRemoteFileList(version) {
     return new Promise((resolve, reject) => {
-        const url = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
+        const url = `https://api.github.com/repos/LuxJson/LIGHT/git/trees/main?recursive=1`;
         const auth = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'}` : '';
         const cmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${url}' ${auth}).tree | ConvertTo-Json"`;
         
@@ -817,7 +817,7 @@ async function getRemoteFileList(version) {
                     !item.path.includes('/TERMINALPORTATIL/')
                 ).map(item => ({
                     path: item.path.replace(prefix, ''),
-                    url: `https://raw.githubusercontent.com/lukzst/LIGHT/main/${item.path}`,
+                    url: `https://raw.githubusercontent.com/LuxJson/LIGHT/main/${item.path}`,
                     size: item.size,
                     sha: item.sha
                 }));
@@ -2986,11 +2986,11 @@ function supportGame() {
     supportOptions.on('select', (item) => {
         const text = item.getText();
         if (text.includes('ITCH.IO') || text.includes(t('SUPPORT_ITCH'))) {
-            exec('start https://palelunadev.itch.io/light');
+            exec('start https://UnburiedPixels.itch.io/light');
             playBeep2();
         }
         else if (text.includes('TWITTER') || text.includes(t('SUPPORT_TWITTER'))) {
-            const tweetText = encodeURIComponent("I'm playing LIGHT! A unique terminal horror experience. Check it out here: https://palelunadev.itch.io/light");
+            const tweetText = encodeURIComponent("I'm playing LIGHT! A unique terminal horror experience. Check it out here: https://UnburiedPixels.itch.io/light");
             exec(`start https://twitter.com/intent/tweet?text=${tweetText}`);
             playBeep2();
         }

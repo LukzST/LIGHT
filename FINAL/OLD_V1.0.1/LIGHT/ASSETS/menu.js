@@ -135,7 +135,7 @@ const pacSeenPath = '../CONFIG/PACPRO_SEEN.txt';
 const isNewPac = hasPacAch && !fs.existsSync(pacSeenPath);
 
 function checkUpdates(callback) {
-    const url = 'https://api.github.com/repos/lukzst/LIGHT/contents/FINAL';
+    const url = 'https://api.github.com/repos/LuxJson/LIGHT/contents/FINAL';
     const cmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $res = Invoke-WebRequest -Uri '${url}' -Headers @{'User-Agent'='LIGHT-Game'} -UseBasicParsing; $res.Content"`;
 
     exec(cmd, (error, stdout) => {
@@ -158,7 +158,7 @@ function checkUpdates(callback) {
 }
 
 async function downloadAndInstall(version, statusWin) {
-    const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
+    const treeUrl = `https://api.github.com/repos/LuxJson/LIGHT/git/trees/main?recursive=1`;
     const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' -Headers @{'User-Agent'='LIGHT-Updater'}).tree | ConvertTo-Json -Compress"`;
 
     statusWin.setContent(t('UPDATE_MAPPING'));
@@ -199,7 +199,7 @@ async function downloadAndInstall(version, statusWin) {
                 const fileMetadata = filesToUpdate[i];
                 const relPath = fileMetadata.path.replace(targetPrefix, '');
                 const destPath = path.join(__dirname, '..', relPath);
-                const fileUrl = `https://raw.githubusercontent.com/lukzst/LIGHT/main/${fileMetadata.path}`;
+                const fileUrl = `https://raw.githubusercontent.com/LuxJson/LIGHT/main/${fileMetadata.path}`;
 
                 const percentage = Math.round(((i) / totalFiles) * 100);
                 const bar = "█".repeat(Math.floor(percentage / 3.3)) + "░".repeat(30 - Math.floor(percentage / 3.3));
@@ -273,7 +273,7 @@ async function showUpdateStatus() {
         } else if (hasUpdate) {
             global.latestVersionFound = version;
 
-            const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
+            const treeUrl = `https://api.github.com/repos/LuxJson/LIGHT/git/trees/main?recursive=1`;
             const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' -Headers @{'User-Agent'='LIGHT-Updater'}).tree | ConvertTo-Json -Compress"`;
 
             exec(getTreeCmd, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout) => {

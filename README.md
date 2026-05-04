@@ -20,22 +20,22 @@
        Download
      </a>
      •
-     <a href="https://lukzst.github.io">
+     <a href="https://LuxJson.github.io">
        Website
      </a>
      •
-     <a href="https://lukzst.github.io/devlogs">
+     <a href="https://LuxJson.github.io/devlogs">
        Release Notes
      </a>
    </div>
    
    ### Dependency Versions
    
-   - [`Release`](https://github.com/lukzst/LIGHT/releases/latest/) - Is currently built using Node.js version `25`! 
+   - [`Release`](https://github.com/LuxJson/LIGHT/releases/latest/) - Is currently built using Node.js version `25`! 
    
    ### Contributing
    
-   If you'd like to report a bug, please do so on our [GitHub Issues page](https://github.com/lukzst/LIGHT/issues/new/choose)
+   If you'd like to report a bug, please do so on our [GitHub Issues page](https://github.com/LuxJson/LIGHT/issues/new/choose)
 
    ### Prerequisites
    * [Node.js](https://nodejs.org/) (Version 16 or higher recommended)
@@ -45,5 +45,5 @@
    ### Boot Protocol
    1. Clone the repository:
       ```bash
-      git clone https://github.com/Lukzxdd/LIGHT.git
+      git clone https://github.com/LuxJson/LIGHT.git
    

@@ -135,7 +135,7 @@ const pacSeenPath = '../CONFIG/PACPRO_SEEN.txt';
 const isNewPac = hasPacAch && !fs.existsSync(pacSeenPath);
 
 function checkUpdates(callback) {
-    const url = 'https://api.github.com/repos/lukzst/LIGHT/contents/FINAL';
+    const url = 'https://api.github.com/repos/LuxJson/LIGHT/contents/FINAL';
     const cmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $res = Invoke-WebRequest -Uri '${url}' -Headers @{'User-Agent'='LIGHT-Game'} -UseBasicParsing; $res.Content"`;
 
     exec(cmd, (error, stdout) => {
@@ -160,7 +160,7 @@ function checkUpdates(callback) {
 
 async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
     const authHeader = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'; 'User-Agent'='LIGHT-Updater'}` : "-Headers @{'User-Agent'='LIGHT-Updater'}";
-    const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
+    const treeUrl = `https://api.github.com/repos/LuxJson/LIGHT/git/trees/main?recursive=1`;
     const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' ${authHeader}).tree | ConvertTo-Json -Compress"`;
 
     statusWin.setContent(forceIntegrity ? t('VERIFYING_INTEGRITY') : t('UPDATE_MAPPING'));
@@ -219,7 +219,7 @@ async function downloadAndInstall(version, statusWin, forceIntegrity = false) {
                 const fileMetadata = filesToUpdate[i];
                 const relPath = fileMetadata.path.replace(targetPrefix, '');
                 const destPath = path.join(__dirname, '..', relPath);
-                const fileUrl = `https://raw.githubusercontent.com/lukzst/LIGHT/main/${fileMetadata.path}`;
+                const fileUrl = `https://raw.githubusercontent.com/LuxJson/LIGHT/main/${fileMetadata.path}`;
 
                 if (fs.existsSync(destPath)) {
                     try { fs.unlinkSync(destPath); } catch (e) {}
@@ -318,7 +318,7 @@ async function showUpdateStatus() {
             statusWin.setContent(t('VERIFYING_INTEGRITY'));
             screen.render();
 
-            const treeUrl = `https://api.github.com/repos/lukzst/LIGHT/git/trees/main?recursive=1`;
+            const treeUrl = `https://api.github.com/repos/LuxJson/LIGHT/git/trees/main?recursive=1`;
             const authHeader = githubToken ? `-Headers @{'Authorization'='token ${githubToken}'}` : "";
             const getTreeCmd = `powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (Invoke-RestMethod -Uri '${treeUrl}' ${authHeader}).tree | Where-Object {$_.path -like 'FINAL/${CURRENT_VERSION}/LIGHT/*'} | ConvertTo-Json -Compress"`;
 
